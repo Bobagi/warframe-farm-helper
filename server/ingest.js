@@ -11,7 +11,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { marked } = require('marked');
-const { fetchJson, escapeHtml } = require('./util');
+const { fetchJson, escapeHtml, COMMON_RESOURCES } = require('./util');
 const { getDb, setMeta } = require('./db');
 
 // Sanitização na origem: HTML cru dentro do markdown vira texto escapado e
@@ -133,6 +133,42 @@ function groupRelics(entries) {
   return [...map.values()];
 }
 
+/**
+ * Índice reverso "usado para construir": varre os components de cada item e,
+ * quando um componente É um item avulso que vale uma página (uma arma/
+ * companheiro — não um recurso bruto), registra component -> produto. Ex.:
+ * Furis -> Afuris. Casa por `uniqueName` (robusto a nomes iguais). Dedup por
+ * (componente, produto), SOMANDO a quantidade quando o produto lista o mesmo
+ * componente mais de uma vez (a Afuris pede 2× Furis). `itemRows` = as linhas
+ * já montadas para a tabela items (cada uma com `.slim.components`).
+ */
+function buildCraftingUses(itemRows) {
+  const byUnique = new Map(itemRows.map((r) => [r.unique_name, r]));
+  const uses = new Map(); // "component product" (uniqueNames não têm espaço) -> linha
+  for (const r of itemRows) {
+    const comps = r.slim && r.slim.components;
+    if (!Array.isArray(comps)) continue;
+    for (const c of comps) {
+      const cu = c.uniqueName;
+      if (!cu || cu === r.unique_name) continue; // sem id ou auto-referência
+      const compItem = byUnique.get(cu);
+      // só itens avulsos indexados que NÃO são recurso bruto (senão "Morphics
+      // usado em 500 coisas" polui) — filtra por categoria e pela lista comum
+      if (!compItem || compItem.category === 'Resources' || COMMON_RESOURCES.has(c.name)) continue;
+      const key = `${cu} ${r.unique_name}`;
+      const prev = uses.get(key);
+      if (prev) prev.item_count += (c.itemCount || 1);
+      else uses.set(key, {
+        component_unique: cu,
+        product_unique: r.unique_name,
+        product_name: r.name,
+        item_count: c.itemCount || 1,
+      });
+    }
+  }
+  return [...uses.values()];
+}
+
 /** Frontmatter mínimo: bloco `--- ... ---` com `chave: valor` (JSON aceito no valor). */
 function parseFrontmatter(src) {
   const m = src.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
@@ -228,10 +264,14 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
   const articles = loadArticles();
   log(`[ingest] artigos locais: ${articles.length}`);
 
+  const craftingUses = buildCraftingUses(itemRows);
+  log(`[ingest] índice "usado para construir": ${craftingUses.length} relações`);
+
   const tx = db.transaction(() => {
     db.prepare('DELETE FROM items').run();
     db.prepare('DELETE FROM relics').run();
     db.prepare('DELETE FROM articles').run();
+    db.prepare('DELETE FROM crafting_uses').run();
 
     const insItem = db.prepare(`INSERT OR REPLACE INTO items
       (unique_name, name, name_pt, category, type, mastery_req, vaulted, image_name, wiki_url, tradable, raw)
@@ -257,6 +297,11 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
       VALUES (@slug, @kind, @title, @keywords, @match_json, @html, @body_md, @sort)`);
     for (const a of articles) insArt.run(a);
 
+    const insUse = db.prepare(`INSERT OR REPLACE INTO crafting_uses
+      (component_unique, product_unique, product_name, item_count)
+      VALUES (@component_unique, @product_unique, @product_name, @item_count)`);
+    for (const u of craftingUses) insUse.run(u);
+
     setMeta(db, 'last_ingest', new Date().toISOString());
   });
   tx();
@@ -265,13 +310,16 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
     items: db.prepare('SELECT COUNT(*) c FROM items').get().c,
     relics: db.prepare('SELECT COUNT(*) c FROM relics').get().c,
     articles: db.prepare('SELECT COUNT(*) c FROM articles').get().c,
+    craftingUses: db.prepare('SELECT COUNT(*) c FROM crafting_uses').get().c,
   };
   setMeta(db, 'counts', JSON.stringify(counts));
   log(`[ingest] concluído: ${counts.items} itens, ${counts.relics} relíquias, ${counts.articles} artigos.`);
   return counts;
 }
 
-module.exports = { runIngest, groupRelics, parseFrontmatter, slimItem, loadArticles, CATEGORIES };
+module.exports = {
+  runIngest, groupRelics, parseFrontmatter, slimItem, loadArticles, buildCraftingUses, CATEGORIES,
+};
 
 if (require.main === module) {
   runIngest({}).then(

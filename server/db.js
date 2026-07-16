@@ -32,6 +32,18 @@ CREATE TABLE IF NOT EXISTS relics (
   rewards TEXT NOT NULL
 );
 
+-- índice reverso "usado para construir": mapeia um item que é COMPONENTE de
+-- outro (ex.: Furis) ao produto que o consome (ex.: Afuris). Populado na
+-- ingestão a partir dos components de cada item.
+CREATE TABLE IF NOT EXISTS crafting_uses (
+  component_unique TEXT NOT NULL,
+  product_unique   TEXT NOT NULL,
+  product_name     TEXT NOT NULL,
+  item_count       INTEGER NOT NULL DEFAULT 1,
+  PRIMARY KEY (component_unique, product_unique)
+);
+CREATE INDEX IF NOT EXISTS idx_crafting_uses_comp ON crafting_uses(component_unique);
+
 CREATE TABLE IF NOT EXISTS articles (
   slug       TEXT PRIMARY KEY,
   kind       TEXT NOT NULL,

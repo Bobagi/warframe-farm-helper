@@ -23,7 +23,8 @@ os chatos: destruir Crewship com Artilharia Frontal, enigmas do Duviri, etc.).
 - **Página de item** — árvore de componentes com relíquias (destaque disponível × vaulted), chances
   intact/radiante, requisitos de forja (créditos/tempo/MR), fontes de drop não-relíquia e **passo a passo**
   em linguagem simples. Cobre armas, warframes, **gear/itens de quest** (ex.: Apótico do Anoitecer),
-  arcanos e peixes — não só primes.
+  arcanos e peixes — não só primes. Mostra também **"usado para construir"** (índice reverso: quando o
+  item é matéria-prima de outro, ex.: Furis → Afuris), montado na ingestão a partir dos components.
 - **Relíquias** — recompensas por refinamento (Intact→Radiant), onde a relíquia dropa, status vaulted e
   fissuras ativas do tier.
 - **Relógios dos mundos** — faixa fixa abaixo do cabeçalho (em todas as páginas) com o ciclo de cada

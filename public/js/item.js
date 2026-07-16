@@ -115,6 +115,20 @@
       ]),
     ]));
 
+    if (item.usedToBuild && item.usedToBuild.length) {
+      frag.push(el('section', { class: 'panel' }, [
+        el('p', { class: 'eyebrow' }, [`${t('item.usedIn')} `, el('span', { class: 'hint', text: t('item.usedInHint') })]),
+        el('ul', { class: 'rowlist' }, item.usedToBuild.map((p) => el('li', { class: 'row' }, [
+          el('a', { class: 'row-link result-item grow', href: p.url }, [
+            p.image ? el('img', { src: p.image, alt: '', loading: 'lazy' }) : null,
+            el('span', { class: 'name', text: nameFor(p) }),
+          ]),
+          p.itemCount > 1 ? el('span', { class: 'count', text: `×${p.itemCount}` }) : null,
+          p.vaulted != null ? statusBadge(p.vaulted) : null,
+        ]))),
+      ]));
+    }
+
     if (item.crafting) {
       frag.push(el('section', { class: 'panel panel-quiet' }, [
         el('p', { class: 'eyebrow', text: t('item.forge') }),

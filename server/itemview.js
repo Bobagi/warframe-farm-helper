@@ -260,6 +260,23 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
     });
   }
 
+  // índice reverso: quais itens usam ESTE como componente (ex.: Furis → Afuris)
+  const usedToBuild = db.prepare(
+    `SELECT cu.product_unique AS uniqueName, cu.item_count AS itemCount,
+            i.name, i.name_pt AS namePt, i.image_name AS imageName, i.vaulted
+     FROM crafting_uses cu JOIN items i ON i.unique_name = cu.product_unique
+     WHERE cu.component_unique = ?
+     ORDER BY i.name`
+  ).all(uniqueName).map((u) => ({
+    uniqueName: u.uniqueName,
+    name: u.name,
+    namePt: u.namePt,
+    image: u.imageName ? CDN_IMG + u.imageName : null,
+    itemCount: u.itemCount,
+    vaulted: u.vaulted === 1 ? true : u.vaulted === 0 ? false : null,
+    url: `/item.html?u=${encodeURIComponent(u.uniqueName)}`,
+  }));
+
   const itemSources = classifyDrops(raw.drops);
 
   // fissuras só dos tiers que interessam para este item
@@ -291,6 +308,7 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
       marketCost: Number.isFinite(raw.marketCost) && raw.marketCost > 0 ? raw.marketCost : null,
     } : null,
     components: comps,
+    usedToBuild,
     sources: itemSources,
     steps: buildSteps(raw, comps, itemSources, lang),
     setMarketSlug: row.tradable && isPrime ? marketSlugFor(`${raw.name} set`) : null,
