@@ -8,6 +8,7 @@
 
 const { getDb } = require('./db');
 const { getFissures } = require('./worldstate');
+const { COMMON_RESOURCES } = require('./util');
 
 const CDN_IMG = 'https://cdn.warframestat.us/img/';
 const RELIC_RE = /^(Lith|Meso|Neo|Axi|Requiem) (\S+) Relic(?: \((Exceptional|Flawless|Radiant)\))?$/;
@@ -223,16 +224,23 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
     }
   }
 
+  // um componente cujo nome é um item avulso (Morphics, Orokin Cell, plantas…)
+  // é ingrediente — mantém o nome dele; peças de fato ganham o prefixo do item
+  const isStandalone = db.prepare('SELECT 1 FROM items WHERE name = ? LIMIT 1');
+  const standaloneCache = new Map();
+  const isIngredient = (name) => {
+    if (COMMON_RESOURCES.has(name)) return true;
+    if (!standaloneCache.has(name)) standaloneCache.set(name, !!isStandalone.get(name));
+    return standaloneCache.get(name);
+  };
+
   const relicCache = new Map();
   const comps = [];
   for (const c of merged.values()) {
     const cls = classifyDrops(c.drops);
-    // prefixa o nome do item só em PARTES próprias (Blueprint ou peça de
-    // relíquia). Ingredientes que são recursos avulsos (Morphics, plantas…)
-    // ficam com o nome deles, não "Item Morphics".
-    const isOwnPart = c.name === 'Blueprint' || cls.relics.length > 0;
-    const fullName = c.name.includes(raw.name) ? c.name
-      : (isOwnPart ? `${raw.name} ${c.name}` : c.name);
+    const fullName = c.name.includes(raw.name) || isIngredient(c.name)
+      ? c.name
+      : `${raw.name} ${c.name}`;
     const relics = decorateRelics(db, cls.relics, fullName, fissuresByTier, relicCache);
     const available = relics.some((r) => r.vaulted === false) || cls.other.length > 0;
     const marketSlug = (relics.find((r) => r.marketSlug) || {}).marketSlug
@@ -321,4 +329,7 @@ function buildRelicDetail(name) {
   };
 }
 
-module.exports = { buildItemDetail, buildRelicDetail, classifyDrops, marketSlugFor, fmtBuildTime };
+module.exports = {
+  buildItemDetail, buildRelicDetail, classifyDrops, marketSlugFor,
+  fmtBuildTime, fmtPct, rarityLabel, buildSteps,
+};

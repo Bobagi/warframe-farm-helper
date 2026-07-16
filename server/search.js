@@ -7,7 +7,7 @@
  */
 
 const MiniSearch = require('minisearch');
-const { stripDiacritics } = require('./util');
+const { stripDiacritics, COMMON_RESOURCES } = require('./util');
 const { getDb, getMeta } = require('./db');
 
 const CDN_IMG = 'https://cdn.warframestat.us/img/';
@@ -52,6 +52,9 @@ function buildDocs() {
   const items = db.prepare(
     'SELECT unique_name, name, name_pt, category, type, image_name, raw FROM items'
   ).all();
+  // nomes que já são itens próprios (recursos: Morphics, Orokin Cell, plantas…)
+  // — não devem virar "componente" de outro item na busca
+  const itemNames = new Set(items.map((i) => i.name));
   for (const it of items) {
     const kind = CATEGORY_KIND[it.category] || 'item';
     const url = `/item.html?u=${encodeURIComponent(it.unique_name)}`;
@@ -67,13 +70,10 @@ function buildDocs() {
     try { raw = JSON.parse(it.raw); } catch { /* ignora raw corrompido */ }
     const comps = raw && Array.isArray(raw.components) ? raw.components : [];
     for (const c of comps) {
-      // o blueprint principal já é achado pelo nome do item
-      if (!c.name || c.name === 'Blueprint') continue;
-      // só indexa PEÇAS de relíquia (ex.: "Braton Prime Stock"); ingredientes
-      // avulsos (Morphics, plantas…) já têm entrada própria como recurso
-      const isRelicPart = Array.isArray(c.drops)
-        && c.drops.some((d) => typeof d.location === 'string' && / Relic\b/.test(d.location));
-      if (!isRelicPart) continue;
+      // pula o blueprint principal e ingredientes que já são itens próprios
+      // (Morphics, Orokin Cell, plantas…) — só peças de fato (Stock, Barrel,
+      // Neuroptics…) viram documento de componente
+      if (!c.name || c.name === 'Blueprint' || itemNames.has(c.name) || COMMON_RESOURCES.has(c.name)) continue;
       const full = c.name.includes(it.name) ? c.name : `${it.name} ${c.name}`;
       const fullPt = it.name_pt ? full.replace(it.name, it.name_pt) : '';
       push({
@@ -197,4 +197,4 @@ function stats() {
   return { docs: docCount, lastIngestSeen };
 }
 
-module.exports = { buildIndex, maybeReindex, searchLocal, suggest, stats, tokensOf };
+module.exports = { buildIndex, maybeReindex, searchLocal, suggest, stats, tokensOf, trimTail };

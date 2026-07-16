@@ -41,4 +41,18 @@ async function fetchJson(url, { timeoutMs = 20000, retries = 2, headers = {} } =
   throw lastErr;
 }
 
-module.exports = { fetchJson, sleep, nowSec, stripDiacritics, escapeHtml, USER_AGENT };
+/**
+ * Recursos de crafting comuns que o WFCD lista como componente mas NÃO tem
+ * como item próprio no Resources.json (ficam em Misc). Tratados como
+ * ingredientes: não ganham prefixo do item nem viram doc de componente.
+ */
+const COMMON_RESOURCES = new Set([
+  'Ferrite', 'Nano Spores', 'Salvage', 'Alloy Plate', 'Circuits', 'Rubedo',
+  'Plastids', 'Polymer Bundle', 'Cryotic', 'Oxium', 'Gallium', 'Morphics',
+  'Neurodes', 'Neural Sensors', 'Orokin Cell', 'Control Module', 'Argon Crystal',
+  'Tellurium', 'Kuva', 'Forma', 'Detonite Injector', 'Fieldron', 'Mutagen Mass',
+  'Detonite Ampule', 'Fieldron Sample', 'Mutagen Sample', 'Nitain Extract',
+  'Hexenon', 'Nano Spores', 'Ferrite',
+]);
+
+module.exports = { fetchJson, sleep, nowSec, stripDiacritics, escapeHtml, USER_AGENT, COMMON_RESOURCES };
