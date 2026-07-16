@@ -33,8 +33,8 @@ const App = (() => {
     return res.json();
   }
 
-  const fmtInt = (n) => Number(n).toLocaleString('pt-BR');
-  const fmtPct = (n) => (n == null ? '—' : `${String(n).replace('.', ',')}%`);
+  const fmtInt = (n) => Number(n).toLocaleString(I18n.lang() === 'en' ? 'en-US' : 'pt-BR');
+  const fmtPct = (n) => (n == null ? '—' : (I18n.lang() === 'en' ? `${n}%` : `${String(n).replace('.', ',')}%`));
 
   function timeLeft(iso) {
     const ms = Date.parse(iso) - Date.now();
@@ -66,17 +66,12 @@ const App = (() => {
   const tierBadge = (tier) =>
     el('span', { class: `badge badge-tier tier-${tier}`, text: tier });
 
-  const rarityChip = (rarity, labelPt) =>
-    el('span', { class: `chip-rar rar-${rarity || 'Common'}`, text: labelPt || rarity || '' });
+  const rarityChip = (rarity) =>
+    el('span', { class: `chip-rar rar-${rarity || 'Common'}`, text: I18n.t(`rar.${rarity}`) });
 
   const statusBadge = (vaulted) => (vaulted
-    ? el('span', { class: 'badge badge-vaulted', text: 'Vaulted' })
-    : el('span', { class: 'badge badge-ok', text: 'Disponível' }));
-
-  const KIND_LABEL = {
-    item: 'Item', component: 'Componente', relic: 'Relíquia',
-    faq: 'FAQ', nightwave: 'Nightwave', mod: 'Mod', resource: 'Recurso',
-  };
+    ? el('span', { class: 'badge badge-vaulted', text: I18n.t('status.vaulted') })
+    : el('span', { class: 'badge badge-ok', text: I18n.t('status.available') }));
 
   function resultRow(r) {
     const left = [];
@@ -84,11 +79,11 @@ const App = (() => {
     return el('a', { class: 'row row-link result-item', href: r.url }, [
       ...left,
       el('span', { class: 'grow' }, [
-        el('span', { class: 'name', text: r.name }),
+        el('span', { class: 'name', text: I18n.nameFor(r) }),
         el('br'),
-        el('span', { class: 'sub', text: r.sub || '' }),
+        el('span', { class: 'sub', text: I18n.subLabel(r) }),
       ]),
-      el('span', { class: 'kind-tag', text: KIND_LABEL[r.kind] || r.kind }),
+      el('span', { class: 'kind-tag', text: I18n.t(`kind.${r.kind}`) }),
     ]);
   }
 
@@ -109,8 +104,8 @@ const App = (() => {
       items.forEach((r, i) => {
         const rowEl = el('div', { class: `sg${i === active ? ' active' : ''}`, role: 'option' }, [
           r.image ? el('img', { src: r.image, alt: '', loading: 'lazy' }) : null,
-          el('span', { text: r.name }),
-          el('span', { class: 'sg-sub', text: r.sub || '' }),
+          el('span', { text: I18n.nameFor(r) }),
+          el('span', { class: 'sg-sub', text: I18n.subLabel(r) }),
         ]);
         rowEl.addEventListener('mousedown', (ev) => { ev.preventDefault(); location.href = r.url; });
         suggestBox.append(rowEl);
@@ -158,5 +153,4 @@ const App = (() => {
     tierBadge, rarityChip, statusBadge, resultRow, attachSearch, debounce, navCurrent,
   };
 })();
-
-document.addEventListener('DOMContentLoaded', () => App.navCurrent());
+// navCurrent é chamado por layout.js, depois de o cabeçalho ser construído

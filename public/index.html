@@ -4,87 +4,67 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Warframe Farm Helper — onde farmar qualquer coisa</title>
-  <meta name="description" content="Buscador de farm para Warframe em português: onde dropa cada item, relíquias disponíveis ou vaulted, fissuras do Void ativas agora, FAQ de mecânicas e guias dos atos do Nightwave.">
+  <meta name="description" content="Buscador de farm para Warframe: onde dropa cada item, relíquias disponíveis ou vaulted, fissuras do Void ativas agora, FAQ de mecânicas e guias dos atos do Nightwave. PT-BR e inglês.">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <header class="site-head">
-    <div class="wrap">
-      <a class="brand" href="/">WARFRAME <span>FARM HELPER</span></a>
-      <nav class="site-nav" aria-label="Principal">
-        <a href="/buscar.html">Buscar</a>
-        <a href="/#fissuras">Fissuras</a>
-        <a href="/nightwave.html">Nightwave</a>
-        <a href="/faq.html">FAQ</a>
-      </nav>
-    </div>
-  </header>
+  <header class="site-head" id="site-header"></header>
 
   <main>
     <div class="wrap">
       <section class="hero">
-        <h1>Onde <span class="glow">farmar</span> qualquer coisa em Warframe</h1>
-        <p class="lead">Item, relíquia, mecânica ou ato do Nightwave — uma busca só, em português, com dados oficiais de drop e o estado do jogo agora.</p>
+        <h1><span data-i18n="home.h1a">Onde</span> <span class="glow" data-i18n="home.h1b">farmar</span> <span data-i18n="home.h1c">qualquer coisa em Warframe</span></h1>
+        <p class="lead" data-i18n="home.lead">Item, relíquia, mecânica ou ato do Nightwave — uma busca só, em português, com dados oficiais de drop e o estado do jogo agora.</p>
         <form class="console-wrap" id="search-form" role="search">
           <div class="console">
-            <input id="q" type="search" placeholder="Ex.: Braton Prime Stock, Rhino, o que fazer com kubrow…"
-                   autocomplete="off" aria-label="Buscar item, relíquia ou dúvida" autofocus>
-            <button type="submit">Buscar</button>
+            <input id="q" type="search" data-i18n-ph="search.placeholderBig"
+                   autocomplete="off" aria-label="Buscar" autofocus>
+            <button type="submit" data-i18n="search.button">Buscar</button>
           </div>
           <div class="suggest" id="suggest" role="listbox" hidden></div>
         </form>
-        <div class="example-chips" aria-label="Exemplos de busca">
-          <a href="/buscar.html?q=Braton%20Prime%20Stock">Braton Prime Stock</a>
-          <a href="/buscar.html?q=o%20que%20fazer%20com%20kubrow">O que fazer com Kubrow?</a>
-          <a href="/buscar.html?q=Rhino">Rhino</a>
-          <a href="/nightwave.html?slug=10-artilharia-frontal-crewship">Crewship + Artilharia Frontal</a>
-        </div>
+        <div class="example-chips" id="example-chips" aria-label="Exemplos de busca"></div>
       </section>
 
       <div class="cols-2">
         <section class="panel" id="fissuras" aria-labelledby="fiss-title">
-          <p class="eyebrow" id="fiss-title">Fissuras do Void — agora <span class="hint" id="fiss-hint"></span></p>
-          <div class="tier-toggle" id="fiss-mode" role="group" aria-label="Tipo de fissura">
-            <button type="button" data-mode="normal" aria-pressed="true">Normais</button>
-            <button type="button" data-mode="hard" aria-pressed="false">Steel Path</button>
-            <button type="button" data-mode="storm" aria-pressed="false">Railjack</button>
+          <p class="eyebrow" id="fiss-title"><span data-i18n="fissures.title">Fissuras do Void — agora</span> <span class="hint" id="fiss-hint"></span></p>
+          <div class="tier-toggle" id="fiss-mode" role="group">
+            <button type="button" data-mode="normal" data-i18n="fissures.normal" aria-pressed="true">Normais</button>
+            <button type="button" data-mode="hard" data-i18n="fissures.hard" aria-pressed="false">Steel Path</button>
+            <button type="button" data-mode="storm" data-i18n="fissures.storm" aria-pressed="false">Railjack</button>
           </div>
-          <ul class="rowlist" id="fiss-list"><li class="spin">Consultando o worldstate…</li></ul>
+          <ul class="rowlist" id="fiss-list"></ul>
         </section>
 
         <div>
           <section class="panel" aria-labelledby="nw-title">
-            <p class="eyebrow" id="nw-title">Nightwave — atos da semana</p>
-            <ul class="rowlist" id="nw-list"><li class="spin">Carregando atos…</li></ul>
-            <p style="margin:14px 0 0"><a class="btn-line" href="/nightwave.html">Todos os atos + guias</a></p>
+            <p class="eyebrow" id="nw-title" data-i18n="nw.weekTitle">Nightwave — atos da semana</p>
+            <ul class="rowlist" id="nw-list"></ul>
+            <p class="panel-cta"><a class="btn-line" href="/nightwave.html" data-i18n="nw.allActs">Todos os atos + guias</a></p>
           </section>
 
           <section class="panel panel-quiet" aria-labelledby="baro-title">
-            <p class="eyebrow" id="baro-title">Baro Ki'Teer</p>
-            <div id="baro-body" class="muted small">Consultando…</div>
+            <p class="eyebrow" id="baro-title" data-i18n="baro.title">Baro Ki'Teer</p>
+            <div id="baro-body" class="muted small"></div>
           </section>
         </div>
       </div>
 
       <section class="panel" aria-labelledby="faq-title">
-        <p class="eyebrow" id="faq-title">FAQ — mecânicas do jogo</p>
+        <p class="eyebrow" id="faq-title" data-i18n="faq.title">FAQ — mecânicas do jogo</p>
         <div class="card-grid" id="faq-cards"></div>
-        <p style="margin:14px 0 0"><a class="btn-line" href="/faq.html">Ver todas as perguntas</a></p>
+        <p class="panel-cta"><a class="btn-line" href="/faq.html" data-i18n="faq.all">Ver todas as perguntas</a></p>
       </section>
     </div>
   </main>
 
-  <footer class="site-foot">
-    <div class="wrap">
-      <p class="foot-brand">WARFRAME FARM HELPER</p>
-      <p>Site não-oficial, feito por fã. Sem afiliação com a Digital Extremes. Warframe e o logotipo de Warframe são marcas da Digital Extremes Ltd.</p>
-      <p>Dados de itens e drops: <a href="https://github.com/WFCD" rel="noopener">WFCD — Warframe Community Developers</a> (drop tables oficiais da DE) · Estado do jogo: <a href="https://docs.warframestat.us" rel="noopener">warframestat.us</a> · Preços: <a href="https://warframe.market" rel="noopener">warframe.market</a>.</p>
-      <p>Código aberto: <a href="https://github.com/Bobagi/warframe-farm-helper" rel="noopener">github.com/Bobagi/warframe-farm-helper</a></p>
-    </div>
-  </footer>
+  <footer class="site-foot" id="site-footer"></footer>
 
+  <script src="/js/i18n.js"></script>
   <script src="/js/common.js"></script>
+  <script src="/js/layout.js"></script>
   <script src="/js/home.js"></script>
 </body>
 </html>

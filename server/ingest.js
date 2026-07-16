@@ -36,11 +36,12 @@ marked.use({
 const RAW_BASE = process.env.WF_ITEMS_BASE
   || 'https://raw.githubusercontent.com/WFCD/warframe-items/master/data/json';
 
-// Categorias indexadas (equipamentos farmáveis + recursos + mods).
+// Categorias indexadas (equipamentos farmáveis + gear/quest/arcane + recursos + mods).
 const CATEGORIES = [
   'Warframes', 'Primary', 'Secondary', 'Melee',
   'Archwing', 'Arch-Gun', 'Arch-Melee',
   'Sentinels', 'SentinelWeapons', 'Pets',
+  'Gear', 'Quests', 'Arcanes', 'Fish',
   'Resources', 'Mods',
 ];
 

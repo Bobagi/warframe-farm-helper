@@ -15,6 +15,8 @@ const RARITY_PT = { Common: 'Comum', Uncommon: 'Incomum', Rare: 'Rara', Legendar
 
 const compAnchor = (name) => 'c-' + String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
+const rarityLabel = (r, lang) => (lang === 'en' ? (r || '') : (RARITY_PT[r] || r || ''));
+
 function marketSlugFor(name) {
   return String(name).toLowerCase()
     .replace(/['&.]/g, '')
@@ -22,15 +24,15 @@ function marketSlugFor(name) {
     .replace(/^_+|_+$/g, '');
 }
 
-function fmtBuildTime(sec) {
+function fmtBuildTime(sec, lang) {
   if (!Number.isFinite(sec) || sec <= 0) return null;
   const h = sec / 3600;
-  if (h >= 48) return `${Math.round(h / 24)} dias`;
+  if (h >= 48) return `${Math.round(h / 24)} ${lang === 'en' ? 'days' : 'dias'}`;
   if (h >= 1) return `${Math.round(h)} h`;
   return `${Math.round(sec / 60)} min`;
 }
 
-const fmtPct = (n) => (n == null ? null : `${String(n).replace('.', ',')}%`);
+const fmtPct = (n, lang) => (n == null ? null : (lang === 'en' ? `${n}%` : `${String(n).replace('.', ',')}%`));
 
 /** Separa drops de um componente em relíquias (agrupadas) e outras fontes. */
 function classifyDrops(drops) {
@@ -121,10 +123,15 @@ function decorateRelics(db, relicRefs, fullName, fissuresByTier, relicCache) {
   return out;
 }
 
-function buildSteps(raw, comps, itemSources) {
+/** Passo a passo bilíngue (pt/en). Escolhe a redação pelo `lang`. */
+function buildSteps(raw, comps, itemSources, lang) {
+  const en = lang === 'en';
+  const L = (pt, enStr) => (en ? enStr : pt);
+  const pct = (n) => fmtPct(n, lang);
   const steps = [];
+
   if (Number.isFinite(raw.masteryReq) && raw.masteryReq > 0) {
-    steps.push(`Requisito: Maestria (MR) ${raw.masteryReq}.`);
+    steps.push(L(`Requisito: Maestria (MR) ${raw.masteryReq}.`, `Requirement: Mastery Rank (MR) ${raw.masteryReq}.`));
   }
 
   const relicComps = comps.filter((c) => c.relics.length);
@@ -135,47 +142,64 @@ function buildSteps(raw, comps, itemSources) {
   for (const c of relicComps) {
     const best = c.relics.find((r) => r.vaulted === false);
     if (best) {
+      const rar = rarityLabel(best.rarity, lang);
       const where = best.relicDrops[0]
-        ? ` A relíquia dropa em: ${best.relicDrops[0].location} (${fmtPct(best.relicDrops[0].chance)}).`
+        ? L(` A relíquia dropa em: ${best.relicDrops[0].location} (${pct(best.relicDrops[0].chance)}).`,
+            ` The relic drops at: ${best.relicDrops[0].location} (${pct(best.relicDrops[0].chance)}).`)
         : '';
       const chances = [
-        best.chanceIntact != null ? `${fmtPct(best.chanceIntact)} intact` : null,
-        best.chanceRadiant != null ? `${fmtPct(best.chanceRadiant)} radiante` : null,
+        best.chanceIntact != null ? `${pct(best.chanceIntact)} intact` : null,
+        best.chanceRadiant != null ? `${pct(best.chanceRadiant)} ${L('radiante', 'radiant')}` : null,
       ].filter(Boolean).join(' / ');
-      steps.push(`${c.fullName}: farme a relíquia ${best.relic} (${best.rarityPt}${chances ? `, ${chances}` : ''}).${where}`);
+      steps.push(L(
+        `${c.fullName}: farme a relíquia ${best.relic} (${rar}${chances ? `, ${chances}` : ''}).${where}`,
+        `${c.fullName}: farm the ${best.relic} relic (${rar}${chances ? `, ${chances}` : ''}).${where}`));
     } else {
-      steps.push(`${c.fullName}: todas as relíquias estão vaulted — compre a peça de outro jogador (warframe.market) ou aguarde ela voltar na Prime Resurgence (Varzia, Bazar da Maroo).`);
+      steps.push(L(
+        `${c.fullName}: todas as relíquias estão vaulted — compre a peça de outro jogador (warframe.market) ou aguarde ela voltar na Prime Resurgence (Varzia, Bazar da Maroo).`,
+        `${c.fullName}: every relic is vaulted — buy the part from another player (warframe.market) or wait for it to return via Prime Resurgence (Varzia, Maroo's Bazaar).`));
     }
   }
   if (relicComps.length) {
-    steps.push('Abra as relíquias em fissuras do Void do tier correspondente (lista de fissuras ativas nesta página). Dica: refine para Radiante com 100 Void Traces e abra em grupo (radshare) para melhorar a chance das peças raras.');
+    steps.push(L(
+      'Abra as relíquias em fissuras do Void do tier correspondente (lista de fissuras ativas nesta página). Dica: refine para Radiante com 100 Void Traces e abra em grupo (radshare) para melhorar a chance das peças raras.',
+      'Crack the relics in Void Fissures of the matching tier (active fissures listed on this page). Tip: refine to Radiant with 100 Void Traces and open in a group (radshare) to improve the odds on rare parts.'));
   }
   for (const c of farmComps) {
     const top = c.otherSources[0];
-    const rarity = top.rarity ? `, ${RARITY_PT[top.rarity] || top.rarity}` : '';
-    steps.push(`${c.fullName}: dropa em ${top.location} (${fmtPct(top.chance)}${rarity}).`);
+    const rar = top.rarity ? `, ${rarityLabel(top.rarity, lang)}` : '';
+    steps.push(L(
+      `${c.fullName}: dropa em ${top.location} (${pct(top.chance)}${rar}).`,
+      `${c.fullName}: drops at ${top.location} (${pct(top.chance)}${rar}).`));
   }
   for (const c of orphanComps) {
-    steps.push(`${c.fullName}: sem fonte de drop listada — normalmente vem de quest, pesquisa de clã (Dojo) ou loja; confira a wiki.`);
+    steps.push(L(
+      `${c.fullName}: sem fonte de drop listada — normalmente vem de quest, pesquisa de clã (Dojo) ou loja; confira a wiki.`,
+      `${c.fullName}: no listed drop source — usually from a quest, clan research (Dojo) or a shop; check the wiki.`));
   }
 
   if (comps.length && Number.isFinite(raw.buildPrice)) {
-    const time = fmtBuildTime(raw.buildTime);
-    steps.push(`Na Foundry: construa cada componente e depois o blueprint principal — ${Number(raw.buildPrice).toLocaleString('pt-BR')} créditos${time ? `, ${time} de forja` : ''}${raw.skipBuildTimePrice ? ` (apressar: ${raw.skipBuildTimePrice} platina)` : ''}.`);
+    const time = fmtBuildTime(raw.buildTime, lang);
+    const credits = Number(raw.buildPrice).toLocaleString(en ? 'en-US' : 'pt-BR');
+    steps.push(L(
+      `Na Foundry: construa cada componente e depois o blueprint principal — ${credits} créditos${time ? `, ${time} de forja` : ''}${raw.skipBuildTimePrice ? ` (apressar: ${raw.skipBuildTimePrice} platina)` : ''}.`,
+      `In the Foundry: build each component, then the main blueprint — ${credits} credits${time ? `, ${time} to build` : ''}${raw.skipBuildTimePrice ? ` (rush: ${raw.skipBuildTimePrice} platinum)` : ''}.`));
   }
 
   if (!comps.length) {
     if (itemSources.relics.length || itemSources.other.length) {
       const top = itemSources.other[0] || null;
-      if (top) steps.push(`Melhor fonte: ${top.location} (${fmtPct(top.chance)}).`);
+      if (top) steps.push(L(`Melhor fonte: ${top.location} (${pct(top.chance)}).`, `Best source: ${top.location} (${pct(top.chance)}).`));
     } else {
-      steps.push('Este item não tem fonte de drop listada nas tabelas oficiais — normalmente vem de quest, pesquisa de clã (Dojo), loja de sindicato ou do Mercado (créditos). Confira a página da wiki para o caminho exato.');
+      steps.push(L(
+        'Este item não tem fonte de drop listada nas tabelas oficiais — normalmente vem de quest, pesquisa de clã (Dojo), loja de sindicato ou do Mercado (créditos). Confira a página da wiki para o caminho exato.',
+        'This item has no drop source in the official tables — usually from a quest, clan research (Dojo), a syndicate shop or the Market (credits). Check the wiki page for the exact path.'));
     }
   }
   return steps;
 }
 
-async function buildItemDetail(uniqueName) {
+async function buildItemDetail(uniqueName, lang = 'pt') {
   const db = getDb();
   const row = db.prepare('SELECT * FROM items WHERE unique_name = ?').get(uniqueName);
   if (!row) return null;
@@ -202,8 +226,13 @@ async function buildItemDetail(uniqueName) {
   const relicCache = new Map();
   const comps = [];
   for (const c of merged.values()) {
-    const fullName = c.name.includes(raw.name) ? c.name : `${raw.name} ${c.name}`;
     const cls = classifyDrops(c.drops);
+    // prefixa o nome do item só em PARTES próprias (Blueprint ou peça de
+    // relíquia). Ingredientes que são recursos avulsos (Morphics, plantas…)
+    // ficam com o nome deles, não "Item Morphics".
+    const isOwnPart = c.name === 'Blueprint' || cls.relics.length > 0;
+    const fullName = c.name.includes(raw.name) ? c.name
+      : (isOwnPart ? `${raw.name} ${c.name}` : c.name);
     const relics = decorateRelics(db, cls.relics, fullName, fissuresByTier, relicCache);
     const available = relics.some((r) => r.vaulted === false) || cls.other.length > 0;
     const marketSlug = (relics.find((r) => r.marketSlug) || {}).marketSlug
@@ -241,7 +270,7 @@ async function buildItemDetail(uniqueName) {
     namePt: row.name_pt,
     category: row.category,
     type: raw.type || row.category,
-    description: raw.descriptionPt || raw.description || '',
+    description: (lang === 'en' ? raw.description : (raw.descriptionPt || raw.description)) || '',
     vaulted: row.vaulted === 1 ? true : row.vaulted === 0 ? false : null,
     image: raw.imageName ? CDN_IMG + raw.imageName : null,
     wikiUrl: row.wiki_url,
@@ -249,13 +278,13 @@ async function buildItemDetail(uniqueName) {
     tradable: !!row.tradable,
     crafting: comps.length ? {
       credits: Number.isFinite(raw.buildPrice) ? raw.buildPrice : null,
-      time: fmtBuildTime(raw.buildTime),
+      time: fmtBuildTime(raw.buildTime, lang),
       rushPlatinum: Number.isFinite(raw.skipBuildTimePrice) ? raw.skipBuildTimePrice : null,
       marketCost: Number.isFinite(raw.marketCost) && raw.marketCost > 0 ? raw.marketCost : null,
     } : null,
     components: comps,
     sources: itemSources,
-    steps: buildSteps(raw, comps, itemSources),
+    steps: buildSteps(raw, comps, itemSources, lang),
     setMarketSlug: row.tradable && isPrime ? marketSlugFor(`${raw.name} set`) : null,
     fissures: relevantFissures,
   };

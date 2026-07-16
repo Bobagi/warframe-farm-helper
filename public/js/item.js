@@ -2,16 +2,17 @@
 
 (() => {
   const { el, api, qs, fmtInt, fmtPct, tierBadge, rarityChip, statusBadge, startTimers } = App;
+  const { t, lang, nameFor, missionName, enemyName } = I18n;
   const root = document.getElementById('content');
 
   function relicTable(comp) {
     const table = el('table', { class: 'relic-table' }, [
       el('thead', {}, [el('tr', {}, [
-        el('th', { text: 'Relíquia' }),
-        el('th', { text: 'Raridade' }),
+        el('th', { text: t('th.relic') }),
+        el('th', { text: t('th.rarity') }),
         el('th', { text: 'Intact' }),
-        el('th', { text: 'Radiante' }),
-        el('th', { text: 'Status' }),
+        el('th', { text: t('ref.Radiant') }),
+        el('th', { text: t('th.status') }),
       ])]),
     ]);
     const tbody = el('tbody');
@@ -20,16 +21,16 @@
         el('td', {}, [
           el('a', { href: `/relic.html?n=${encodeURIComponent(r.relic)}` }, [tierBadge(r.tier), ` ${r.relic}`]),
           r.vaulted === false && r.relicDrops[0]
-            ? el('div', { class: 'dim small', text: `dropa em: ${r.relicDrops[0].location} (${fmtPct(r.relicDrops[0].chance)})` })
+            ? el('div', { class: 'dim small', text: `${t('item.dropsAt')}: ${r.relicDrops[0].location} (${fmtPct(r.relicDrops[0].chance)})` })
             : null,
         ]),
-        el('td', {}, [rarityChip(r.rarity, r.rarityPt)]),
+        el('td', {}, [rarityChip(r.rarity)]),
         el('td', { class: 'num', text: fmtPct(r.chanceIntact) }),
         el('td', { class: 'num', text: fmtPct(r.chanceRadiant) }),
         el('td', {}, [
           statusBadge(r.vaulted !== false),
           r.vaulted === false && r.activeFissures
-            ? el('div', { class: 'small', style: 'color:var(--energy);margin-top:4px', text: `${r.activeFissures} fissura${r.activeFissures > 1 ? 's' : ''} ${r.tier} agora` })
+            ? el('div', { class: 'small', style: 'color:var(--energy);margin-top:4px', text: `${r.activeFissures} ${t('item.fissNowShort', { t: r.tier })}` })
             : null,
         ]),
       ]));
@@ -52,28 +53,28 @@
 
   function marketPanel(item) {
     const slugs = [];
-    if (item.setMarketSlug) slugs.push({ slug: item.setMarketSlug, label: 'Set completo' });
+    if (item.setMarketSlug) slugs.push({ slug: item.setMarketSlug, label: lang() === 'en' ? 'Full set' : 'Set completo' });
     for (const c of item.components) {
       if (c.marketSlug && c.relics.length) slugs.push({ slug: c.marketSlug, label: c.fullName });
     }
     if (!slugs.length) return null;
-    const body = el('div', { class: 'muted small', text: 'Consultando preços no warframe.market…' });
+    const body = el('div', { class: 'muted small', text: t('item.marketLoading') });
     const panel = el('section', { class: 'panel panel-quiet' }, [
-      el('p', { class: 'eyebrow' }, ['Ou compre de outro jogador ', el('span', { class: 'hint', text: 'warframe.market · menor preço de venda' })]),
+      el('p', { class: 'eyebrow' }, [`${t('item.market')} `, el('span', { class: 'hint', text: t('item.marketHint') })]),
       body,
     ]);
     Promise.all(slugs.slice(0, 8).map(async ({ slug, label }) => {
       try {
         const d = await api(`/api/market/${encodeURIComponent(slug)}`);
         if (d && !d.error && !d.notFound && d.minSell != null) return { label, d };
-      } catch { /* ignora item sem mercado */ }
+      } catch { /* item sem mercado */ }
       return null;
     })).then((rows) => {
       const ok = rows.filter(Boolean);
       if (!ok.length) { panel.remove(); return; }
       body.replaceChildren(el('ul', { class: 'rowlist' }, ok.map(({ label, d }) => el('li', { class: 'row' }, [
         el('span', { class: 'grow name small', text: label }),
-        el('a', { class: 'small', href: d.url, target: '_blank', rel: 'noopener', text: 'ver ordens' }),
+        el('a', { class: 'small', href: d.url, target: '_blank', rel: 'noopener', text: t('item.marketOrders') }),
         el('span', { class: 'num', style: 'color:var(--orokin-bright);font-weight:700', text: `~${d.minSell} pl` }),
       ]))));
     });
@@ -81,75 +82,73 @@
   }
 
   function render(item) {
-    document.title = `${item.name} — Warframe Farm Helper`;
+    document.title = `${nameFor(item)} — Warframe Farm Helper`;
     const frag = [];
 
     frag.push(el('p', { class: 'small', style: 'margin:0 0 12px' }, [
       el('a', {
-        href: '/buscar.html',
-        text: '← voltar',
+        href: '/buscar.html', text: t('item.back'),
         onclick: (ev) => { if (history.length > 1) { ev.preventDefault(); history.back(); } },
       }),
     ]));
 
-    // hero
     frag.push(el('section', { class: 'panel' }, [
       el('div', { class: 'item-hero' }, [
-        item.image ? el('img', { class: 'art', src: item.image, alt: item.name }) : null,
+        item.image ? el('img', { class: 'art', src: item.image, alt: nameFor(item) }) : null,
         el('div', { class: 'meta' }, [
-          el('h1', { text: item.name }),
-          item.namePt && item.namePt !== item.name ? el('p', { class: 'muted', style: 'margin:0', text: item.namePt }) : null,
+          el('h1', { text: nameFor(item) }),
+          lang() === 'en' && item.namePt && item.namePt !== item.name
+            ? el('p', { class: 'muted', style: 'margin:0', text: item.namePt }) : null,
+          lang() === 'pt' && item.namePt && item.namePt !== item.name
+            ? el('p', { class: 'muted', style: 'margin:0', text: item.name }) : null,
           el('div', { class: 'badges-line' }, [
             el('span', { class: 'badge', text: item.type || item.category }),
-            item.masteryReq ? el('span', { class: 'badge badge-gold', text: `MR ${item.masteryReq}` }) : null,
+            item.masteryReq ? el('span', { class: 'badge badge-gold', text: t('tag.mrShort', { n: item.masteryReq }) }) : null,
             item.vaulted != null ? statusBadge(item.vaulted) : null,
-            item.tradable ? el('span', { class: 'badge', text: 'Trocável' }) : null,
+            item.tradable ? el('span', { class: 'badge', text: t('tag.tradable') }) : null,
           ]),
           item.description ? el('p', { class: 'desc', text: item.description }) : null,
           item.wikiUrl ? el('p', { style: 'margin:10px 0 0' }, [
-            el('a', { class: 'btn-line', href: item.wikiUrl, target: '_blank', rel: 'noopener', text: 'Página na wiki' }),
+            el('a', { class: 'btn-line', href: item.wikiUrl, target: '_blank', rel: 'noopener', text: t('item.wiki') }),
           ]) : null,
         ]),
       ]),
     ]));
 
-    // forja
     if (item.crafting) {
       frag.push(el('section', { class: 'panel panel-quiet' }, [
-        el('p', { class: 'eyebrow', text: 'Forja (Foundry)' }),
+        el('p', { class: 'eyebrow', text: t('item.forge') }),
         el('div', { class: 'stat-grid' }, [
           item.crafting.credits != null ? el('div', { class: 'stat' }, [
-            el('div', { class: 'k', text: 'Créditos' }),
+            el('div', { class: 'k', text: t('item.credits') }),
             el('div', { class: 'v num', text: fmtInt(item.crafting.credits) }),
           ]) : null,
           item.crafting.time ? el('div', { class: 'stat' }, [
-            el('div', { class: 'k', text: 'Tempo' }),
+            el('div', { class: 'k', text: t('item.time') }),
             el('div', { class: 'v', text: item.crafting.time }),
           ]) : null,
           item.crafting.rushPlatinum != null ? el('div', { class: 'stat' }, [
-            el('div', { class: 'k', text: 'Apressar' }),
-            el('div', { class: 'v num' }, [`${item.crafting.rushPlatinum} `, el('small', { text: 'platina' })]),
+            el('div', { class: 'k', text: t('item.rush') }),
+            el('div', { class: 'v num' }, [`${item.crafting.rushPlatinum} `, el('small', { text: t('item.platina') })]),
           ]) : null,
           item.masteryReq != null ? el('div', { class: 'stat' }, [
-            el('div', { class: 'k', text: 'Maestria mínima' }),
+            el('div', { class: 'k', text: t('item.mrMin') }),
             el('div', { class: 'v num', text: `MR ${item.masteryReq}` }),
           ]) : null,
         ]),
       ]));
     }
 
-    // passo a passo
     if (item.steps && item.steps.length) {
       frag.push(el('section', { class: 'panel' }, [
-        el('p', { class: 'eyebrow', text: 'Como conseguir — passo a passo' }),
+        el('p', { class: 'eyebrow', text: t('item.steps') }),
         el('ol', { class: 'steps' }, item.steps.map((s) => el('li', { text: s }))),
       ]));
     }
 
-    // componentes
     if (item.components.length) {
       const compSection = el('section', { class: 'panel' }, [
-        el('p', { class: 'eyebrow' }, ['Componentes ', el('span', { class: 'hint', text: 'relíquias disponíveis primeiro' })]),
+        el('p', { class: 'eyebrow' }, [`${t('item.components')} `, el('span', { class: 'hint', text: t('item.componentsHint') })]),
       ]);
       for (const c of item.components) {
         const block = el('div', { class: 'comp-block', id: c.anchor }, [
@@ -157,38 +156,37 @@
             c.image ? el('img', { src: c.image, alt: '', loading: 'lazy' }) : null,
             el('span', { class: 'comp-name', text: c.fullName }),
             c.itemCount > 1 ? el('span', { class: 'count', text: `×${c.itemCount}` }) : null,
-            c.ducats ? el('span', { class: 'badge badge-gold', text: `${c.ducats} ducats` }) : null,
+            c.ducats ? el('span', { class: 'badge badge-gold', text: t('tag.ducats', { n: c.ducats }) }) : null,
             statusBadge(!c.available),
           ]),
         ]);
         if (c.relics.length) block.append(relicTable(c));
-        const others = sourcesList(c.otherSources, c.relics.length ? 'Outras fontes' : null);
+        const others = sourcesList(c.otherSources, c.relics.length ? t('item.otherSources') : null);
         if (others) block.append(others);
         if (!c.relics.length && !c.otherSources.length) {
-          block.append(el('p', { class: 'muted small', text: 'Sem fonte de drop nas tabelas oficiais (recurso comum, quest, loja ou pesquisa de clã — veja a wiki).' }));
+          block.append(el('p', { class: 'muted small', text: t('item.noSource') }));
         }
         compSection.append(block);
       }
       frag.push(compSection);
     } else if (item.sources.other.length || item.sources.relics.length) {
       frag.push(el('section', { class: 'panel' }, [
-        el('p', { class: 'eyebrow', text: 'Onde dropa' }),
+        el('p', { class: 'eyebrow', text: t('item.whereDrops') }),
         sourcesList(item.sources.other, null) || el('p', { class: 'empty', text: '—' }),
       ]));
     }
 
-    // fissuras relevantes
     const tiers = Object.keys(item.fissures || {});
-    const activeTiers = tiers.filter((t) => item.fissures[t].length);
+    const activeTiers = tiers.filter((t2) => item.fissures[t2].length);
     if (activeTiers.length) {
       frag.push(el('section', { class: 'panel panel-quiet' }, [
-        el('p', { class: 'eyebrow' }, ['Fissuras ativas para farmar agora ', el('span', { class: 'hint', text: 'tiers das relíquias disponíveis' })]),
-        el('ul', { class: 'rowlist' }, activeTiers.flatMap((t) => item.fissures[t].slice(0, 4).map((f) => el('li', { class: 'row' }, [
+        el('p', { class: 'eyebrow' }, [`${t('item.fissNow')} `, el('span', { class: 'hint', text: t('item.fissHint') })]),
+        el('ul', { class: 'rowlist' }, activeTiers.flatMap((tier) => item.fissures[tier].slice(0, 4).map((f) => el('li', { class: 'row' }, [
           tierBadge(f.tier),
           el('span', { class: 'grow' }, [
-            el('span', { class: 'name', text: f.missionType }),
+            el('span', { class: 'name', text: missionName(f.missionType) }),
             el('br'),
-            el('span', { class: 'sub', text: `${f.node} · ${f.enemy}${f.isHard ? ' · Steel Path' : ''}${f.isStorm ? ' · Railjack' : ''}` }),
+            el('span', { class: 'sub', text: `${f.node} · ${enemyName(f.enemy)}${f.isHard ? ' · Steel Path' : ''}${f.isStorm ? ' · Railjack' : ''}` }),
           ]),
           el('span', { class: 'time num', dataset: { expiry: f.expiry } }),
         ])))),
@@ -208,10 +206,10 @@
 
   const u = qs('u');
   if (!u) {
-    root.replaceChildren(el('div', { class: 'error-box', text: 'Item não especificado.' }));
+    root.replaceChildren(el('div', { class: 'error-box', text: t('item.notItem') }));
   } else {
-    api(`/api/item?u=${encodeURIComponent(u)}`)
+    api(`/api/item?u=${encodeURIComponent(u)}&lang=${lang()}`)
       .then(render)
-      .catch((err) => root.replaceChildren(el('div', { class: 'error-box', text: `Não deu para carregar o item: ${err.message}` })));
+      .catch((err) => root.replaceChildren(el('div', { class: 'error-box', text: t('item.loadFail', { e: err.message }) })));
   }
 })();

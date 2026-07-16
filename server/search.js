@@ -15,7 +15,15 @@ const CDN_IMG = 'https://cdn.warframestat.us/img/';
 const KIND_BOOST = {
   item: 1.25, component: 1.2, relic: 1.1,
   faq: 1.4, nightwave: 1.3, mod: 1.0, resource: 1.15,
+  gear: 1.2, quest: 1.25, arcane: 1.15, fish: 1.05,
 };
+
+const CATEGORY_KIND = {
+  Mods: 'mod', Resources: 'resource', Fish: 'fish',
+  Gear: 'gear', Quests: 'quest', Arcanes: 'arcane',
+};
+// só itens com componentes/drops geram sub-documentos de componente
+const HAS_COMPONENTS = new Set(['item', 'gear']);
 
 let mini = null;
 let docCount = 0;
@@ -45,27 +53,33 @@ function buildDocs() {
     'SELECT unique_name, name, name_pt, category, type, image_name, raw FROM items'
   ).all();
   for (const it of items) {
-    const kind = it.category === 'Mods' ? 'mod' : it.category === 'Resources' ? 'resource' : 'item';
+    const kind = CATEGORY_KIND[it.category] || 'item';
     const url = `/item.html?u=${encodeURIComponent(it.unique_name)}`;
     push({
       id: `i:${it.unique_name}`, kind,
-      name: it.name, alt: it.name_pt || '',
+      name: it.name, namePt: it.name_pt || '', alt: it.name_pt || '',
       sub: it.type || it.category,
       image: it.image_name ? CDN_IMG + it.image_name : null,
       url,
     });
-    if (kind !== 'item') continue;
+    if (!HAS_COMPONENTS.has(kind)) continue;
     let raw = null;
     try { raw = JSON.parse(it.raw); } catch { /* ignora raw corrompido */ }
     const comps = raw && Array.isArray(raw.components) ? raw.components : [];
     for (const c of comps) {
       // o blueprint principal já é achado pelo nome do item
       if (!c.name || c.name === 'Blueprint') continue;
+      // só indexa PEÇAS de relíquia (ex.: "Braton Prime Stock"); ingredientes
+      // avulsos (Morphics, plantas…) já têm entrada própria como recurso
+      const isRelicPart = Array.isArray(c.drops)
+        && c.drops.some((d) => typeof d.location === 'string' && / Relic\b/.test(d.location));
+      if (!isRelicPart) continue;
       const full = c.name.includes(it.name) ? c.name : `${it.name} ${c.name}`;
+      const fullPt = it.name_pt ? full.replace(it.name, it.name_pt) : '';
       push({
         id: `c:${it.unique_name}::${c.name}`, kind: 'component',
-        name: full, alt: '',
-        sub: `Componente de ${it.name}`,
+        name: full, namePt: fullPt, alt: '',
+        sub: `Componente de ${it.name_pt || it.name}`,
         image: c.imageName ? CDN_IMG + c.imageName : null,
         url: `${url}#c-${compSlug(c.name)}`,
       });
@@ -76,8 +90,8 @@ function buildDocs() {
   for (const r of relics) {
     push({
       id: `r:${r.name}`, kind: 'relic',
-      name: `${r.name} Relic`, alt: `Relíquia ${r.name}`,
-      sub: r.vaulted ? 'Relíquia · vaulted' : 'Relíquia · disponível',
+      name: `${r.name} Relic`, namePt: `Relíquia ${r.name}`, alt: `Relíquia ${r.name}`,
+      sub: r.vaulted ? 'vaulted' : 'available',
       image: null,
       url: `/relic.html?n=${encodeURIComponent(r.name)}`,
     });
@@ -85,10 +99,11 @@ function buildDocs() {
 
   const arts = db.prepare('SELECT slug, kind, title, keywords FROM articles').all();
   for (const a of arts) {
+    // artigos são conteúdo escrito em PT (mesmo título nos dois idiomas)
     push({
       id: `a:${a.slug}`, kind: a.kind,
-      name: a.title, alt: a.keywords || '',
-      sub: a.kind === 'faq' ? 'FAQ · mecânicas do jogo' : 'Guia · Nightwave',
+      name: a.title, namePt: a.title, alt: a.keywords || '',
+      sub: a.kind === 'faq' ? 'faq' : 'nightwave',
       image: null,
       url: a.kind === 'faq'
         ? `/faq.html?slug=${encodeURIComponent(a.slug)}`
@@ -103,7 +118,7 @@ function buildIndex() {
   const docs = buildDocs();
   const ms = new MiniSearch({
     fields: ['name', 'alt'],
-    storeFields: ['kind', 'name', 'sub', 'image', 'url'],
+    storeFields: ['kind', 'name', 'namePt', 'sub', 'image', 'url'],
     processTerm,
     searchOptions: {
       prefix: true,
@@ -130,9 +145,20 @@ function maybeReindex() {
 
 function toResult(r) {
   return {
-    kind: r.kind, name: r.name, sub: r.sub, image: r.image, url: r.url,
+    kind: r.kind, name: r.name, namePt: r.namePt || '', sub: r.sub, image: r.image, url: r.url,
     score: Math.round(r.score * 10) / 10,
   };
+}
+
+/**
+ * Corta a cauda de matches fracos (OR) que só bateram num termo comum e
+ * poluem o resultado — mantém quem tem score dentro de uma fração do topo.
+ */
+function trimTail(res) {
+  if (res.length <= 1) return res;
+  const top = res[0].score || 0;
+  const floor = top * 0.28;
+  return res.filter((r) => (r.score || 0) >= floor);
 }
 
 /**
@@ -157,14 +183,14 @@ function searchLocal(q, limit = 20) {
       strong = ratio >= 0.6;
     }
   }
-  return { results: res.slice(0, limit).map(toResult), strong };
+  return { results: trimTail(res).slice(0, limit).map(toResult), strong };
 }
 
 function suggest(q, limit = 8) {
   if (!mini) return [];
   const res = mini.search(q, { combineWith: 'AND' });
   const out = res.length ? res : mini.search(q, { combineWith: 'OR' });
-  return out.slice(0, limit).map(toResult);
+  return trimTail(out).slice(0, limit).map(toResult);
 }
 
 function stats() {

@@ -49,7 +49,8 @@ async function getFissures() {
     .map((f) => ({
       id: f.id,
       node: f.node,
-      missionType: MISSION_PT[f.missionType] || f.missionType,
+      // missionType/enemy ficam no inglês cru (chave) — o cliente traduz por idioma
+      missionType: f.missionType,
       tier: f.tier,
       tierNum: f.tierNum,
       enemy: f.enemy,

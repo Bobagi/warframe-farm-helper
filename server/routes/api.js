@@ -73,13 +73,15 @@ router.get('/suggest', rateLimit, (req, res) => {
   res.json({ results: q.length >= 2 ? suggest(q, 8) : [] });
 });
 
+const pickLang = (v) => (String(v) === 'en' ? 'en' : 'pt');
+
 router.get('/item', asyncRoute(async (req, res) => {
   const u = String(req.query.u || '').slice(0, 250);
   if (!u.startsWith('/Lotus/')) {
     res.status(400).json({ error: 'parâmetro "u" inválido' });
     return;
   }
-  const detail = await buildItemDetail(u);
+  const detail = await buildItemDetail(u, pickLang(req.query.lang));
   if (!detail) {
     res.status(404).json({ error: 'item não encontrado' });
     return;

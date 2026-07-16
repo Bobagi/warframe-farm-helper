@@ -99,11 +99,14 @@ img { max-width: 100%; }
   top: 0;
   z-index: 40;
 }
-.site-head .wrap {
+.head-inner {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
   min-height: 56px;
+  flex-wrap: wrap;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 .brand {
   font-family: var(--font-display);
@@ -118,7 +121,6 @@ img { max-width: 100%; }
 .site-nav {
   display: flex;
   gap: 4px;
-  margin-left: auto;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -135,7 +137,80 @@ img { max-width: 100%; }
 .site-nav a:hover { color: var(--energy); text-decoration: none; }
 .site-nav a[aria-current="page"] { color: var(--orokin); }
 
+/* busca fixa no cabeçalho (em todas as páginas) */
+.head-search { position: relative; flex: 1 1 190px; min-width: 150px; }
+.head-console {
+  display: flex;
+  background: var(--void-750);
+  border: 1px solid var(--line);
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+.head-console:focus-within { border-color: var(--energy-dim); }
+.head-console input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 9px 12px;
+}
+.head-console input::placeholder { color: var(--text-faint); }
+.head-console input:focus { outline: none; }
+.head-console button {
+  border: 0;
+  background: transparent;
+  color: var(--energy);
+  font-size: 18px;
+  line-height: 1;
+  padding: 0 12px;
+  cursor: pointer;
+}
+.head-console button:hover { color: var(--orokin-bright); }
+.head-suggest { top: calc(100% + 4px); }
+
+/* toggle de idioma PT | EN */
+.lang-toggle {
+  display: flex;
+  flex: none;
+  border: 1px solid var(--line);
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%);
+  overflow: hidden;
+}
+.lang-toggle button {
+  border: 0;
+  background: var(--void-750);
+  color: var(--text-dim);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 7px 11px;
+  cursor: pointer;
+  min-height: 30px;
+}
+.lang-toggle button + button { border-left: 1px solid var(--line); }
+.lang-toggle button[aria-pressed="true"] { background: var(--orokin); color: var(--void-950); }
+.lang-toggle button:hover:not([aria-pressed="true"]) { color: var(--energy); }
+
 main { flex: 1; padding: 24px 0 56px; }
+
+.panel-cta { margin: 14px 0 0; }
+
+/* header — empilhamento mobile-first */
+.head-inner .brand { order: 1; }
+.head-inner .lang-toggle { order: 2; margin-left: auto; }
+.head-inner .head-search { order: 3; flex-basis: 100%; }
+.head-inner .site-nav { order: 4; flex-basis: 100%; }
+
+@media (min-width: 760px) {
+  .head-inner { flex-wrap: nowrap; }
+  .head-inner .brand { order: 1; }
+  .head-inner .site-nav { order: 2; flex-basis: auto; }
+  .head-inner .head-search { order: 3; flex-basis: 190px; }
+  .head-inner .lang-toggle { order: 4; margin-left: 0; }
+}
 
 /* ---------- painéis chanfrados (assinatura) ---------- */
 

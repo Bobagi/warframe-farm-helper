@@ -2,6 +2,7 @@
 
 (() => {
   const { el, api, attachSearch, startTimers, tierBadge } = App;
+  const { t, missionName, enemyName } = I18n;
 
   // busca hero
   const form = document.getElementById('search-form');
@@ -13,23 +14,32 @@
     if (q) location.href = `/buscar.html?q=${encodeURIComponent(q)}`;
   });
 
-  // fissuras
+  // chips de exemplo (traduzíveis)
+  const chips = [
+    { k: 'ex.bratonStock', q: 'Braton Prime Stock' },
+    { k: 'ex.kubrow', q: 'o que fazer com kubrow' },
+    { k: 'ex.apothic', q: 'Apótico do Anoitecer' },
+    { k: 'ex.crewship', href: '/nightwave.html?slug=10-artilharia-frontal-crewship' },
+  ];
+  document.getElementById('example-chips').replaceChildren(...chips.map((c) =>
+    el('a', { href: c.href || `/buscar.html?q=${encodeURIComponent(c.q)}`, text: t(c.k) })));
+
+  // ---- fissuras ----
   let fissures = [];
   let mode = 'normal';
   const list = document.getElementById('fiss-list');
   const hint = document.getElementById('fiss-hint');
+  list.replaceChildren(el('li', { class: 'spin', text: t('fissures.loading') }));
 
-  function fissRow(f) {
-    return el('li', { class: 'row' }, [
-      tierBadge(f.tier),
-      el('span', { class: 'grow' }, [
-        el('span', { class: 'name', text: f.missionType }),
-        el('br'),
-        el('span', { class: 'sub', text: `${f.node} · ${f.enemy}` }),
-      ]),
-      el('span', { class: 'time num', dataset: { expiry: f.expiry } }),
-    ]);
-  }
+  const fissRow = (f) => el('li', { class: 'row' }, [
+    tierBadge(f.tier),
+    el('span', { class: 'grow' }, [
+      el('span', { class: 'name', text: missionName(f.missionType) }),
+      el('br'),
+      el('span', { class: 'sub', text: `${f.node} · ${enemyName(f.enemy)}` }),
+    ]),
+    el('span', { class: 'time num', dataset: { expiry: f.expiry } }),
+  ]);
 
   function renderFissures() {
     const filtered = fissures.filter((f) => (
@@ -37,7 +47,7 @@
     ));
     list.replaceChildren(...(filtered.length
       ? filtered.map(fissRow)
-      : [el('li', { class: 'empty', text: 'Nenhuma fissura desse tipo agora.' })]));
+      : [el('li', { class: 'empty', text: t('fissures.none') })]));
   }
 
   document.getElementById('fiss-mode').addEventListener('click', (ev) => {
@@ -52,19 +62,20 @@
 
   api('/api/fissures').then((data) => {
     fissures = data.fissures || [];
-    hint.textContent = `${fissures.length} ativas`;
+    hint.textContent = t('fissures.active', { n: fissures.length });
     renderFissures();
     startTimers();
   }).catch(() => {
-    list.replaceChildren(el('li', { class: 'error-box', text: 'Worldstate indisponível agora — tente recarregar.' }));
+    list.replaceChildren(el('li', { class: 'error-box', text: t('fissures.down') }));
   });
 
-  // nightwave (mini)
+  // ---- nightwave (mini) ----
   const nwList = document.getElementById('nw-list');
+  nwList.replaceChildren(el('li', { class: 'spin', text: t('nw.loading') }));
   api('/api/nightwave').then((data) => {
     const acts = (data.acts || []).slice(0, 5);
     if (!acts.length) {
-      nwList.replaceChildren(el('li', { class: 'empty', text: 'Sem atos ativos agora (intervalo de temporada).' }));
+      nwList.replaceChildren(el('li', { class: 'empty', text: t('nw.none') }));
       return;
     }
     nwList.replaceChildren(...acts.map((a) => el('li', { class: `row act${a.guide ? ' has-guide' : ''}` }, [
@@ -74,38 +85,39 @@
         el('span', { class: 'sub', text: a.desc }),
       ]),
       a.guide
-        ? el('a', { class: 'guide-btn', href: `/nightwave.html?slug=${encodeURIComponent(a.guide.slug)}`, text: 'Guia' })
-        : el('span', { class: 'kind-tag', text: a.isDaily ? 'diário' : a.isElite ? 'elite' : 'semanal' }),
+        ? el('a', { class: 'guide-btn', href: `/nightwave.html?slug=${encodeURIComponent(a.guide.slug)}`, text: t('nw.guide') })
+        : el('span', { class: 'kind-tag', text: a.isDaily ? t('nw.daily') : a.isElite ? t('nw.elite') : t('nw.weekly') }),
     ])));
   }).catch(() => {
-    nwList.replaceChildren(el('li', { class: 'empty', text: 'Nightwave indisponível agora.' }));
+    nwList.replaceChildren(el('li', { class: 'empty', text: t('nw.down') }));
   });
 
-  // baro
+  // ---- baro ----
   const baro = document.getElementById('baro-body');
+  baro.textContent = t('baro.loading');
   api('/api/baro').then(({ baro: b }) => {
-    if (!b) { baro.textContent = 'Sem dados do Void Trader agora.'; return; }
+    if (!b) { baro.textContent = t('baro.none'); return; }
     baro.replaceChildren(
       b.active
         ? el('span', {}, [
-          `Na relay ${b.location || '—'} com ${b.items} itens · vai embora em `,
+          t('baro.here', { loc: b.location || '—', n: b.items }),
           el('span', { class: 'num', dataset: { expiry: b.expiry } }),
         ])
         : el('span', {}, [
-          `Chega em `,
+          t('baro.coming'),
           el('span', { class: 'num', dataset: { expiry: b.activation } }),
-          ` (${b.location || 'relay a confirmar'}). Junte ducats!`,
+          t('baro.comingTail', { loc: b.location || '—' }),
         ])
     );
     startTimers();
-  }).catch(() => { baro.textContent = 'Void Trader indisponível agora.'; });
+  }).catch(() => { baro.textContent = t('baro.down'); });
 
-  // faq teaser
+  // ---- faq teaser ----
   const cards = document.getElementById('faq-cards');
   api('/api/faq').then((data) => {
     cards.replaceChildren(...(data.articles || []).slice(0, 6).map((a) =>
       el('a', { class: 'card', href: `/faq.html?slug=${encodeURIComponent(a.slug)}` }, [
         el('span', { class: 't', text: a.title }),
       ])));
-  }).catch(() => { /* teaser é opcional */ });
+  }).catch(() => { /* teaser opcional */ });
 })();
