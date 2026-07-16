@@ -86,7 +86,7 @@
   // Nome do relógio: junta os mundos que ele representa ("Cetus / Terra" quando
   // o ciclo cobre mais de um). Fallback para o próprio id se `worlds` faltar.
   const worldLabel = (c) => (Array.isArray(c.worlds) && c.worlds.length ? c.worlds : [c.id])
-    .map((w) => t(`cyc.${w}`)).join(' / ');
+    .map((w) => t(`cyc.${w}`)).join('/');
 
   function chip(c) {
     const ic = el('span', { class: 'cyc-ic' });
@@ -149,7 +149,7 @@
   const SKELETON_WORLDS = { cetus: ['cetus', 'earth'] };
   inner.replaceChildren(...ORDER.map((id) =>
     el('span', { class: 'cyc cyc-skel', role: 'listitem' }, [
-      el('span', { class: 'cyc-w', text: (SKELETON_WORLDS[id] || [id]).map((w) => t(`cyc.${w}`)).join(' / ') }),
+      el('span', { class: 'cyc-w', text: (SKELETON_WORLDS[id] || [id]).map((w) => t(`cyc.${w}`)).join('/') }),
       el('span', { class: 'cyc-t', text: '…' }),
     ])));
 

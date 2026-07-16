@@ -23,8 +23,8 @@ const App = (() => {
 
   const qs = (name) => new URLSearchParams(location.search).get(name);
 
-  async function api(path) {
-    const res = await fetch(path, { headers: { Accept: 'application/json' } });
+  async function api(path, opts = {}) {
+    const res = await fetch(path, { headers: { Accept: 'application/json' }, ...opts });
     if (!res.ok) {
       let msg = `Erro ${res.status}`;
       try { msg = (await res.json()).error || msg; } catch { /* mantém msg */ }
@@ -96,8 +96,11 @@ const App = (() => {
   function attachSearch(input, suggestBox) {
     let items = [];
     let active = -1;
+    // "última vence": cancela a query anterior em voo e descarta respostas
+    // obsoletas, para o dropdown nunca mostrar resultado de um texto antigo
+    const runner = Latest.createLatestRunner();
 
-    const close = () => { suggestBox.hidden = true; suggestBox.replaceChildren(); active = -1; };
+    const close = () => { runner.cancel(); suggestBox.hidden = true; suggestBox.replaceChildren(); active = -1; };
 
     const render = () => {
       suggestBox.replaceChildren();
@@ -117,11 +120,18 @@ const App = (() => {
       const q = input.value.trim();
       if (q.length < 2) { close(); return; }
       try {
-        const data = await api(`/api/suggest?q=${encodeURIComponent(q)}`);
-        items = data.results || [];
+        const res = await runner.run((signal) =>
+          api(`/api/suggest?q=${encodeURIComponent(q)}`, { signal }));
+        // resposta obsoleta (uma busca mais nova começou) ou o input já mudou
+        // desde o disparo → descarta, não renderiza resultado velho
+        if (res.superseded || q !== input.value.trim()) return;
+        items = res.value.results || [];
         active = -1;
         render();
-      } catch { close(); }
+      } catch (err) {
+        if (err && err.name === 'AbortError') return; // cancelamento esperado
+        close();
+      }
     }, 180);
 
     input.addEventListener('input', load);

@@ -1,18 +1,10 @@
 'use strict';
 
 (() => {
-  const { el, api, attachSearch, startTimers, tierBadge } = App;
+  const { el, api, startTimers, tierBadge } = App;
   const { t, missionName, enemyName } = I18n;
 
-  // busca hero
-  const form = document.getElementById('search-form');
-  const input = document.getElementById('q');
-  attachSearch(input, document.getElementById('suggest'));
-  form.addEventListener('submit', (ev) => {
-    ev.preventDefault();
-    const q = input.value.trim();
-    if (q) location.href = `/buscar.html?q=${encodeURIComponent(q)}`;
-  });
+  // (a busca vive fixa no cabeçalho — sem barra duplicada no hero)
 
   // chips de exemplo (traduzíveis)
   const chips = [
