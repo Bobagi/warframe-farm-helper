@@ -140,6 +140,12 @@ router.get('/article/:slug', (req, res) => {
 
 router.get('/market/:slug', rateLimit, asyncRoute(async (req, res) => {
   const slug = String(req.params.slug || '').slice(0, 80);
+  // valida antes de qualquer coisa (o slug entra numa URL externa) e responde
+  // com o status certo — slug malformado é erro do cliente, não 200
+  if (!/^[a-z0-9_]{2,80}$/.test(slug)) {
+    res.status(400).json({ error: 'slug inválido' });
+    return;
+  }
   res.json(await getTopOrders(slug));
 }));
 

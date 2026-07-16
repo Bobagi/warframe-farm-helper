@@ -22,7 +22,9 @@ app.use((req, res, next) => {
   res.setHeader('Content-Security-Policy', [
     "default-src 'self'",
     "img-src 'self' https://cdn.warframestat.us data:",
-    "style-src 'self'",
+    // 'unsafe-inline' cobre os atributos style="" do layout; script-src fica
+    // estrito ('self', sem inline) — é ele que barra XSS, não o style.
+    "style-src 'self' 'unsafe-inline'",
     "script-src 'self'",
     "connect-src 'self'",
     "font-src 'self'",
