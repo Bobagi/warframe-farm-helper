@@ -12,9 +12,16 @@ os chatos: destruir Crewship com Artilharia Frontal, enigmas do Duviri, etc.).
 
 ## O que ele faz
 
+- **Busca no topo de todas as páginas** — barra fixa no cabeçalho (com autocomplete) além da busca grande
+  da home, para acesso rápido de qualquer tela.
+- **Idioma PT / EN** — toggle no cabeçalho. Detecta o idioma pelo navegador e deixa trocar na mão (persiste).
+  Traduz a interface, os **nomes de item** (i18n do WFCD), as missões das fissuras e o **passo a passo**
+  (gerado bilíngue no servidor). Os artigos de FAQ/Nightwave são escritos em PT — em modo EN o título e a
+  navegação traduzem, mas o corpo do artigo permanece em português (conteúdo da comunidade).
 - **Página de item** — árvore de componentes com relíquias (destaque disponível × vaulted), chances
   intact/radiante, requisitos de forja (créditos/tempo/MR), fontes de drop não-relíquia e **passo a passo**
-  em linguagem simples.
+  em linguagem simples. Cobre armas, warframes, **gear/itens de quest** (ex.: Apótico do Anoitecer),
+  arcanos e peixes — não só primes.
 - **Relíquias** — recompensas por refinamento (Intact→Radiant), onde a relíquia dropa, status vaulted e
   fissuras ativas do tier.
 - **Fissuras agora** — worldstate ao vivo (Normais / Steel Path / Railjack) com contagem regressiva.
