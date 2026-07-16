@@ -222,7 +222,7 @@ main { flex: 1; padding: 24px 0 56px; }
 .cyc-inner {
   max-width: 1060px;
   margin: 0 auto;
-  padding: 7px 16px;
+  padding: 8px 16px;
   display: flex;
   align-items: center;
   gap: 0;
@@ -233,11 +233,17 @@ main { flex: 1; padding: 24px 0 56px; }
 .cyc {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   white-space: nowrap;
-  font-size: 12.5px;
+  font-size: 13px;
 }
-.cyc + .cyc { border-left: 1px solid var(--line-soft); margin-left: 10px; padding-left: 10px; }
+.cyc + .cyc { border-left: 1px solid var(--line-soft); margin-left: 14px; padding-left: 14px; }
+/* no desktop os 5 relógios cabem folgados → distribui pela largura (aproveita o
+   espaço); no mobile o conteúdo transborda e o space-between vira flex-start,
+   rolando do início normalmente */
+@media (min-width: 760px) {
+  .cyc-inner { justify-content: space-between; }
+}
 .cyc-ic { display: inline-flex; color: var(--cyc, var(--text-dim)); }
 .cyc-ic svg { width: 14px; height: 14px; }
 .cyc-w {

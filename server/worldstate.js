@@ -138,12 +138,15 @@ async function getCycles() {
     const c = normalizeCycle(s.value, CYCLE_DEFS[i], now);
     if (c) cycles.push(c);
   });
-  // Terra = Cetus desde o Update 38.5 (mesma fase dia/noite, mesma fonte
-  // confiável). Espelhamos o cetusCycle em vez de /earthCycle (legado, defasado);
-  // se o Cetus estiver indisponível não há fonte correta, então a Terra some.
-  const cetus = cycles.find((c) => c.id === 'cetus');
-  if (cetus) {
-    cycles.push({ id: 'earth', state: cetus.state, expiry: cetus.expiry, predicted: cetus.predicted });
+  // Terra = Cetus desde o Update 38.5 (MESMA fase dia/noite, mesma fonte
+  // confiável — o cetusCycle real da DE, não o /earthCycle legado e defasado).
+  // Como carregam sempre a mesma info, NÃO é um relógio separado: o ciclo do
+  // Cetus apenas declara que também representa a Terra (`worlds`), e o front
+  // mostra um chip só ("Cetus / Terra"). Cada ciclo representa a si mesmo por
+  // padrão; se o Cetus cair, ele some e leva a Terra junto (não há fonte
+  // alternativa correta p/ a Terra).
+  for (const c of cycles) {
+    c.worlds = c.id === 'cetus' ? ['cetus', 'earth'] : [c.id];
   }
   return cycles;
 }

@@ -7,10 +7,11 @@ const assert = require('node:assert/strict');
 //  1) COALESCÊNCIA: uma rajada concorrente no cache frio dispara UM fetch por
 //     chave, não N por request — sem isso dava para amplificar tráfego contra a
 //     API pública upstream.
-//  2) TERRA = CETUS (Update 38.5): a Terra é derivada do cetusCycle (fonte real
-//     da DE), NUNCA buscada de /earthCycle (cálculo legado de 8h, defasado do
-//     jogo). Ela não deve gerar fetch próprio e deve espelhar estado+expiry.
-test('getCycles(): coalesce 1 fetch/chave e deriva a Terra do Cetus', async () => {
+//  2) TERRA = CETUS (Update 38.5): a Terra compartilha o MESMO ciclo do Cetus,
+//     então NÃO é um relógio separado — o ciclo do Cetus declara `worlds:
+//     ['cetus','earth']` e não há chip 'earth'. NUNCA buscar /earthCycle (cálculo
+//     legado de 8h, defasado do jogo).
+test('getCycles(): coalesce 1 fetch/chave; Cetus representa a Terra (worlds)', async () => {
   const realFetch = globalThis.fetch;
   const calls = {};
   const future = new Date(Date.now() + 3600e3).toISOString();
@@ -35,13 +36,16 @@ test('getCycles(): coalesce 1 fetch/chave e deriva a Terra do Cetus', async () =
     assert.deepEqual(Object.values(calls).sort(), [1, 1, 1, 1, 1]);
     assert.equal(calls.earthCycle, undefined, 'Terra não pode puxar /earthCycle (legado)');
 
-    // saída: 5 reais + Terra derivada = 6
-    assert.equal(a.length, 6);
+    // saída: 5 relógios distintos — a Terra NÃO é um chip próprio
+    assert.equal(a.length, 5);
+    assert.ok(!a.some((x) => x.id === 'earth'), 'não há relógio separado da Terra');
+    // o ciclo do Cetus representa também a Terra
     const cetus = a.find((x) => x.id === 'cetus');
-    const earth = a.find((x) => x.id === 'earth');
-    assert.ok(cetus && earth, 'Cetus e Terra presentes');
-    assert.equal(earth.state, cetus.state, 'Terra segue o ESTADO do Cetus');
-    assert.equal(earth.expiry, cetus.expiry, 'Terra segue o EXPIRY do Cetus');
+    assert.deepEqual(cetus.worlds, ['cetus', 'earth'], 'Cetus cobre Cetus + Terra');
+    // os demais representam só a si mesmos
+    for (const x of a.filter((y) => y.id !== 'cetus')) {
+      assert.deepEqual(x.worlds, [x.id], `${x.id} representa só a si mesmo`);
+    }
 
     // cache quente: nenhuma chamada nova; resultados idênticos
     assert.deepEqual(b, a);
@@ -53,7 +57,7 @@ test('getCycles(): coalesce 1 fetch/chave e deriva a Terra do Cetus', async () =
   }
 });
 
-test('getCycles(): sem Cetus disponível, a Terra some (sem fonte correta)', async () => {
+test('getCycles(): sem Cetus disponível, some com a Terra junto (sem fonte correta)', async () => {
   const realFetch = globalThis.fetch;
   const future = new Date(Date.now() + 3600e3).toISOString();
   globalThis.fetch = async (url) => {
@@ -66,9 +70,9 @@ test('getCycles(): sem Cetus disponível, a Terra some (sem fonte correta)', asy
   try {
     const { getCycles } = require('../server/worldstate');
     const cycles = await getCycles();
-    assert.ok(!cycles.some((c) => c.id === 'earth'),
-      'sem Cetus não há como derivar a Terra — ela não deve aparecer');
-    assert.ok(!cycles.some((c) => c.id === 'cetus'));
+    assert.ok(!cycles.some((c) => c.id === 'cetus'), 'sem cetusCycle, o Cetus some');
+    assert.ok(!cycles.some((c) => c.id === 'earth'), 'e a Terra junto (era o mesmo relógio)');
+    assert.ok(!cycles.some((c) => (c.worlds || []).includes('earth')), 'nenhum relógio reivindica a Terra');
   } finally {
     globalThis.fetch = realFetch;
     delete require.cache[require.resolve('../server/worldstate')];

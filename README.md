@@ -25,13 +25,15 @@ os chatos: destruir Crewship com Artilharia Frontal, enigmas do Duviri, etc.).
 - **Relíquias** — recompensas por refinamento (Intact→Radiant), onde a relíquia dropa, status vaulted e
   fissuras ativas do tier.
 - **Relógios dos mundos** — faixa fixa abaixo do cabeçalho (em todas as páginas) com o ciclo de cada
-  mundo que tem dia/noite: **Cetus** (dia/noite), **Vallis** (quente/frio), **Deimos** (Fass/Vome),
-  **Duviri** (humores do Spiral), **Zariman** (Grineer/Corpus) e **Terra** (dia/noite), cada um com
-  contagem regressiva ao vivo. O servidor avança o estado localmente pela tabela de durações, então a
-  faixa nunca mostra ciclo vencido — mesmo se o worldstate upstream cair.
-  **Terra:** desde o Update 38.5 a Terra não tem mais ciclo próprio de 8h — ela segue o Cetus/Plains
-  (dia 100min, noite 50min). A API `/earthCycle` ainda calcula o ciclo legado de 8h e fica dessincronizada
-  do jogo, então a Terra é **derivada do `cetusCycle`** (fonte real da DE), não de `/earthCycle`.
+  mundo que tem dia/noite: **Cetus / Terra** (dia/noite), **Vallis** (quente/frio), **Deimos** (Fass/Vome),
+  **Duviri** (humores do Spiral) e **Zariman** (Grineer/Corpus), cada um com contagem regressiva ao vivo.
+  O servidor avança o estado localmente pela tabela de durações, então a faixa nunca mostra ciclo vencido —
+  mesmo se o worldstate upstream cair.
+  **Cetus / Terra num chip só:** desde o Update 38.5 a Terra não tem mais ciclo próprio de 8h — ela segue o
+  Cetus/Plains (dia 100min, noite 50min), então carrega **sempre** a mesma info e é mostrada junto. A API
+  `/earthCycle` ainda calcula o ciclo legado de 8h e fica dessincronizada do jogo; por isso a Terra vem do
+  `cetusCycle` (fonte real da DE) — o ciclo do Cetus declara `worlds: ['cetus','earth']` e o front funde o
+  rótulo. Nunca reintroduzir o `/earthCycle`.
 - **Fissuras agora** — worldstate ao vivo (Normais / Steel Path / Railjack) com contagem regressiva.
 - **FAQ** — 20 artigos de mecânica (Helminth, slots, ducats, Forma, platina, vaulted…).
 - **Nightwave** — cruza os atos ativos da semana com uma biblioteca de 18 guias em PT-BR (match por

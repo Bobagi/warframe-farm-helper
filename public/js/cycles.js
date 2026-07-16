@@ -18,7 +18,10 @@
   const header = document.getElementById('site-header');
   if (!header) return;
 
-  const ORDER = ['cetus', 'vallis', 'cambion', 'duviri', 'zariman', 'earth'];
+  // A Terra NÃO é um chip próprio: desde o U38.5 ela é o mesmo ciclo do Cetus, e
+  // o servidor a devolve dentro de `cetus.worlds` (['cetus','earth']) → um chip
+  // só, "Cetus / Terra". Ordem de exibição dos 5 relógios distintos.
+  const ORDER = ['cetus', 'vallis', 'cambion', 'duviri', 'zariman'];
 
   // Glifos inline (constantes estáticas — innerHTML aqui nunca vê dado externo).
   const SVG = (d, extra = '') =>
@@ -55,8 +58,8 @@
     return label === key ? s : label; // estado desconhecido: mostra cru
   };
 
-  // Compacto de propósito: segundos só aparecem perto da virada (<10 min) —
-  // é o que faz os 6 relógios caberem numa linha de 1060px em PT e EN.
+  // Segundos só aparecem perto da virada (<10 min), quando importam — mantém os
+  // relógios curtos e a faixa numa linha só no desktop (rola no mobile).
   function fmtLeft(ms) {
     const s = Math.max(0, Math.ceil(ms / 1000));
     const h = Math.floor(s / 3600);
@@ -70,7 +73,7 @@
   function nextState(c) {
     // só para o rótulo "vira X em..." — a ordem real vive no servidor
     const ORDERS = {
-      cetus: ['day', 'night'], earth: ['day', 'night'], vallis: ['warm', 'cold'],
+      cetus: ['day', 'night'], vallis: ['warm', 'cold'],
       cambion: ['fass', 'vome'], zariman: ['grineer', 'corpus'],
       duviri: ['joy', 'anger', 'envy', 'sorrow', 'fear'],
     };
@@ -80,12 +83,17 @@
     return i < 0 ? null : order[(i + 1) % order.length];
   }
 
+  // Nome do relógio: junta os mundos que ele representa ("Cetus / Terra" quando
+  // o ciclo cobre mais de um). Fallback para o próprio id se `worlds` faltar.
+  const worldLabel = (c) => (Array.isArray(c.worlds) && c.worlds.length ? c.worlds : [c.id])
+    .map((w) => t(`cyc.${w}`)).join(' / ');
+
   function chip(c) {
     const ic = el('span', { class: 'cyc-ic' });
     ic.innerHTML = glyphFor(c.state); // constante estática, nunca dado da API
     return el('span', { class: `cyc cyc-${c.state}`, role: 'listitem', dataset: { cyc: c.id } }, [
       ic,
-      el('span', { class: 'cyc-w', text: t(`cyc.${c.id}`) }),
+      el('span', { class: 'cyc-w', text: worldLabel(c) }),
       el('span', { class: 'cyc-state', text: stateLabel(c.state) }),
       el('span', { class: 'cyc-t', text: '' }),
     ]);
@@ -135,10 +143,13 @@
     }
   }
 
-  // skeleton imediato (nomes dos mundos) enquanto a primeira resposta não chega
+  // skeleton imediato (nomes dos mundos) enquanto a primeira resposta não chega.
+  // O rótulo do Cetus já inclui a Terra para casar com o dado real (evita o chip
+  // crescer "Cetus"→"Cetus / Terra" quando a resposta chega).
+  const SKELETON_WORLDS = { cetus: ['cetus', 'earth'] };
   inner.replaceChildren(...ORDER.map((id) =>
     el('span', { class: 'cyc cyc-skel', role: 'listitem' }, [
-      el('span', { class: 'cyc-w', text: t(`cyc.${id}`) }),
+      el('span', { class: 'cyc-w', text: (SKELETON_WORLDS[id] || [id]).map((w) => t(`cyc.${w}`)).join(' / ') }),
       el('span', { class: 'cyc-t', text: '…' }),
     ])));
 
