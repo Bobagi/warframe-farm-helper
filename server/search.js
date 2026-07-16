@@ -34,6 +34,12 @@ const compSlug = (name) => String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-'
 function buildDocs() {
   const db = getDb();
   const docs = [];
+  const seen = new Set();
+  const push = (doc) => {
+    if (seen.has(doc.id)) return; // dados do WFCD têm componentes duplicados (ex.: Akfuris → 2× Furis)
+    seen.add(doc.id);
+    docs.push(doc);
+  };
 
   const items = db.prepare(
     'SELECT unique_name, name, name_pt, category, type, image_name, raw FROM items'
@@ -41,7 +47,7 @@ function buildDocs() {
   for (const it of items) {
     const kind = it.category === 'Mods' ? 'mod' : it.category === 'Resources' ? 'resource' : 'item';
     const url = `/item.html?u=${encodeURIComponent(it.unique_name)}`;
-    docs.push({
+    push({
       id: `i:${it.unique_name}`, kind,
       name: it.name, alt: it.name_pt || '',
       sub: it.type || it.category,
@@ -56,7 +62,7 @@ function buildDocs() {
       // o blueprint principal já é achado pelo nome do item
       if (!c.name || c.name === 'Blueprint') continue;
       const full = c.name.includes(it.name) ? c.name : `${it.name} ${c.name}`;
-      docs.push({
+      push({
         id: `c:${it.unique_name}::${c.name}`, kind: 'component',
         name: full, alt: '',
         sub: `Componente de ${it.name}`,
@@ -68,7 +74,7 @@ function buildDocs() {
 
   const relics = db.prepare('SELECT name, vaulted FROM relics').all();
   for (const r of relics) {
-    docs.push({
+    push({
       id: `r:${r.name}`, kind: 'relic',
       name: `${r.name} Relic`, alt: `Relíquia ${r.name}`,
       sub: r.vaulted ? 'Relíquia · vaulted' : 'Relíquia · disponível',
@@ -79,7 +85,7 @@ function buildDocs() {
 
   const arts = db.prepare('SELECT slug, kind, title, keywords FROM articles').all();
   for (const a of arts) {
-    docs.push({
+    push({
       id: `a:${a.slug}`, kind: a.kind,
       name: a.title, alt: a.keywords || '',
       sub: a.kind === 'faq' ? 'FAQ · mecânicas do jogo' : 'Guia · Nightwave',

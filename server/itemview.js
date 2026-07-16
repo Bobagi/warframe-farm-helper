@@ -77,6 +77,7 @@ function decorateRelics(db, relicRefs, fullName, fissuresByTier, relicCache) {
     let chanceIntact = r.chanceIntact;
     let chanceRadiant = null;
     let marketSlug = null;
+    let rarity = r.rarity;
     if (rr) {
       let rewards = {};
       try { rewards = JSON.parse(rr.rewards); } catch { rewards = {}; }
@@ -91,6 +92,9 @@ function decorateRelics(db, relicRefs, fullName, fissuresByTier, relicCache) {
       if (intact) {
         chanceIntact = intact.chance;
         marketSlug = intact.marketSlug || null;
+        // raridade "de verdade" é a do slot na relíquia intact (o rótulo do
+        // drop por refinamento é relativo ao bucket de chance, e confunde)
+        if (intact.rarity) rarity = intact.rarity;
       }
       if (radiant) chanceRadiant = radiant.chance;
     }
@@ -101,8 +105,8 @@ function decorateRelics(db, relicRefs, fullName, fissuresByTier, relicCache) {
     return {
       relic: r.relic,
       tier: r.tier,
-      rarity: r.rarity,
-      rarityPt: RARITY_PT[r.rarity] || r.rarity,
+      rarity,
+      rarityPt: RARITY_PT[rarity] || rarity,
       vaulted: rr ? !!rr.vaulted : null,
       chanceIntact,
       chanceRadiant,
@@ -183,9 +187,21 @@ async function buildItemDetail(uniqueName) {
   const fissuresByTier = {};
   for (const f of fissures) (fissuresByTier[f.tier] ||= []).push(f);
 
+  // dados do WFCD podem repetir componentes (ex.: Akfuris → 2× Furis):
+  // mescla por nome somando a quantidade
+  const merged = new Map();
+  for (const c of Array.isArray(raw.components) ? raw.components : []) {
+    const prev = merged.get(c.name);
+    if (prev) {
+      prev.itemCount = (prev.itemCount || 1) + (c.itemCount || 1);
+    } else {
+      merged.set(c.name, { ...c, itemCount: c.itemCount || 1 });
+    }
+  }
+
   const relicCache = new Map();
   const comps = [];
-  for (const c of Array.isArray(raw.components) ? raw.components : []) {
+  for (const c of merged.values()) {
     const fullName = c.name.includes(raw.name) ? c.name : `${raw.name} ${c.name}`;
     const cls = classifyDrops(c.drops);
     const relics = decorateRelics(db, cls.relics, fullName, fissuresByTier, relicCache);
