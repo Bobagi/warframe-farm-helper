@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Buscar — Warframe Farm Helper</title>
+  <meta name="description" content="Busca unificada: itens, componentes, relíquias, FAQ e guias — com fallback para os sites confiáveis da comunidade Warframe.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="site-head">
+    <div class="wrap">
+      <a class="brand" href="/">WARFRAME <span>FARM HELPER</span></a>
+      <nav class="site-nav" aria-label="Principal">
+        <a href="/buscar.html">Buscar</a>
+        <a href="/#fissuras">Fissuras</a>
+        <a href="/nightwave.html">Nightwave</a>
+        <a href="/faq.html">FAQ</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <section class="hero" style="padding-top:14px">
+        <form class="console-wrap" id="search-form" role="search">
+          <div class="console">
+            <input id="q" type="search" placeholder="Item, relíquia, mecânica, ato do Nightwave…"
+                   autocomplete="off" aria-label="Buscar">
+            <button type="submit">Buscar</button>
+          </div>
+          <div class="suggest" id="suggest" role="listbox" hidden></div>
+        </form>
+      </section>
+
+      <p class="muted" id="summary" aria-live="polite"></p>
+
+      <section class="panel panel-quiet" id="local-panel" hidden>
+        <p class="eyebrow">Resultados locais</p>
+        <ul class="rowlist" id="local-list"></ul>
+      </section>
+
+      <section class="panel" id="web-panel" hidden>
+        <p class="eyebrow">Resultados externos <span class="hint">sites confiáveis da comunidade</span></p>
+        <p class="web-note" id="web-note"></p>
+        <ul class="rowlist" id="web-list"></ul>
+      </section>
+
+      <p id="web-more-wrap" hidden style="margin:6px 0 20px">
+        <button class="btn-line" id="web-more" type="button">Buscar também na web</button>
+      </p>
+    </div>
+  </main>
+
+  <footer class="site-foot">
+    <div class="wrap">
+      <p class="foot-brand">WARFRAME FARM HELPER</p>
+      <p>Site não-oficial, feito por fã. Sem afiliação com a Digital Extremes. Warframe e o logotipo de Warframe são marcas da Digital Extremes Ltd.</p>
+      <p>Dados: <a href="https://github.com/WFCD" rel="noopener">WFCD</a> · <a href="https://docs.warframestat.us" rel="noopener">warframestat.us</a> · <a href="https://warframe.market" rel="noopener">warframe.market</a> · Código: <a href="https://github.com/Bobagi/warframe-farm-helper" rel="noopener">GitHub</a></p>
+    </div>
+  </footer>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/buscar.js"></script>
+</body>
+</html>

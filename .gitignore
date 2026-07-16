@@ -1,0 +1,12 @@
+# dependências e artefatos
+node_modules/
+npm-debug.log*
+
+# dados locais (SQLite + caches) — recriados pela ingestão
+data/
+
+# segredos
+.env
+
+# relatórios de skills locais
+.claude/

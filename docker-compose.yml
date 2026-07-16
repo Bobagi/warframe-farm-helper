@@ -1,0 +1,19 @@
+services:
+  web:
+    build: .
+    image: warframe-farm-helper:latest
+    container_name: warframe-helper
+    restart: unless-stopped
+    # Regra da máquina: apps só em 127.0.0.1; o nginx faz o proxy público.
+    ports:
+      - "127.0.0.1:3064:3064"
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+    mem_limit: 1g
+    memswap_limit: 1g
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
