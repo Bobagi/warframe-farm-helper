@@ -80,13 +80,19 @@ async function getNightwaveRaw() {
  * já passou, dá para AVANÇAR o estado localmente pela tabela de durações —
  * assim a API nunca devolve um ciclo "vencido", mesmo com o upstream fora.
  */
+// Mundos cujo ciclo a DE emite no worldstate REAL (via timers de bounty/expiry)
+// — fonte confiável, todas as fontes concordam. A TERRA **não** está aqui de
+// propósito: desde o Update 38.5 ela não tem mais ciclo próprio e passou a
+// seguir o Cetus/Plains (dia 100min, noite 50min). A API /earthCycle ainda
+// calcula o ciclo LEGADO de 8h (4h dia/4h noite) e fica dessincronizada do jogo
+// (mostra "noite" quando o jogo está em "dia"), então derivamos a Terra do
+// cetusCycle em getCycles(), não de /earthCycle. Ver wiki Earth (U38.5).
 const CYCLE_DEFS = [
   { id: 'cetus', path: 'cetusCycle', order: ['day', 'night'], dur: { day: 100 * 60e3, night: 50 * 60e3 } },
   { id: 'vallis', path: 'vallisCycle', order: ['warm', 'cold'], dur: { warm: 400e3, cold: 1200e3 } },
   { id: 'cambion', path: 'cambionCycle', order: ['fass', 'vome'], dur: { fass: 100 * 60e3, vome: 50 * 60e3 } },
   { id: 'duviri', path: 'duviriCycle', order: ['joy', 'anger', 'envy', 'sorrow', 'fear'], dur: { joy: 120 * 60e3, anger: 120 * 60e3, envy: 120 * 60e3, sorrow: 120 * 60e3, fear: 120 * 60e3 } },
   { id: 'zariman', path: 'zarimanCycle', order: ['grineer', 'corpus'], dur: { grineer: 150 * 60e3, corpus: 150 * 60e3 } },
-  { id: 'earth', path: 'earthCycle', order: ['day', 'night'], dur: { day: 240 * 60e3, night: 240 * 60e3 } },
 ];
 
 // ciclos são previsíveis — cache velho continua útil por horas (avançado localmente)
@@ -132,6 +138,13 @@ async function getCycles() {
     const c = normalizeCycle(s.value, CYCLE_DEFS[i], now);
     if (c) cycles.push(c);
   });
+  // Terra = Cetus desde o Update 38.5 (mesma fase dia/noite, mesma fonte
+  // confiável). Espelhamos o cetusCycle em vez de /earthCycle (legado, defasado);
+  // se o Cetus estiver indisponível não há fonte correta, então a Terra some.
+  const cetus = cycles.find((c) => c.id === 'cetus');
+  if (cetus) {
+    cycles.push({ id: 'earth', state: cetus.state, expiry: cetus.expiry, predicted: cetus.predicted });
+  }
   return cycles;
 }
 

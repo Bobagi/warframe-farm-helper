@@ -17,6 +17,11 @@ test('CYCLE_DEFS: toda duração cobre todos os estados da ordem', () => {
   }
 });
 
+test('CYCLE_DEFS não puxa a Terra da API (segue o Cetus, não /earthCycle legado)', () => {
+  assert.ok(!CYCLE_DEFS.some((d) => d.id === 'earth'),
+    'a Terra deve ser derivada do Cetus em getCycles, nunca buscada de /earthCycle');
+});
+
 test('normalizeCycle: expiry no futuro passa direto, sem previsão', () => {
   const now = Date.parse('2026-07-16T12:00:00.000Z');
   const c = normalizeCycle(
@@ -74,7 +79,7 @@ test('advanceCycle: estado desconhecido não avança (devolve como veio)', () =>
 });
 
 test('normalizeCycle: lixo da API vira null (não derruba a rota)', () => {
-  const d = def('earth');
+  const d = def('zariman');
   assert.equal(normalizeCycle(null, d, 0), null);
   assert.equal(normalizeCycle('texto', d, 0), null);
   assert.equal(normalizeCycle({ state: 'day' }, d, 0), null); // sem expiry

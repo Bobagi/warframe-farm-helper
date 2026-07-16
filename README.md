@@ -29,6 +29,9 @@ os chatos: destruir Crewship com Artilharia Frontal, enigmas do Duviri, etc.).
   **Duviri** (humores do Spiral), **Zariman** (Grineer/Corpus) e **Terra** (dia/noite), cada um com
   contagem regressiva ao vivo. O servidor avança o estado localmente pela tabela de durações, então a
   faixa nunca mostra ciclo vencido — mesmo se o worldstate upstream cair.
+  **Terra:** desde o Update 38.5 a Terra não tem mais ciclo próprio de 8h — ela segue o Cetus/Plains
+  (dia 100min, noite 50min). A API `/earthCycle` ainda calcula o ciclo legado de 8h e fica dessincronizada
+  do jogo, então a Terra é **derivada do `cetusCycle`** (fonte real da DE), não de `/earthCycle`.
 - **Fissuras agora** — worldstate ao vivo (Normais / Steel Path / Railjack) com contagem regressiva.
 - **FAQ** — 20 artigos de mecânica (Helminth, slots, ducats, Forma, platina, vaulted…).
 - **Nightwave** — cruza os atos ativos da semana com uma biblioteca de 18 guias em PT-BR (match por
@@ -133,8 +136,12 @@ docker compose up -d --build   # rebuild + recreate; o volume ./data preserva o 
 Rodar os testes:
 
 ```bash
-docker compose run --rm --no-deps web npm test
+docker compose build && docker compose run --rm --no-deps web npm test
 ```
+
+> **Atenção:** o compose só monta `./data` como volume — o **código vem da imagem**. `docker compose run`
+> executa o código **da última build**, não a working tree. Rode `docker compose build` (ou `up -d --build`)
+> **antes** de testar/verificar código novo, senão você valida a versão antiga sem perceber.
 
 ## Verificação (o que confirmar depois de subir)
 
