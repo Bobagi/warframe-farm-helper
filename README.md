@@ -12,8 +12,10 @@ os chatos: destruir Crewship com Artilharia Frontal, enigmas do Duviri, etc.).
 
 ## O que ele faz
 
-- **Busca no topo de todas as páginas** — barra fixa no cabeçalho (com autocomplete) além da busca grande
-  da home, para acesso rápido de qualquer tela.
+- **Busca no topo de todas as páginas** — barra fixa no cabeçalho (com autocomplete) como entrada única de
+  busca; a home usa chips de exemplo como atalhos. O autocomplete é resistente a corrida ("última vence":
+  aborta a query anterior e descarta respostas fora de ordem — ver `public/js/latest.js`), então o dropdown
+  nunca mostra resultado de um texto já apagado. A página `/buscar` mantém a barra grande da própria página.
 - **Idioma PT / EN** — toggle no cabeçalho. Detecta o idioma pelo navegador e deixa trocar na mão (persiste).
   Traduz a interface, os **nomes de item** (i18n do WFCD), as missões das fissuras e o **passo a passo**
   (gerado bilíngue no servidor). Os artigos de FAQ/Nightwave são escritos em PT — em modo EN o título e a
