@@ -5,7 +5,7 @@ const { getDb, getMeta } = require('../db');
 const { searchLocal, suggest, stats } = require('../search');
 const { webSearch } = require('../websearch');
 const { getTopOrders } = require('../market');
-const { getFissures, getBaro } = require('../worldstate');
+const { getFissures, getBaro, getCycles } = require('../worldstate');
 const { getActs } = require('../nightwave');
 const { buildItemDetail, buildRelicDetail } = require('../itemview');
 
@@ -115,6 +115,10 @@ router.get('/nightwave', asyncRoute(async (req, res) => {
 
 router.get('/baro', asyncRoute(async (req, res) => {
   res.json({ baro: await getBaro() });
+}));
+
+router.get('/cycles', asyncRoute(async (req, res) => {
+  res.json({ cycles: await getCycles() });
 }));
 
 router.get('/faq', (req, res) => {

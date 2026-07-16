@@ -24,6 +24,11 @@ os chatos: destruir Crewship com Artilharia Frontal, enigmas do Duviri, etc.).
   arcanos e peixes — não só primes.
 - **Relíquias** — recompensas por refinamento (Intact→Radiant), onde a relíquia dropa, status vaulted e
   fissuras ativas do tier.
+- **Relógios dos mundos** — faixa fixa abaixo do cabeçalho (em todas as páginas) com o ciclo de cada
+  mundo que tem dia/noite: **Cetus** (dia/noite), **Vallis** (quente/frio), **Deimos** (Fass/Vome),
+  **Duviri** (humores do Spiral), **Zariman** (Grineer/Corpus) e **Terra** (dia/noite), cada um com
+  contagem regressiva ao vivo. O servidor avança o estado localmente pela tabela de durações, então a
+  faixa nunca mostra ciclo vencido — mesmo se o worldstate upstream cair.
 - **Fissuras agora** — worldstate ao vivo (Normais / Steel Path / Railjack) com contagem regressiva.
 - **FAQ** — 20 artigos de mecânica (Helminth, slots, ducats, Forma, platina, vaulted…).
 - **Nightwave** — cruza os atos ativos da semana com uma biblioteca de 18 guias em PT-BR (match por
