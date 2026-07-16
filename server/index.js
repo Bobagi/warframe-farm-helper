@@ -21,7 +21,9 @@ app.set('trust proxy', 'loopback'); // atrás do nginx local
 app.use((req, res, next) => {
   res.setHeader('Content-Security-Policy', [
     "default-src 'self'",
-    "img-src 'self' https://cdn.warframestat.us data:",
+    // cdn.warframestat.us faz 301 → raw.githubusercontent.com; o CSP checa o
+    // destino do redirect, então ambos precisam estar liberados p/ as artes
+    "img-src 'self' https://cdn.warframestat.us https://raw.githubusercontent.com data:",
     // 'unsafe-inline' cobre os atributos style="" do layout; script-src fica
     // estrito ('self', sem inline) — é ele que barra XSS, não o style.
     "style-src 'self' 'unsafe-inline'",
