@@ -11,7 +11,7 @@
   "scripts": {
     "start": "node server/index.js",
     "ingest": "node server/ingest.js",
-    "test": "node --test test/"
+    "test": "node --test"
   },
   "dependencies": {
     "better-sqlite3": "^12.2.0",
