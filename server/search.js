@@ -29,13 +29,27 @@ let mini = null;
 let docCount = 0;
 let lastIngestSeen = null;
 
+// Preposições/artigos PT+EN que o usuário digita numa frase ("Sombras DE Jade")
+// mas que não devem virar filtro obrigatório na busca AND — senão "Sombras de"
+// exige o termo "de" e elimina "Sombras DA Jade" (que tem "da", não "de").
+// Ignoradas na indexação E na query (o processTerm roda nos dois lados).
+const STOPWORDS = new Set([
+  // PT
+  'de', 'da', 'do', 'das', 'dos', 'em', 'no', 'na', 'nos', 'nas',
+  'para', 'pra', 'com', 'por', 'ao', 'aos', 'as', 'os', 'um', 'uma',
+  // EN
+  'of', 'the', 'and', 'for', 'with', 'from',
+]);
+
 const processTerm = (term) => {
   const t = stripDiacritics(String(term).toLowerCase());
-  return t.length > 1 ? t : null;
+  if (t.length <= 1 || STOPWORDS.has(t)) return null;
+  return t;
 };
 
 const tokensOf = (q) =>
-  stripDiacritics(String(q).toLowerCase()).split(/[^a-z0-9]+/).filter((t) => t.length > 1);
+  stripDiacritics(String(q).toLowerCase()).split(/[^a-z0-9]+/)
+    .filter((t) => t.length > 1 && !STOPWORDS.has(t));
 
 const compSlug = (name) => String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-');
 

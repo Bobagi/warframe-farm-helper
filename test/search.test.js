@@ -33,6 +33,9 @@ function seed() {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
   ins.run('/Lotus/Test/BratonPrime', 'Braton Prime', null, 'Primary', 'Rifle', 8, 0, 'bp.png', null, 1, rawBraton);
   ins.run('/Lotus/Test/Akfuris', 'Akfuris', null, 'Secondary', 'Pistol', 0, null, null, null, 0, rawAk);
+  // quest cujo name_pt tem a preposição "da" (não "de") — o usuário digita "de"
+  ins.run('/Lotus/Test/JadeShadows', 'Jade Shadows', 'Sombras da Jade', 'Quests', 'Key', null, null, null, null, 0,
+    JSON.stringify({ name: 'Jade Shadows' }));
   db.prepare('INSERT OR REPLACE INTO relics(name, tier, code, vaulted, drops, rewards) VALUES (?,?,?,?,?,?)')
     .run('Lith K12', 'Lith', 'K12', 0, '[]', '{}');
   db.prepare(`INSERT OR REPLACE INTO articles(slug, kind, title, keywords, match_json, html, body_md, sort)
@@ -64,6 +67,17 @@ test('busca ignora acentos: "reliquia" acha "Relíquias…"', () => {
   const { results } = searchLocal('reliquia');
   assert.ok(results.some((r) => r.kind === 'faq' && /Relíquias/.test(r.name)),
     `esperava artigo de relíquias em: ${JSON.stringify(results.map((r) => r.name))}`);
+});
+
+test('stopword: "Sombras de" acha "Sombras da Jade" (preposição não filtra)', () => {
+  // o bug: AND estrito exigia o termo "de", e a quest tem "da" → sumia
+  const so = searchLocal('Sombras de');
+  assert.ok(so.results.some((r) => r.namePt === 'Sombras da Jade'),
+    `"Sombras de" deveria achar a quest: ${JSON.stringify(so.results.map((r) => r.namePt || r.name))}`);
+  // e a frase completa que o usuário digita ("de" onde o nome tem "da") também
+  const full = searchLocal('Sombras de Jade');
+  assert.ok(full.results.some((r) => r.namePt === 'Sombras da Jade'),
+    `"Sombras de Jade" deveria achar a quest: ${JSON.stringify(full.results.map((r) => r.namePt || r.name))}`);
 });
 
 test('suggest devolve no máximo 8 e inclui a relíquia', () => {

@@ -42,8 +42,12 @@ os chatos: destruir Crewship com Artilharia Frontal, enigmas do Duviri, etc.).
 - **Nightwave** — cruza os atos ativos da semana com uma biblioteca de 18 guias em PT-BR (match por
   palavra-chave) e lista os guias recorrentes.
 - **Busca unificada** — itens + componentes + relíquias + FAQ + guias, fuzzy e sem acento (tolera
-  erro de digitação e PT/EN misturado). Sem resultado local relevante → **fallback de busca web** restrita
-  aos sites confiáveis (ver "Chaves do Google").
+  erro de digitação e PT/EN misturado). Ignora preposições/artigos (de, da, of, the…) para não travar em
+  frases ("Sombras de" acha "Sombras da Jade"). Sem resultado local relevante → **fallback de busca web**
+  restrita aos sites confiáveis (ver "Chaves do Google").
+- **Recursos e quests** — recurso de craft sem tabela no dataset (ex.: Orokin Cell) mostra "onde dropa"
+  buscado na API de drops do warframestat.us (+ link da wiki). Quests mostram sinopse + link da wiki (o
+  dataset oficial não traz requisitos/recompensas estruturados de quest).
 - **Preços** (opcional) — menor preço de venda no warframe.market na página do item.
 
 ## Stack

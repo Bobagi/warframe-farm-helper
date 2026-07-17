@@ -121,7 +121,7 @@
           lang() === 'pt' && item.namePt && item.namePt !== item.name
             ? el('p', { class: 'muted', style: 'margin:0', text: item.name }) : null,
           el('div', { class: 'badges-line' }, [
-            el('span', { class: 'badge', text: item.type || item.category }),
+            el('span', { class: 'badge', text: item.isQuest ? t('quest.title') : (item.type || item.category) }),
             item.masteryReq ? el('span', { class: 'badge badge-gold', text: t('tag.mrShort', { n: item.masteryReq }) }) : null,
             item.vaulted != null ? statusBadge(item.vaulted) : null,
             item.tradable ? el('span', { class: 'badge', text: t('tag.tradable') }) : null,
@@ -133,6 +133,16 @@
         ]),
       ]),
     ]));
+
+    if (item.isQuest) {
+      frag.push(el('section', { class: 'panel panel-quiet' }, [
+        el('p', { class: 'eyebrow', text: t('quest.title') }),
+        el('p', { class: 'muted small', text: t('quest.note') }),
+        item.wikiUrl ? el('p', { style: 'margin:10px 0 0' }, [
+          el('a', { class: 'btn-line', href: item.wikiUrl, target: '_blank', rel: 'noopener', text: t('quest.wikiCta') }),
+        ]) : null,
+      ]));
+    }
 
     if (item.usedToBuild && item.usedToBuild.length) {
       frag.push(el('section', { class: 'panel' }, [
@@ -172,7 +182,7 @@
       ]));
     }
 
-    if (item.steps && item.steps.length) {
+    if (item.steps && item.steps.length && !item.isQuest) {
       frag.push(el('section', { class: 'panel' }, [
         el('p', { class: 'eyebrow', text: t('item.steps') }),
         el('ol', { class: 'steps' }, item.steps.map((s) => el('li', { text: s }))),
@@ -197,7 +207,28 @@
         const others = sourcesList(c.otherSources, c.relics.length ? t('item.otherSources') : null);
         if (others) block.append(others);
         if (!c.relics.length && !c.otherSources.length) {
-          block.append(el('p', { class: 'muted small', text: t('item.noSource') }));
+          if (c.resourceDrops && c.resourceDrops.length) {
+            // recurso sem tabela no dataset, mas com drops via API de drops
+            block.append(el('div', {}, [
+              el('h3', { text: t('item.whereDrops') }),
+              el('ul', { class: 'rowlist' }, c.resourceDrops.map((s) => el('li', { class: 'row' }, [
+                el('span', { class: 'grow name small', text: s.location }),
+                s.rarity ? rarityChip(s.rarity) : null,
+                el('span', { class: 'num small', text: fmtPct(s.chance) }),
+              ]))),
+              c.wikiUrl ? el('p', { class: 'small', style: 'margin:8px 0 0' }, [
+                el('a', { href: c.wikiUrl, target: '_blank', rel: 'noopener', text: t('item.wiki') }),
+              ]) : null,
+            ]));
+          } else {
+            block.append(el('p', { class: 'muted small' }, [
+              t('item.noSourcePre'),
+              c.wikiUrl
+                ? el('a', { href: c.wikiUrl, target: '_blank', rel: 'noopener', text: t('item.wikiInline') })
+                : t('item.wikiInline'),
+              t('item.noSourcePost'),
+            ]));
+          }
         }
         compSection.append(block);
       }

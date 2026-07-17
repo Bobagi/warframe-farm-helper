@@ -8,9 +8,19 @@
 
 const { getDb } = require('./db');
 const { getFissures } = require('./worldstate');
+const { getResourceDrops } = require('./drops');
 const { COMMON_RESOURCES } = require('./util');
 
 const CDN_IMG = 'https://cdn.warframestat.us/img/';
+const WIKI_BASE = 'https://wiki.warframe.com/w/';
+
+/** URL da página da wiki a partir do nome (título canônico EN, espaços → _). */
+function wikiUrlFor(name) {
+  const slug = String(name || '').trim().replace(/\s+/g, '_');
+  if (!slug) return null;
+  // encodeURIComponent encoda tudo (incl. "/" → %2F): sem risco de path traversal
+  return WIKI_BASE + encodeURIComponent(slug);
+}
 const RELIC_RE = /^(Lith|Meso|Neo|Axi|Requiem) (\S+) Relic(?: \((Exceptional|Flawless|Radiant)\))?$/;
 const RARITY_PT = { Common: 'Comum', Uncommon: 'Incomum', Rare: 'Rara', Legendary: 'Lendária' };
 
@@ -242,7 +252,8 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
       ? c.name
       : `${raw.name} ${c.name}`;
     const relics = decorateRelics(db, cls.relics, fullName, fissuresByTier, relicCache);
-    const available = relics.some((r) => r.vaulted === false) || cls.other.length > 0;
+    // recurso bruto (Orokin Cell, Morphics…) nunca é "vaulted" — sempre farmável
+    const available = isIngredient(c.name) || relics.some((r) => r.vaulted === false) || cls.other.length > 0;
     const marketSlug = (relics.find((r) => r.marketSlug) || {}).marketSlug
       || (c.tradable ? marketSlugFor(fullName) : null);
     comps.push({
@@ -255,10 +266,21 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
       available,
       relics,
       otherSources: cls.other,
+      resourceDrops: [],
+      wikiUrl: null,
       marketSlug,
       anchor: compAnchor(c.name),
     });
   }
+
+  // componentes-recurso sem fonte no nosso dataset (Orokin Cell, Morphics…):
+  // busca "onde dropa" na API de drops e gera o link da wiki, em vez de só
+  // dizer "sem fonte". Em paralelo (1–2 por item), com cache no módulo de drops.
+  const needDrops = comps.filter((c) => !c.relics.length && !c.otherSources.length);
+  await Promise.all(needDrops.map(async (c) => {
+    c.wikiUrl = wikiUrlFor(c.name);
+    try { c.resourceDrops = await getResourceDrops(c.name); } catch { c.resourceDrops = []; }
+  }));
 
   // índice reverso: quais itens usam ESTE como componente (ex.: Furis → Afuris)
   const usedToBuild = db.prepare(
@@ -288,6 +310,7 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
   for (const tier of neededTiers) relevantFissures[tier] = fissuresByTier[tier] || [];
 
   const isPrime = / Prime( |$)/.test(raw.name);
+  const isQuest = row.category === 'Quests';
 
   return {
     uniqueName: row.unique_name,
@@ -295,10 +318,12 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
     namePt: row.name_pt,
     category: row.category,
     type: raw.type || row.category,
+    isQuest,
     description: (lang === 'en' ? raw.description : (raw.descriptionPt || raw.description)) || '',
     vaulted: row.vaulted === 1 ? true : row.vaulted === 0 ? false : null,
     image: raw.imageName ? CDN_IMG + raw.imageName : null,
-    wikiUrl: row.wiki_url,
+    // dataset traz wiki só p/ alguns; gera do nome quando falta (quests, etc.)
+    wikiUrl: row.wiki_url || wikiUrlFor(raw.name),
     masteryReq: Number.isFinite(raw.masteryReq) ? raw.masteryReq : null,
     tradable: !!row.tradable,
     crafting: comps.length ? {
@@ -349,5 +374,5 @@ function buildRelicDetail(name) {
 
 module.exports = {
   buildItemDetail, buildRelicDetail, classifyDrops, marketSlugFor,
-  fmtBuildTime, fmtPct, rarityLabel, buildSteps,
+  fmtBuildTime, fmtPct, rarityLabel, buildSteps, wikiUrlFor,
 };
