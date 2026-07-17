@@ -346,14 +346,18 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
 
   // PT: traduz os locais de drop (planeta/tipo/rotação) em tudo que os embute —
   // sources, relíquias, drops de recurso e o passo a passo. Feito ANTES de
-  // buildSteps para o passo a passo sair traduzido também.
+  // buildSteps para o passo a passo sair traduzido também. CLONA os objetos
+  // (map+spread) em vez de mutar: alguns arrays vêm de cache compartilhado
+  // (getResourceDrops) — mutar corromperia o cache e vazaria PT para o EN.
   if (lang === 'pt') {
-    const trLoc = (arr) => { for (const s of arr || []) if (s && s.location) s.location = placePt(s.location); };
-    trLoc(itemSources.other);
+    const trLoc = (arr) => (Array.isArray(arr)
+      ? arr.map((s) => (s && s.location ? { ...s, location: placePt(s.location) } : s))
+      : arr);
+    itemSources.other = trLoc(itemSources.other);
     for (const c of comps) {
-      trLoc(c.otherSources);
-      trLoc(c.resourceDrops);
-      for (const r of c.relics) trLoc(r.relicDrops);
+      c.otherSources = trLoc(c.otherSources);
+      c.resourceDrops = trLoc(c.resourceDrops);
+      for (const r of c.relics) r.relicDrops = trLoc(r.relicDrops);
     }
     if (questInfo && questInfo.reward && questInfo.reward.length) {
       const namePt = db.prepare('SELECT name_pt FROM items WHERE name = ? AND name_pt IS NOT NULL');
