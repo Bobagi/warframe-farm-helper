@@ -39,6 +39,25 @@
     return el('div', { class: 'table-scroll' }, [table]);
   }
 
+  // Relíquias de um componente: as DISPONÍVEIS ficam visíveis (é o que dá para
+  // farmar agora); as VAULTED (que costumam ser a maioria em primes antigos —
+  // ex.: 37 de 39 no Braton Prime) entram num <details> colapsado para não
+  // afogar a lista de componentes.
+  function relicsBlock(c) {
+    const avail = c.relics.filter((r) => r.vaulted === false);
+    const vaulted = c.relics.filter((r) => r.vaulted !== false);
+    const out = [];
+    if (avail.length) out.push(relicTable({ relics: avail }));
+    else out.push(el('p', { class: 'muted small', text: t('item.allVaulted') }));
+    if (vaulted.length) {
+      out.push(el('details', { class: 'relic-vault' }, [
+        el('summary', { text: t('item.showVaulted', { n: vaulted.length }) }),
+        relicTable({ relics: vaulted }),
+      ]));
+    }
+    return out;
+  }
+
   function sourcesList(sources, label) {
     if (!sources.length) return null;
     return el('div', {}, [
@@ -174,7 +193,7 @@
             statusBadge(!c.available),
           ]),
         ]);
-        if (c.relics.length) block.append(relicTable(c));
+        if (c.relics.length) for (const node of relicsBlock(c)) block.append(node);
         const others = sourcesList(c.otherSources, c.relics.length ? t('item.otherSources') : null);
         if (others) block.append(others);
         if (!c.relics.length && !c.otherSources.length) {

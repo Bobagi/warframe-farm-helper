@@ -525,6 +525,33 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
 .comp-head .comp-name { font-family: var(--font-display); font-weight: 600; font-size: 16px; }
 .comp-head .count { color: var(--text-dim); font-size: 13px; }
 
+/* relíquias vaulted colapsáveis (escondem o ruído; disponíveis ficam visíveis) */
+.relic-vault { margin-top: 8px; }
+.relic-vault > summary {
+  cursor: pointer;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+  padding: 6px 0;
+  min-height: 24px;
+}
+.relic-vault > summary::-webkit-details-marker { display: none; }
+.relic-vault > summary::before {
+  content: "▸";
+  color: var(--vaulted);
+  transition: transform 0.15s ease;
+}
+.relic-vault[open] > summary::before { transform: rotate(90deg); }
+.relic-vault > summary:hover { color: var(--energy); }
+.relic-vault[open] > summary { margin-bottom: 8px; }
+.relic-vault > summary:focus-visible { outline: 2px solid var(--energy); outline-offset: 2px; border-radius: 2px; }
+
 .item-hero { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
 .item-hero .art {
   width: 128px;
