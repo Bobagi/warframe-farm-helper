@@ -10,6 +10,7 @@
 (() => {
   const { el, api, startTimers, tierBadge, farmCard } = App;
   const { t, missionName, enemyName } = I18n;
+  const placeName = (n) => (I18n.lang() === 'pt' ? Places.placePt(n) : n);
 
   // ---- fissuras (mesma lógica da home) ----
   let fissures = [];
@@ -23,7 +24,7 @@
     el('span', { class: 'grow' }, [
       el('span', { class: 'name', text: missionName(f.missionType) }),
       el('br'),
-      el('span', { class: 'sub', text: `${f.node} · ${enemyName(f.enemy)}` }),
+      el('span', { class: 'sub', text: `${placeName(f.node)} · ${enemyName(f.enemy)}` }),
     ]),
     el('span', { class: 'time num', dataset: { expiry: f.expiry } }),
   ]);

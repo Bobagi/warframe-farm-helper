@@ -3,6 +3,7 @@
 (() => {
   const { el, api, qs, fmtPct, tierBadge, rarityChip, statusBadge, startTimers } = App;
   const { t, missionName, enemyName } = I18n;
+  const placeName = (n) => (I18n.lang() === 'pt' ? Places.placePt(n) : n);
   const root = document.getElementById('content');
 
   const REFINEMENTS = ['Intact', 'Exceptional', 'Flawless', 'Radiant'];
@@ -23,7 +24,7 @@
         el('ul', { class: 'rowlist' }, rows.map((r) => el('li', { class: 'row' }, [
           el('span', { class: 'grow' }, [
             r.parentUrl
-              ? el('a', { href: r.parentUrl }, [el('span', { class: 'name', text: r.name })])
+              ? el('a', { class: 'rw-link', href: r.parentUrl }, [el('span', { class: 'name', text: r.name })])
               : el('span', { class: 'name', text: r.name }),
           ]),
           rarityChip(r.rarity),
@@ -69,7 +70,7 @@
       frag.push(el('section', { class: 'panel panel-quiet' }, [
         el('p', { class: 'eyebrow', text: t('relic.whereDrops') }),
         el('ul', { class: 'rowlist' }, relic.drops.slice(0, 10).map((d) => el('li', { class: 'row' }, [
-          el('span', { class: 'grow name small', text: d.location }),
+          el('span', { class: 'grow name small', text: placeName(d.location) }),
           el('span', { class: 'num small', text: fmtPct(d.chance) }),
         ]))),
       ]));
@@ -83,7 +84,7 @@
           el('span', { class: 'grow' }, [
             el('span', { class: 'name', text: missionName(f.missionType) }),
             el('br'),
-            el('span', { class: 'sub', text: `${f.node} · ${enemyName(f.enemy)}${f.isHard ? ' · Steel Path' : ''}${f.isStorm ? ' · Railjack' : ''}` }),
+            el('span', { class: 'sub', text: `${placeName(f.node)} · ${enemyName(f.enemy)}${f.isHard ? ' · Steel Path' : ''}${f.isStorm ? ' · Railjack' : ''}` }),
           ]),
           el('span', { class: 'time num', dataset: { expiry: f.expiry } }),
         ]))),

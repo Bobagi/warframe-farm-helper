@@ -3,6 +3,9 @@
 (() => {
   const { el, api, qs, fmtInt, fmtPct, tierBadge, rarityChip, statusBadge, startTimers } = App;
   const { t, lang, nameFor, missionName, enemyName } = I18n;
+  // locais de drop nas tabelas já vêm traduzidos do servidor; as fissuras ativas
+  // vêm do worldstate (cache compartilhado) — traduz o node aqui, sem mutar o cache
+  const placeName = (n) => (lang() === 'pt' ? Places.placePt(n) : n);
   const root = document.getElementById('content');
 
   function relicTable(comp) {
@@ -278,7 +281,7 @@
           el('span', { class: 'grow' }, [
             el('span', { class: 'name', text: missionName(f.missionType) }),
             el('br'),
-            el('span', { class: 'sub', text: `${f.node} · ${enemyName(f.enemy)}${f.isHard ? ' · Steel Path' : ''}${f.isStorm ? ' · Railjack' : ''}` }),
+            el('span', { class: 'sub', text: `${placeName(f.node)} · ${enemyName(f.enemy)}${f.isHard ? ' · Steel Path' : ''}${f.isStorm ? ' · Railjack' : ''}` }),
           ]),
           el('span', { class: 'time num', dataset: { expiry: f.expiry } }),
         ])))),

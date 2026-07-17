@@ -627,6 +627,9 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
 .quest-list li::marker { color: var(--orokin); }
 .quest-chain { margin: 6px 0 0; }
 
+/* link de recompensa na página de relíquia — piso de toque 24px */
+.rw-link { display: inline-block; padding: 4px 0; min-height: 24px; }
+
 /* nightwave acts */
 .act { border-left: 3px solid var(--line); }
 .act.has-guide { border-left-color: var(--orokin); }

@@ -3,6 +3,7 @@
 (() => {
   const { el, api, startTimers, tierBadge } = App;
   const { t, missionName, enemyName } = I18n;
+  const placeName = (n) => (I18n.lang() === 'pt' ? Places.placePt(n) : n);
 
   // (a busca vive fixa no cabeçalho — sem barra duplicada no hero)
 
@@ -28,7 +29,7 @@
     el('span', { class: 'grow' }, [
       el('span', { class: 'name', text: missionName(f.missionType) }),
       el('br'),
-      el('span', { class: 'sub', text: `${f.node} · ${enemyName(f.enemy)}` }),
+      el('span', { class: 'sub', text: `${placeName(f.node)} · ${enemyName(f.enemy)}` }),
     ]),
     el('span', { class: 'time num', dataset: { expiry: f.expiry } }),
   ]);

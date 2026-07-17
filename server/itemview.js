@@ -11,7 +11,33 @@ const { getFissures } = require('./worldstate');
 const { getResourceDrops } = require('./drops');
 const { getQuestInfo } = require('./questwiki');
 const { getTopOrders } = require('./market');
+const { placePt } = require('../public/js/places');
 const { COMMON_RESOURCES } = require('./util');
+
+// sufixo EN de cosmético/coisa → rótulo PT (mostrado ANTES do nome, com ":")
+const REWARD_SUFFIX = {
+  scene: 'Cena', portrait: 'Retrato', glyph: 'Glifo', sigil: 'Emblema', emblem: 'Emblema',
+  segment: 'Segmento', decoration: 'Decoração', noggle: 'Estatueta', mod: 'Mod',
+};
+
+/**
+ * Traduz uma recompensa de quest da wiki para PT com a ORDEM certa (o sufixo
+ * inglês vira prefixo: "Orvius Blueprint" → "Orvius (Projeto)", "Alone Portrait"
+ * → "Retrato: Alone"). Nome de item conhecido vira name_pt; nomes próprios/
+ * conceitos ficam como estão (não há tradução confiável).
+ */
+function rewardPt(reward, nameLookup) {
+  const s = String(reward).trim();
+  const nameOr = (base) => nameLookup(base.trim()) || base.trim();
+  let m;
+  if ((m = s.match(/^(.+) Blueprint$/i))) return `${nameOr(m[1])} (Projeto)`;
+  if ((m = s.match(/^(.+) Unlocked$/i))) return `${nameOr(m[1])} desbloqueado`;
+  if ((m = s.match(/^(.+) Access$/i))) return `Acesso: ${nameOr(m[1])}`;
+  if ((m = s.match(/^(.+) (\w+)$/)) && REWARD_SUFFIX[m[2].toLowerCase()]) {
+    return `${REWARD_SUFFIX[m[2].toLowerCase()]}: ${nameOr(m[1])}`;
+  }
+  return nameLookup(s) || s;
+}
 
 const CDN_IMG = 'https://cdn.warframestat.us/img/';
 const WIKI_BASE = 'https://wiki.warframe.com/w/';
@@ -318,6 +344,24 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
   let questInfo = null;
   if (isQuest) { try { questInfo = await getQuestInfo(db, row.unique_name, raw.name); } catch { questInfo = null; } }
 
+  // PT: traduz os locais de drop (planeta/tipo/rotação) em tudo que os embute —
+  // sources, relíquias, drops de recurso e o passo a passo. Feito ANTES de
+  // buildSteps para o passo a passo sair traduzido também.
+  if (lang === 'pt') {
+    const trLoc = (arr) => { for (const s of arr || []) if (s && s.location) s.location = placePt(s.location); };
+    trLoc(itemSources.other);
+    for (const c of comps) {
+      trLoc(c.otherSources);
+      trLoc(c.resourceDrops);
+      for (const r of c.relics) trLoc(r.relicDrops);
+    }
+    if (questInfo && questInfo.reward && questInfo.reward.length) {
+      const namePt = db.prepare('SELECT name_pt FROM items WHERE name = ? AND name_pt IS NOT NULL');
+      const lookup = (nm) => { const row2 = namePt.get(nm); return row2 ? row2.name_pt : null; };
+      questInfo = { ...questInfo, reward: questInfo.reward.map((r) => rewardPt(r, lookup)) };
+    }
+  }
+
   return {
     uniqueName: row.unique_name,
     name: raw.name,
@@ -494,6 +538,6 @@ async function buildFarmable(fissuresArg, { prices = true } = {}) {
 }
 
 module.exports = {
-  buildItemDetail, buildRelicDetail, buildFarmable, activePrimeTiers,
+  buildItemDetail, buildRelicDetail, buildFarmable, activePrimeTiers, rewardPt,
   classifyDrops, marketSlugFor, fmtBuildTime, fmtPct, rarityLabel, buildSteps, wikiUrlFor,
 };
