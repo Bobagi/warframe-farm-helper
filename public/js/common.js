@@ -87,6 +87,23 @@ const App = (() => {
     ]);
   }
 
+  /** card de "dá pra farmar agora": arte + nome + badges de tier + preço (pl) */
+  function farmCard(it) {
+    return el('a', { class: 'card farm-card', href: it.url }, [
+      el('div', { class: 'farm-card-top' }, [
+        it.image ? el('img', { class: 'farm-art', src: it.image, alt: '', loading: 'lazy' }) : null,
+        el('span', { class: 't', text: I18n.nameFor(it) }),
+      ]),
+      el('div', { class: 'farm-tiers' }, [
+        ...it.tiers.map((tr) => tierBadge(tr)),
+        el('span', {
+          class: `farm-plat${it.platinum == null ? ' dim' : ''}`,
+          text: it.platinum == null ? '—' : `${it.platinum} pl`,
+        }),
+      ]),
+    ]);
+  }
+
   const debounce = (fn, ms) => {
     let t;
     return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
@@ -160,7 +177,7 @@ const App = (() => {
 
   return {
     el, qs, api, fmtInt, fmtPct, timeLeft, startTimers,
-    tierBadge, rarityChip, statusBadge, resultRow, attachSearch, debounce, navCurrent,
+    tierBadge, rarityChip, statusBadge, resultRow, farmCard, attachSearch, debounce, navCurrent,
   };
 })();
 // navCurrent é chamado por layout.js, depois de o cabeçalho ser construído

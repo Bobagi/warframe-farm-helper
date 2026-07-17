@@ -9,6 +9,8 @@
 const { getDb } = require('./db');
 const { getFissures } = require('./worldstate');
 const { getResourceDrops } = require('./drops');
+const { getQuestInfo } = require('./questwiki');
+const { getTopOrders } = require('./market');
 const { COMMON_RESOURCES } = require('./util');
 
 const CDN_IMG = 'https://cdn.warframestat.us/img/';
@@ -311,6 +313,10 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
 
   const isPrime = / Prime( |$)/.test(raw.name);
   const isQuest = row.category === 'Quests';
+  // requisitos/recompensas da quest (wiki, cacheado no banco) — o dataset da DE
+  // não traz esses campos de forma estruturada
+  let questInfo = null;
+  if (isQuest) { try { questInfo = await getQuestInfo(db, row.unique_name, raw.name); } catch { questInfo = null; } }
 
   return {
     uniqueName: row.unique_name,
@@ -319,6 +325,7 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
     category: row.category,
     type: raw.type || row.category,
     isQuest,
+    questInfo,
     description: (lang === 'en' ? raw.description : (raw.descriptionPt || raw.description)) || '',
     vaulted: row.vaulted === 1 ? true : row.vaulted === 0 ? false : null,
     image: raw.imageName ? CDN_IMG + raw.imageName : null,
@@ -390,17 +397,44 @@ function activePrimeTiers(fissures) {
   return PRIME_TIERS.filter((t) => active.has(t));
 }
 
+// preço do set no warframe.market, em lotes (respeita o rate-limit) — o
+// getTopOrders já cacheia por slug no SQLite; aqui só orquestra a busca.
+async function addSetPrices(items) {
+  const CONC = 6;
+  for (let i = 0; i < items.length; i += CONC) {
+    await Promise.all(items.slice(i, i + CONC).map(async (it) => {
+      it.marketSlug = marketSlugFor(`${it.name} set`);
+      it.platinum = null;
+      try {
+        const d = await getTopOrders(it.marketSlug);
+        if (d && !d.error && !d.notFound && Number.isFinite(d.minSell)) it.platinum = d.minSell;
+      } catch { /* item sem mercado — fica sem preço */ }
+    }));
+  }
+}
+
+// cache do resultado inteiro (com preços) por tiers ativos — evita re-buscar os
+// ~36 preços a cada request da home/página de fissuras
+const FARMABLE_TTL_MS = 15 * 60 * 1000;
+let farmableCache = null; // { key, data, at }
+
 /**
  * "O que dá pra farmar agora": cruza os tiers com fissura ativa × relíquias
  * disponíveis (não-vaulted) desses tiers → agrupa as recompensas pelo item pai
- * (arma/warframe prime). Retorna a lista de sets com os tiers de onde vêm peças.
+ * (arma/warframe prime). Com `prices`, anexa o menor preço do set no
+ * warframe.market e ordena por valor (mais caro primeiro).
  */
-async function buildFarmable(fissuresArg) {
+async function buildFarmable(fissuresArg, { prices = true } = {}) {
   const db = getDb();
   let fissures = fissuresArg;
   if (!fissures) { try { fissures = await getFissures(); } catch { fissures = []; } }
   const tiers = activePrimeTiers(fissures);
   if (!tiers.length) return { tiers: [], items: [] };
+
+  const cacheKey = `${prices ? 'p:' : 'n:'}${tiers.join(',')}`;
+  if (farmableCache && farmableCache.key === cacheKey && Date.now() - farmableCache.at < FARMABLE_TTL_MS) {
+    return farmableCache.data;
+  }
 
   const relics = db.prepare(
     `SELECT tier, rewards FROM relics WHERE vaulted = 0 AND tier IN (${tiers.map(() => '?').join(',')})`
@@ -446,9 +480,17 @@ async function buildFarmable(fissuresArg) {
     }
   }
   const items = [...bySet.values()]
-    .map((e) => ({ ...e, tiers: [...e.tiers].sort((a, b) => TIER_ORDER[a] - TIER_ORDER[b]) }))
-    .sort((a, b) => a.name.localeCompare(b.name));
-  return { tiers, items };
+    .map((e) => ({ ...e, tiers: [...e.tiers].sort((a, b) => TIER_ORDER[a] - TIER_ORDER[b]) }));
+  if (prices) {
+    await addSetPrices(items);
+    // mais valioso primeiro; sem preço vai pro fim; empate → alfabético
+    items.sort((a, b) => (b.platinum || -1) - (a.platinum || -1) || a.name.localeCompare(b.name));
+  } else {
+    items.sort((a, b) => a.name.localeCompare(b.name));
+  }
+  const data = { tiers, items };
+  if (prices) farmableCache = { key: cacheKey, data, at: Date.now() };
+  return data;
 }
 
 module.exports = {

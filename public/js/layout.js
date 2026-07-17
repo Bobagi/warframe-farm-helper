@@ -42,11 +42,22 @@
     const nav = el('nav', { class: 'site-nav', 'aria-label': 'Principal' },
       NAV.map((n) => el('a', { href: n.href, text: t(n.key) })));
 
+    // bandeiras (SVG constante — nunca dado externo): 🇧🇷 para PT, 🇺🇸 para EN
+    const FLAGS = {
+      pt: '<svg viewBox="0 0 20 14" aria-hidden="true"><rect width="20" height="14" fill="#009b3a"/><path d="M10 1.6 18.4 7 10 12.4 1.6 7Z" fill="#fedf00"/><circle cx="10" cy="7" r="3" fill="#002776"/></svg>',
+      en: '<svg viewBox="0 0 20 14" aria-hidden="true"><rect width="20" height="14" fill="#fff"/><g fill="#b22234"><rect width="20" height="1.08" y="0"/><rect width="20" height="1.08" y="2.15"/><rect width="20" height="1.08" y="4.3"/><rect width="20" height="1.08" y="6.46"/><rect width="20" height="1.08" y="8.6"/><rect width="20" height="1.08" y="10.77"/><rect width="20" height="1.08" y="12.92"/></g><rect width="9" height="7.54" fill="#3c3b6e"/></svg>',
+    };
+    const FLAG_LABEL = { pt: 'Português', en: 'English' };
     const langToggle = el('div', { class: 'lang-toggle', role: 'group', 'aria-label': t('lang.aria') },
-      I18n.SUPPORTED.map((l) => el('button', {
-        type: 'button', dataset: { lang: l }, 'aria-pressed': String(l === lang()),
-        text: l.toUpperCase(), onclick: () => setLang(l),
-      })));
+      I18n.SUPPORTED.map((l) => {
+        const btn = el('button', {
+          type: 'button', class: 'lang-flag', dataset: { lang: l },
+          'aria-pressed': String(l === lang()), 'aria-label': FLAG_LABEL[l], title: FLAG_LABEL[l],
+          onclick: () => setLang(l),
+        });
+        btn.innerHTML = FLAGS[l]; // constante estática, nunca entra dado externo
+        return btn;
+      }));
 
     mount.replaceChildren(el('div', { class: 'head-inner wrap' }, [
       el('a', { class: 'brand', href: '/' }, ['WARFRAME ', el('span', { text: t('brand.sub') })]),

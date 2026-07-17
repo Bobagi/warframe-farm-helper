@@ -194,6 +194,12 @@ img { max-width: 100%; }
 .lang-toggle button + button { border-left: 1px solid var(--line); }
 .lang-toggle button[aria-pressed="true"] { background: var(--orokin); color: var(--void-950); }
 .lang-toggle button:hover:not([aria-pressed="true"]) { color: var(--energy); }
+/* botões de bandeira (idioma) */
+.lang-flag { padding: 6px 10px; display: inline-flex; align-items: center; }
+.lang-flag svg { width: 22px; height: 15px; display: block; border-radius: 2px; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25); }
+.lang-flag:not([aria-pressed="true"]) svg { opacity: 0.45; }
+.lang-flag:hover svg { opacity: 1; }
+.lang-flag[aria-pressed="true"] { background: var(--void-700); }
 
 main { flex: 1; padding: 24px 0 56px; }
 
@@ -609,7 +615,17 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
 .farm-card-top { display: flex; align-items: center; gap: 10px; }
 .farm-art { width: 44px; height: 44px; object-fit: contain; flex: none; background: var(--void-800); }
 .farm-card .t { min-width: 0; }
-.farm-tiers { display: flex; flex-wrap: wrap; gap: 6px; }
+.farm-tiers { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.farm-plat { margin-left: auto; color: var(--orokin-bright); font-weight: 700; font-family: var(--font-display); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.farm-plat.dim { color: var(--text-faint); font-weight: 500; }
+
+/* quest: requisitos/recompensas da wiki */
+.quest-block { margin: 4px 0 12px; }
+.quest-block h3 { font-size: 14px; color: var(--orokin); margin: 0 0 6px; }
+.quest-list { margin: 0; padding-left: 18px; }
+.quest-list li { margin: 3px 0; }
+.quest-list li::marker { color: var(--orokin); }
+.quest-chain { margin: 6px 0 0; }
 
 /* nightwave acts */
 .act { border-left: 3px solid var(--line); }

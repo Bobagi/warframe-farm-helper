@@ -68,6 +68,14 @@ CREATE TABLE IF NOT EXISTS market_cache (
   fetched_at INTEGER NOT NULL
 );
 
+-- requisitos/recompensas de quest, extraídos do QuestInfobox da wiki (on-demand,
+-- cacheados por muito tempo — dado de quest praticamente não muda).
+CREATE TABLE IF NOT EXISTS quest_info (
+  unique_name TEXT PRIMARY KEY,
+  data        TEXT NOT NULL,
+  fetched_at  INTEGER NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS meta (
   key   TEXT PRIMARY KEY,
   value TEXT

@@ -8,8 +8,8 @@
  */
 
 (() => {
-  const { el, api, startTimers, tierBadge } = App;
-  const { t, nameFor, missionName, enemyName } = I18n;
+  const { el, api, startTimers, tierBadge, farmCard } = App;
+  const { t, missionName, enemyName } = I18n;
 
   // ---- fissuras (mesma lógica da home) ----
   let fissures = [];
@@ -63,18 +63,10 @@
   const farmMode = document.getElementById('farm-mode');
   grid.replaceChildren(el('p', { class: 'spin', text: t('farm.loading') }));
 
-  const card = (it) => el('a', { class: 'card farm-card', href: it.url }, [
-    el('div', { class: 'farm-card-top' }, [
-      it.image ? el('img', { class: 'farm-art', src: it.image, alt: '', loading: 'lazy' }) : null,
-      el('span', { class: 't', text: nameFor(it) }),
-    ]),
-    el('div', { class: 'farm-tiers' }, it.tiers.map((tr) => tierBadge(tr))),
-  ]);
-
   function renderFarm() {
     const shown = tierFilter === 'all' ? items : items.filter((it) => it.tiers.includes(tierFilter));
     grid.replaceChildren(...(shown.length
-      ? shown.map(card)
+      ? shown.map(farmCard)
       : [el('p', { class: 'empty', text: t('farm.none') })]));
   }
 

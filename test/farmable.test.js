@@ -43,7 +43,7 @@ test('activePrimeTiers: extrai tiers de prime; Omnia vira curinga; ignora Requie
 test('buildFarmable: agrupa por SET prime, do TIER ativo, sem vaulted nem Forma', async () => {
   seed();
   // fissuras ativas: Lith e Neo (Axi NÃO tem fissura → mesmo se tivesse relíquia, não conta)
-  const { tiers, items } = await buildFarmable([{ tier: 'Lith' }, { tier: 'Neo' }]);
+  const { tiers, items } = await buildFarmable([{ tier: 'Lith' }, { tier: 'Neo' }], { prices: false });
   assert.deepEqual(tiers, ['Lith', 'Neo']);
 
   const names = items.map((i) => i.name).sort();
@@ -59,12 +59,12 @@ test('buildFarmable: agrupa por SET prime, do TIER ativo, sem vaulted nem Forma'
 });
 
 test('buildFarmable: sem tier de prime ativo → lista vazia', async () => {
-  const out = await buildFarmable([{ tier: 'Requiem' }]);
+  const out = await buildFarmable([{ tier: 'Requiem' }], { prices: false });
   assert.deepEqual(out, { tiers: [], items: [] });
 });
 
 test('buildFarmable: Omnia ativa habilita todos os tiers disponíveis', async () => {
-  const { tiers, items } = await buildFarmable([{ tier: 'Omnia' }]);
+  const { tiers, items } = await buildFarmable([{ tier: 'Omnia' }], { prices: false });
   assert.deepEqual(tiers, ['Lith', 'Meso', 'Neo', 'Axi']);
   // Axi V1 é vaulted → o Braton Prime Receiver dela NÃO adiciona o tier Axi
   const braton = items.find((i) => i.name === 'Braton Prime');

@@ -104,6 +104,20 @@
     startTimers();
   }).catch(() => { baro.textContent = t('baro.down'); });
 
+  // ---- dá pra farmar agora (top por valor) ----
+  const farmGrid = document.getElementById('farm-home-grid');
+  const farmHint = document.getElementById('farm-home-hint');
+  farmGrid.replaceChildren(el('p', { class: 'spin', text: t('farm.loading') }));
+  api('/api/farmable').then((data) => {
+    const list = (data.items || []).slice(0, 9); // os 9 mais valiosos
+    if (!list.length) {
+      farmGrid.replaceChildren(el('p', { class: 'empty', text: t('farm.noTiers') }));
+      return;
+    }
+    farmHint.textContent = t('farm.count', { n: (data.items || []).length });
+    farmGrid.replaceChildren(...list.map(App.farmCard));
+  }).catch(() => { farmGrid.replaceChildren(el('p', { class: 'empty', text: t('farm.down') })); });
+
   // ---- faq teaser ----
   const cards = document.getElementById('faq-cards');
   api('/api/faq').then((data) => {

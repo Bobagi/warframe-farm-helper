@@ -58,16 +58,28 @@
     return out;
   }
 
+  const sourceRow = (s) => el('li', { class: 'row' }, [
+    el('span', { class: 'grow name small', text: s.location }),
+    s.rarity ? rarityChip(s.rarity) : null,
+    el('span', { class: 'num small', text: fmtPct(s.chance) }),
+  ]);
+
+  // lista de "onde dropa": mostra os melhores SHOW e colapsa o resto num
+  // <details> (listas de drop costumam ser longas — ex.: recursos/peças comuns).
+  const SHOW = 4;
   function sourcesList(sources, label) {
     if (!sources.length) return null;
-    return el('div', {}, [
+    const head = sources.slice(0, SHOW);
+    const rest = sources.slice(SHOW);
+    const out = [
       label ? el('h3', { text: label }) : null,
-      el('ul', { class: 'rowlist' }, sources.map((s) => el('li', { class: 'row' }, [
-        el('span', { class: 'grow name small', text: s.location }),
-        s.rarity ? rarityChip(s.rarity) : null,
-        el('span', { class: 'num small', text: fmtPct(s.chance) }),
-      ]))),
-    ]);
+      el('ul', { class: 'rowlist' }, head.map(sourceRow)),
+    ];
+    if (rest.length) out.push(el('details', { class: 'relic-vault' }, [
+      el('summary', { text: t('item.showMoreSources', { n: rest.length }) }),
+      el('ul', { class: 'rowlist' }, rest.map(sourceRow)),
+    ]));
+    return el('div', {}, out);
   }
 
   function marketPanel(item) {
@@ -135,13 +147,35 @@
     ]));
 
     if (item.isQuest) {
-      frag.push(el('section', { class: 'panel panel-quiet' }, [
-        el('p', { class: 'eyebrow', text: t('quest.title') }),
-        el('p', { class: 'muted small', text: t('quest.note') }),
-        item.wikiUrl ? el('p', { style: 'margin:10px 0 0' }, [
+      const qi = item.questInfo;
+      const has = qi && (qi.requirement.length || qi.reward.length || qi.previousQuest || qi.nextQuest);
+      const body = [];
+      if (has) {
+        if (qi.requirement.length) body.push(el('div', { class: 'quest-block' }, [
+          el('h3', { text: t('quest.requirements') }),
+          el('ul', { class: 'quest-list' }, qi.requirement.map((r) => el('li', { text: r }))),
+        ]));
+        if (qi.reward.length) body.push(el('div', { class: 'quest-block' }, [
+          el('h3', { text: t('quest.rewards') }),
+          el('ul', { class: 'quest-list' }, qi.reward.map((r) => el('li', { text: r }))),
+        ]));
+        if (qi.previousQuest || qi.nextQuest) body.push(el('p', { class: 'quest-chain small muted' }, [
+          qi.previousQuest ? `${t('quest.prev')}: ${qi.previousQuest}` : null,
+          qi.previousQuest && qi.nextQuest ? '  ·  ' : null,
+          qi.nextQuest ? `${t('quest.next')}: ${qi.nextQuest}` : null,
+        ]));
+        body.push(el('p', { class: 'small muted', style: 'margin:12px 0 0' }, [
+          `${t('quest.source')} `,
+          item.wikiUrl ? el('a', { href: item.wikiUrl, target: '_blank', rel: 'noopener', text: t('item.wikiInline') }) : t('item.wikiInline'),
+          '.',
+        ]));
+      } else {
+        body.push(el('p', { class: 'muted small', text: t('quest.note') }));
+        if (item.wikiUrl) body.push(el('p', { style: 'margin:10px 0 0' }, [
           el('a', { class: 'btn-line', href: item.wikiUrl, target: '_blank', rel: 'noopener', text: t('quest.wikiCta') }),
-        ]) : null,
-      ]));
+        ]));
+      }
+      frag.push(el('section', { class: 'panel' }, [el('p', { class: 'eyebrow', text: t('quest.title') }), ...body]));
     }
 
     if (item.usedToBuild && item.usedToBuild.length) {
@@ -209,16 +243,10 @@
         if (!c.relics.length && !c.otherSources.length) {
           if (c.resourceDrops && c.resourceDrops.length) {
             // recurso sem tabela no dataset, mas com drops via API de drops
-            block.append(el('div', {}, [
-              el('h3', { text: t('item.whereDrops') }),
-              el('ul', { class: 'rowlist' }, c.resourceDrops.map((s) => el('li', { class: 'row' }, [
-                el('span', { class: 'grow name small', text: s.location }),
-                s.rarity ? rarityChip(s.rarity) : null,
-                el('span', { class: 'num small', text: fmtPct(s.chance) }),
-              ]))),
-              c.wikiUrl ? el('p', { class: 'small', style: 'margin:8px 0 0' }, [
-                el('a', { href: c.wikiUrl, target: '_blank', rel: 'noopener', text: t('item.wiki') }),
-              ]) : null,
+            // (sourcesList já colapsa o excedente)
+            block.append(sourcesList(c.resourceDrops, t('item.whereDrops')));
+            if (c.wikiUrl) block.append(el('p', { class: 'small', style: 'margin:8px 0 0' }, [
+              el('a', { href: c.wikiUrl, target: '_blank', rel: 'noopener', text: t('item.wiki') }),
             ]));
           } else {
             block.append(el('p', { class: 'muted small' }, [
