@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fissuras do Void — o que farmar agora — Warframe Farm Helper</title>
+  <meta name="description" content="Fissuras do Void ativas agora e quais armas e warframes prime você pode farmar com as relíquias em rotação, por tier (Lith, Meso, Neo, Axi).">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="site-head" id="site-header"></header>
+
+  <main>
+    <div class="wrap">
+      <p class="small" style="margin:0 0 12px"><a href="/" data-i18n="farm.back">← início</a></p>
+
+      <section class="panel" aria-labelledby="fiss-title">
+        <p class="eyebrow" id="fiss-title"><span data-i18n="fissures.title">Fissuras do Void — agora</span> <span class="hint" id="fiss-hint"></span></p>
+        <div class="tier-toggle" id="fiss-mode" role="group">
+          <button type="button" data-mode="normal" data-i18n="fissures.normal" aria-pressed="true">Normais</button>
+          <button type="button" data-mode="hard" data-i18n="fissures.hard" aria-pressed="false">Steel Path</button>
+          <button type="button" data-mode="storm" data-i18n="fissures.storm" aria-pressed="false">Railjack</button>
+        </div>
+        <ul class="rowlist" id="fiss-list"></ul>
+      </section>
+
+      <section class="panel" aria-labelledby="farm-title">
+        <p class="eyebrow" id="farm-title"><span data-i18n="farm.title">Dá pra farmar agora</span> <span class="hint" id="farm-hint"></span></p>
+        <p class="muted small" data-i18n="farm.lead">Armas e warframes prime cujas peças estão em relíquias disponíveis dos tiers com fissura ativa. Filtre pelo tier da relíquia que você tem.</p>
+        <div class="tier-toggle" id="farm-mode" role="group" aria-label="Filtrar por tier"></div>
+        <div class="card-grid" id="farm-grid"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-foot" id="site-footer"></footer>
+
+  <script src="/js/i18n.js"></script>
+  <script src="/js/latest.js"></script>
+  <script src="/js/common.js"></script>
+  <script src="/js/layout.js"></script>
+  <script src="/js/cycles.js"></script>
+  <script src="/js/fissuras.js"></script>
+</body>
+</html>

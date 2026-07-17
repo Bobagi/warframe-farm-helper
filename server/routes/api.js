@@ -7,7 +7,7 @@ const { webSearch } = require('../websearch');
 const { getTopOrders } = require('../market');
 const { getFissures, getBaro, getCycles } = require('../worldstate');
 const { getActs } = require('../nightwave');
-const { buildItemDetail, buildRelicDetail } = require('../itemview');
+const { buildItemDetail, buildRelicDetail, buildFarmable } = require('../itemview');
 
 const router = express.Router();
 
@@ -107,6 +107,10 @@ router.get('/relic', asyncRoute(async (req, res) => {
 
 router.get('/fissures', asyncRoute(async (req, res) => {
   res.json({ fissures: await getFissures() });
+}));
+
+router.get('/farmable', asyncRoute(async (req, res) => {
+  res.json(await buildFarmable());
 }));
 
 router.get('/nightwave', asyncRoute(async (req, res) => {

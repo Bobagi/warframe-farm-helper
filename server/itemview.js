@@ -350,14 +350,17 @@ function buildRelicDetail(name) {
   try { rewards = JSON.parse(row.rewards); } catch { rewards = {}; }
   try { drops = JSON.parse(row.drops); } catch { drops = []; }
 
-  // linka cada recompensa ao item pai (para navegar peça → item)
+  // linka cada recompensa ao item pai (para navegar peça → item). O match EXATO
+  // vem antes: "X Prime Blueprint" limpa p/ "X Prime" (é o próprio item); sem o
+  // exato o prefixo casaria o item BASE "X" (bug).
+  const findExact = db.prepare('SELECT unique_name, name FROM items WHERE name = ?');
   const findParent = db.prepare(
     "SELECT unique_name, name FROM items WHERE ? LIKE name || ' %' ORDER BY LENGTH(name) DESC LIMIT 1"
   );
   for (const ref of Object.keys(rewards)) {
     for (const rw of rewards[ref]) {
       const cleanName = String(rw.name).replace(/ Blueprint$/, '');
-      const parent = findParent.get(cleanName) || findParent.get(rw.name);
+      const parent = findExact.get(cleanName) || findParent.get(cleanName) || findParent.get(rw.name);
       rw.rarityPt = RARITY_PT[rw.rarity] || rw.rarity;
       if (parent) rw.parentUrl = `/item.html?u=${encodeURIComponent(parent.unique_name)}`;
     }
@@ -372,7 +375,83 @@ function buildRelicDetail(name) {
   };
 }
 
+const TIER_ORDER = { Lith: 1, Meso: 2, Neo: 3, Axi: 4 };
+const PRIME_TIERS = ['Lith', 'Meso', 'Neo', 'Axi'];
+
+/** Tiers de relíquia com fissura ativa que dropam prime (a partir das fissuras). */
+function activePrimeTiers(fissures) {
+  const active = new Set();
+  let omnia = false; // fissura Omnia (Steel Path especial) aceita qualquer relíquia
+  for (const f of Array.isArray(fissures) ? fissures : []) {
+    if (f.tier === 'Omnia') omnia = true;
+    else if (PRIME_TIERS.includes(f.tier)) active.add(f.tier);
+  }
+  if (omnia) for (const t of PRIME_TIERS) active.add(t);
+  return PRIME_TIERS.filter((t) => active.has(t));
+}
+
+/**
+ * "O que dá pra farmar agora": cruza os tiers com fissura ativa × relíquias
+ * disponíveis (não-vaulted) desses tiers → agrupa as recompensas pelo item pai
+ * (arma/warframe prime). Retorna a lista de sets com os tiers de onde vêm peças.
+ */
+async function buildFarmable(fissuresArg) {
+  const db = getDb();
+  let fissures = fissuresArg;
+  if (!fissures) { try { fissures = await getFissures(); } catch { fissures = []; } }
+  const tiers = activePrimeTiers(fissures);
+  if (!tiers.length) return { tiers: [], items: [] };
+
+  const relics = db.prepare(
+    `SELECT tier, rewards FROM relics WHERE vaulted = 0 AND tier IN (${tiers.map(() => '?').join(',')})`
+  ).all(...tiers);
+
+  // recompensa → item pai. Um blueprint principal ("Afentis Prime Blueprint")
+  // limpa para "Afentis Prime", que É o próprio item (match EXATO) — sem o exato,
+  // o prefixo mais longo casaria o item BASE "Afentis" (bug). Uma peça
+  // ("Afentis Prime Barrel") não é item exato → cai no prefixo mais longo.
+  const cols = 'unique_name, name, name_pt, category, image_name';
+  const findExact = db.prepare(`SELECT ${cols} FROM items WHERE name = ?`);
+  const findParent = db.prepare(
+    `SELECT ${cols} FROM items WHERE ? LIKE name || ' %' ORDER BY LENGTH(name) DESC LIMIT 1`
+  );
+  const parentCache = new Map();
+  const parentOf = (rewardName) => {
+    const clean = rewardName.replace(/ Blueprint$/, '');
+    if (parentCache.has(clean)) return parentCache.get(clean);
+    const p = findExact.get(clean) || findParent.get(clean) || findParent.get(rewardName) || null;
+    parentCache.set(clean, p);
+    return p;
+  };
+
+  const bySet = new Map(); // unique_name -> { …item, tiers:Set }
+  for (const r of relics) {
+    let rw; try { rw = JSON.parse(r.rewards); } catch { continue; }
+    const names = new Set(Object.values(rw).flat().map((x) => x && x.name).filter(Boolean));
+    for (const nm of names) {
+      if (/\bForma\b/.test(nm)) continue; // Forma não é uma "prime farmável"
+      const p = parentOf(nm);
+      if (!p) continue;
+      let e = bySet.get(p.unique_name);
+      if (!e) {
+        e = {
+          uniqueName: p.unique_name, name: p.name, namePt: p.name_pt, category: p.category,
+          image: p.image_name ? CDN_IMG + p.image_name : null,
+          url: `/item.html?u=${encodeURIComponent(p.unique_name)}`,
+          tiers: new Set(),
+        };
+        bySet.set(p.unique_name, e);
+      }
+      e.tiers.add(r.tier);
+    }
+  }
+  const items = [...bySet.values()]
+    .map((e) => ({ ...e, tiers: [...e.tiers].sort((a, b) => TIER_ORDER[a] - TIER_ORDER[b]) }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  return { tiers, items };
+}
+
 module.exports = {
-  buildItemDetail, buildRelicDetail, classifyDrops, marketSlugFor,
-  fmtBuildTime, fmtPct, rarityLabel, buildSteps, wikiUrlFor,
+  buildItemDetail, buildRelicDetail, buildFarmable, activePrimeTiers,
+  classifyDrops, marketSlugFor, fmtBuildTime, fmtPct, rarityLabel, buildSteps, wikiUrlFor,
 };

@@ -13,7 +13,7 @@
 
   const NAV = [
     { key: 'nav.search', href: '/buscar.html' },
-    { key: 'nav.fissures', href: '/#fissuras' },
+    { key: 'nav.fissures', href: '/fissuras.html' },
     { key: 'nav.nightwave', href: '/nightwave.html' },
     { key: 'nav.faq', href: '/faq.html' },
   ];

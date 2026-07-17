@@ -604,6 +604,13 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
 .card .t { font-family: var(--font-display); font-weight: 600; font-size: 15px; }
 .card .s { color: var(--text-faint); font-size: 13px; margin-top: 6px; }
 
+/* cards "dá pra farmar agora" (imagem + nome + badges de tier) */
+.farm-card { display: flex; flex-direction: column; gap: 10px; }
+.farm-card-top { display: flex; align-items: center; gap: 10px; }
+.farm-art { width: 44px; height: 44px; object-fit: contain; flex: none; background: var(--void-800); }
+.farm-card .t { min-width: 0; }
+.farm-tiers { display: flex; flex-wrap: wrap; gap: 6px; }
+
 /* nightwave acts */
 .act { border-left: 3px solid var(--line); }
 .act.has-guide { border-left-color: var(--orokin); }
