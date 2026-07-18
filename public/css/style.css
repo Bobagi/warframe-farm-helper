@@ -530,6 +530,12 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
 .comp-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
 .comp-head img { width: 42px; height: 42px; object-fit: contain; background: var(--void-750); border: 1px solid var(--line-soft); padding: 3px; }
 .comp-head .comp-name { font-family: var(--font-display); font-weight: 600; font-size: 16px; }
+/* nome-link: pista sutil de clicável em repouso (pontilhado), forte no hover */
+.comp-head a.comp-name {
+  color: var(--text); text-decoration: underline dotted;
+  text-decoration-color: rgba(232, 206, 143, 0.4); text-underline-offset: 3px;
+}
+.comp-head a.comp-name:hover { color: var(--orokin-bright); text-decoration: underline solid; }
 .comp-head .count { color: var(--text-dim); font-size: 13px; }
 
 /* relíquias vaulted colapsáveis (escondem o ruído; disponíveis ficam visíveis) */
@@ -631,6 +637,11 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
 .quest-reward { display: flex; align-items: center; gap: 10px; }
 .qr-img { width: 34px; height: 34px; object-fit: contain; flex: none; background: var(--void-750); border: 1px solid var(--line-soft); }
 .qr-noimg { background: var(--void-800); }
+.qr-link {
+  color: var(--text); text-decoration: underline dotted;
+  text-decoration-color: rgba(232, 206, 143, 0.4); text-underline-offset: 3px;
+}
+.qr-link:hover { color: var(--orokin-bright); text-decoration: underline solid; }
 
 /* link de recompensa na página de relíquia — piso de toque 24px */
 .rw-link { display: inline-block; padding: 4px 0; min-height: 24px; }

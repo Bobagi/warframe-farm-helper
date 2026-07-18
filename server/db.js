@@ -23,6 +23,14 @@ CREATE TABLE IF NOT EXISTS items (
 );
 CREATE INDEX IF NOT EXISTS idx_items_name ON items(name);
 
+-- imagem (e nome) de cosméticos que NÃO viram itens buscáveis (skins, glifos,
+-- retratos, cenas, decorações…): só para achar a arte de recompensas de quest
+-- sem poluir a busca. Populado na ingestão a partir de Skins/Glyphs/Misc.json.
+CREATE TABLE IF NOT EXISTS assets (
+  name       TEXT PRIMARY KEY,
+  image_name TEXT
+);
+
 CREATE TABLE IF NOT EXISTS relics (
   name    TEXT PRIMARY KEY,
   tier    TEXT NOT NULL,

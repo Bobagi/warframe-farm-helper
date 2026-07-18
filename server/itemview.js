@@ -42,19 +42,34 @@ function rewardPt(reward, nameLookup) {
 const REWARD_SUFFIX_RE = /\s+(Blueprint|Scene|Portrait|Glyph|Sigil|Emblem|Segment|Decoration|Noggle|Mod)$/i;
 
 /**
- * Enriquece as recompensas de quest (string[]) em [{label, image}]: procura no
- * dataset o item pelo nome (sem o sufixo tipo "Blueprint") para pegar a imagem;
- * label = traduzido em PT, cru em EN. Cosméticos sem item ficam sem imagem.
+ * Enriquece as recompensas de quest (string[]) em [{label, image, wiki}]: acha a
+ * arte no dataset (itens) E no mapa de cosméticos (assets — retratos/cenas/glifos),
+ * casando o nome cru E sem o sufixo de tipo ("Blueprint"/"Portrait"…). label =
+ * traduzido em PT, cru em EN; wiki = link da página do nome canônico que casou.
  */
 function enrichRewards(rewards, db, lang) {
   const findItem = db.prepare('SELECT image_name, name_pt FROM items WHERE name = ? LIMIT 1');
+  const findAsset = db.prepare('SELECT image_name FROM assets WHERE name = ? LIMIT 1');
   const nameLookup = (nm) => { const r = findItem.get(nm); return r && r.name_pt ? r.name_pt : null; };
   return rewards.map((rw) => {
-    const base = String(rw).replace(REWARD_SUFFIX_RE, '').trim();
-    const row = findItem.get(base) || findItem.get(String(rw).trim());
+    const raw = String(rw).trim();
+    const base = raw.replace(REWARD_SUFFIX_RE, '').trim();
+    // "Jade Blueprint" casa o ITEM Jade pelo base; "Alone Portrait" casa o ASSET
+    // pelo nome cru (o cosmético guarda o nome completo). canonical → link da wiki.
+    const itBase = findItem.get(base);
+    const itRaw = base !== raw ? findItem.get(raw) : null;
+    const asRaw = findAsset.get(raw);
+    const asBase = base !== raw ? findAsset.get(base) : null;
+    let image = null; let canonical = raw; let isItem = false;
+    if (itBase) { image = itBase.image_name; canonical = base; isItem = true; }
+    else if (itRaw) { image = itRaw.image_name; canonical = raw; isItem = true; }
+    else if (asRaw) { image = asRaw.image_name; canonical = raw; }
+    else if (asBase) { image = asBase.image_name; canonical = base; }
     return {
-      label: lang === 'pt' ? rewardPt(rw, nameLookup) : String(rw),
-      image: row && row.image_name ? CDN_IMG + row.image_name : null,
+      label: lang === 'pt' ? rewardPt(rw, nameLookup) : raw,
+      image: image ? CDN_IMG + image : null,
+      // item real tem página própria (/w/); cosmético (asset) ou desconhecido → busca
+      wiki: isItem ? wikiUrlFor(canonical) : wikiSearchFor(canonical),
     };
   });
 }
@@ -68,6 +83,17 @@ function wikiUrlFor(name) {
   if (!slug) return null;
   // encodeURIComponent encoda tudo (incl. "/" → %2F): sem risco de path traversal
   return WIKI_BASE + encodeURIComponent(slug);
+}
+
+const WIKI_SEARCH = 'https://wiki.warframe.com/index.php?search=';
+/**
+ * URL de BUSCA na wiki — usada quando o alvo não tem página própria (peças de
+ * prime tipo "Braton Prime Barrel" e cosméticos tipo "Alone Portrait" caem em
+ * 404 no /w/, mas vivem dentro da página do set/quest). A busca sempre resolve.
+ */
+function wikiSearchFor(name) {
+  const q = String(name || '').trim();
+  return q ? WIKI_SEARCH + encodeURIComponent(q) : null;
 }
 const RELIC_RE = /^(Lith|Meso|Neo|Axi|Requiem) (\S+) Relic(?: \((Exceptional|Flawless|Radiant)\))?$/;
 const RARITY_PT = { Common: 'Comum', Uncommon: 'Incomum', Rare: 'Rara', Legendary: 'Lendária' };
@@ -315,7 +341,9 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
       relics,
       otherSources: cls.other,
       resourceDrops: [],
-      wikiUrl: null,
+      // link da wiki p/ TODO componente: recurso/ingrediente tem página própria
+      // (/w/Orokin_Cell); peça de prime (Braton Prime Barrel) não → cai na busca
+      wikiUrl: isIngredient(c.name) ? wikiUrlFor(c.name) : wikiSearchFor(fullName),
       marketSlug,
       anchor: compAnchor(c.name),
     });
@@ -326,7 +354,6 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
   // dizer "sem fonte". Em paralelo (1–2 por item), com cache no módulo de drops.
   const needDrops = comps.filter((c) => !c.relics.length && !c.otherSources.length);
   await Promise.all(needDrops.map(async (c) => {
-    c.wikiUrl = wikiUrlFor(c.name);
     try { c.resourceDrops = await getResourceDrops(c.name); } catch { c.resourceDrops = []; }
   }));
 
@@ -347,7 +374,15 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
     url: `/item.html?u=${encodeURIComponent(u.uniqueName)}`,
   }));
 
-  const itemSources = classifyDrops(raw.drops);
+  let itemSources = classifyDrops(raw.drops);
+  // item-recurso próprio (Plastids, Ferrite…) sem componentes e sem drop no
+  // dataset: busca "onde farmar" na API de drops p/ a página do recurso.
+  if (!comps.length && !itemSources.other.length && !itemSources.relics.length) {
+    try {
+      const d = await getResourceDrops(raw.name);
+      if (d.length) itemSources = { relics: [], other: d };
+    } catch { /* mantém vazio */ }
+  }
 
   // fissuras só dos tiers que interessam para este item
   const neededTiers = new Set();
@@ -563,5 +598,5 @@ async function buildFarmable(fissuresArg, { prices = true } = {}) {
 
 module.exports = {
   buildItemDetail, buildRelicDetail, buildFarmable, activePrimeTiers, rewardPt, enrichRewards,
-  classifyDrops, marketSlugFor, fmtBuildTime, fmtPct, rarityLabel, buildSteps, wikiUrlFor,
+  classifyDrops, marketSlugFor, fmtBuildTime, fmtPct, rarityLabel, buildSteps, wikiUrlFor, wikiSearchFor,
 };

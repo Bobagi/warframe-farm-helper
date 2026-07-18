@@ -239,6 +239,36 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
     }
   }
 
+  // Recursos "clássicos" de craft (Plastids, Ferrite, Orokin Cell, Neurodes…) e
+  // os cosméticos de recompensa (retratos/cenas/glifos) vivem em Misc/Skins/
+  // Glyphs.json — fora das CATEGORIES. Puxa os RECURSOS como itens buscáveis
+  // (página com "onde farmar") e monta um mapa nome→imagem p/ a arte das
+  // recompensas de quest, sem jogar 9k cosméticos na busca.
+  const assetMap = new Map(); // nome -> image_name (1º vence)
+  const addAsset = (nm, img) => { if (nm && img && !assetMap.has(nm)) assetMap.set(nm, img); };
+  for (const file of ['Misc.json', 'Skins.json', 'Glyphs.json']) {
+    let arr;
+    try { arr = await fetchJson(`${RAW_BASE}/${file}`, { timeoutMs: 120000 }); }
+    catch (err) { log(`[ingest] ${file} falhou (seguindo): ${err.message}`); continue; }
+    if (!Array.isArray(arr)) continue;
+    let res = 0;
+    for (const it of arr) {
+      if (!it || typeof it.name !== 'string') continue;
+      addAsset(it.name, it.imageName);
+      if (file === 'Misc.json' && it.type === 'Resource' && typeof it.uniqueName === 'string') {
+        itemRows.push({
+          unique_name: it.uniqueName, name: it.name, name_pt: null,
+          category: 'Resources', type: it.type, mastery_req: null, vaulted: null,
+          image_name: it.imageName || null, wiki_url: it.wikiaUrl || null,
+          tradable: it.tradable === true ? 1 : 0, slim: slimItem(it),
+        });
+        res++;
+      }
+    }
+    log(`[ingest] ${file}: ${arr.length} entradas${res ? ` (+${res} recursos buscáveis)` : ''}`);
+  }
+  log(`[ingest] mapa de arte (assets): ${assetMap.size} nomes`);
+
   const relicEntries = await fetchJson(`${RAW_BASE}/Relics.json`, { timeoutMs: 180000 });
   const relics = groupRelics(relicEntries);
   log(`[ingest] Relics: ${relics.length} relíquias (${relicEntries.length} entradas)`);
@@ -269,9 +299,13 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
 
   const tx = db.transaction(() => {
     db.prepare('DELETE FROM items').run();
+    db.prepare('DELETE FROM assets').run();
     db.prepare('DELETE FROM relics').run();
     db.prepare('DELETE FROM articles').run();
     db.prepare('DELETE FROM crafting_uses').run();
+
+    const insAsset = db.prepare('INSERT OR REPLACE INTO assets(name, image_name) VALUES (?, ?)');
+    for (const [nm, img] of assetMap) insAsset.run(nm, img);
 
     const insItem = db.prepare(`INSERT OR REPLACE INTO items
       (unique_name, name, name_pt, category, type, mastery_req, vaulted, image_name, wiki_url, tradable, raw)
@@ -308,6 +342,7 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
 
   const counts = {
     items: db.prepare('SELECT COUNT(*) c FROM items').get().c,
+    assets: db.prepare('SELECT COUNT(*) c FROM assets').get().c,
     relics: db.prepare('SELECT COUNT(*) c FROM relics').get().c,
     articles: db.prepare('SELECT COUNT(*) c FROM articles').get().c,
     craftingUses: db.prepare('SELECT COUNT(*) c FROM crafting_uses').get().c,

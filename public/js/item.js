@@ -164,7 +164,9 @@
             r.image
               ? el('img', { class: 'qr-img', src: r.image, alt: '', loading: 'lazy' })
               : el('span', { class: 'qr-img qr-noimg', 'aria-hidden': 'true' }),
-            el('span', { text: r.label }),
+            r.wiki
+              ? el('a', { class: 'qr-link', href: r.wiki, target: '_blank', rel: 'noopener', text: r.label })
+              : el('span', { text: r.label }),
           ]))),
         ]));
         if (qi.previousQuest || qi.nextQuest) body.push(el('p', { class: 'quest-chain small muted' }, [
@@ -239,7 +241,9 @@
         const block = el('div', { class: 'comp-block', id: c.anchor }, [
           el('div', { class: 'comp-head' }, [
             c.image ? el('img', { src: c.image, alt: '', loading: 'lazy' }) : null,
-            el('span', { class: 'comp-name', text: c.fullName }),
+            c.wikiUrl
+              ? el('a', { class: 'comp-name', href: c.wikiUrl, target: '_blank', rel: 'noopener', text: c.fullName })
+              : el('span', { class: 'comp-name', text: c.fullName }),
             c.itemCount > 1 ? el('span', { class: 'count', text: `×${c.itemCount}` }) : null,
             c.ducats ? el('span', { class: 'badge badge-gold', text: t('tag.ducats', { n: c.ducats }) }) : null,
             statusBadge(!c.available),
@@ -253,9 +257,6 @@
             // recurso sem tabela no dataset, mas com drops via API de drops
             // (sourcesList já colapsa o excedente)
             block.append(sourcesList(c.resourceDrops, t('item.whereDrops')));
-            if (c.wikiUrl) block.append(el('p', { class: 'small', style: 'margin:8px 0 0' }, [
-              el('a', { href: c.wikiUrl, target: '_blank', rel: 'noopener', text: t('item.wiki') }),
-            ]));
           } else {
             block.append(el('p', { class: 'muted small' }, [
               t('item.noSourcePre'),
