@@ -375,14 +375,28 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
   }));
 
   let itemSources = classifyDrops(raw.drops);
-  // item-recurso próprio (Plastids, Ferrite…) sem componentes e sem drop no
-  // dataset: busca "onde farmar" na API de drops p/ a página do recurso.
-  if (!comps.length && !itemSources.other.length && !itemSources.relics.length) {
+  // Recurso próprio (Plastids, Neurodes, Orokin Cell…): "onde farmar" é o que o
+  // usuário quer. Se não há drop no dataset, busca na API de drops — mesmo que o
+  // recurso seja CRAFTÁVEL (o Orokin Cell tem receita: Alloy Plate/Nano Spores/
+  // Salvage), pois farmar é a forma comum de obtê-lo; por isso NÃO condiciona a
+  // `!comps.length`.
+  const isResourceItem = row.category === 'Resources' || raw.type === 'Resource';
+  if (isResourceItem && !itemSources.other.length && !itemSources.relics.length) {
+    try {
+      const d = await getResourceDrops(raw.name);
+      if (d.length) itemSources = { relics: [], other: d };
+    } catch { /* mantém vazio */ }
+  } else if (!comps.length && !itemSources.other.length && !itemSources.relics.length) {
+    // item comum sem componentes e sem fonte no dataset: tenta a API mesmo assim
     try {
       const d = await getResourceDrops(raw.name);
       if (d.length) itemSources = { relics: [], other: d };
     } catch { /* mantém vazio */ }
   }
+  // recurso FARMÁVEL não mostra a receita de craft (raramente usada) — foca no
+  // drop; recurso só-craftável (ex.: Fieldron, sem drop) MANTÉM a receita.
+  const farmable = itemSources.other.length > 0 || itemSources.relics.length > 0;
+  const outComps = (isResourceItem && farmable) ? [] : comps;
 
   // fissuras só dos tiers que interessam para este item
   const neededTiers = new Set();
@@ -409,7 +423,7 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
       ? arr.map((s) => (s && s.location ? { ...s, location: placePt(s.location) } : s))
       : arr);
     itemSources.other = trLoc(itemSources.other);
-    for (const c of comps) {
+    for (const c of outComps) {
       c.otherSources = trLoc(c.otherSources);
       c.resourceDrops = trLoc(c.resourceDrops);
       for (const r of c.relics) r.relicDrops = trLoc(r.relicDrops);
@@ -436,16 +450,16 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
     wikiUrl: row.wiki_url || wikiUrlFor(raw.name),
     masteryReq: Number.isFinite(raw.masteryReq) ? raw.masteryReq : null,
     tradable: !!row.tradable,
-    crafting: comps.length ? {
+    crafting: outComps.length ? {
       credits: Number.isFinite(raw.buildPrice) ? raw.buildPrice : null,
       time: fmtBuildTime(raw.buildTime, lang),
       rushPlatinum: Number.isFinite(raw.skipBuildTimePrice) ? raw.skipBuildTimePrice : null,
       marketCost: Number.isFinite(raw.marketCost) && raw.marketCost > 0 ? raw.marketCost : null,
     } : null,
-    components: comps,
+    components: outComps,
     usedToBuild,
     sources: itemSources,
-    steps: buildSteps(raw, comps, itemSources, lang),
+    steps: buildSteps(raw, outComps, itemSources, lang),
     setMarketSlug: row.tradable && isPrime ? marketSlugFor(`${raw.name} set`) : null,
     fissures: relevantFissures,
   };

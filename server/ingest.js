@@ -255,7 +255,13 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
     for (const it of arr) {
       if (!it || typeof it.name !== 'string') continue;
       addAsset(it.name, it.imageName);
-      if (file === 'Misc.json' && it.type === 'Resource' && typeof it.uniqueName === 'string') {
+      // recurso de craft = type "Resource" OU usado como ingrediente em alguma
+      // receita (`parents`). O WFCD tagueia inconsistente: Neurodes/Ferrite são
+      // type "Misc" mas têm parents (115/160 usos) — o `parents>0` os pega; lixo
+      // Misc (Archon Shards, itens de evento) tem parents 0 e fica de fora.
+      const isCraftRes = it.type === 'Resource'
+        || (Array.isArray(it.parents) && it.parents.length > 0);
+      if (file === 'Misc.json' && isCraftRes && typeof it.uniqueName === 'string') {
         itemRows.push({
           unique_name: it.uniqueName, name: it.name, name_pt: null,
           category: 'Resources', type: it.type, mastery_req: null, vaulted: null,
