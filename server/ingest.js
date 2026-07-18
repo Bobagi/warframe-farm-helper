@@ -42,8 +42,17 @@ const CATEGORIES = [
   'Archwing', 'Arch-Gun', 'Arch-Melee',
   'Sentinels', 'SentinelWeapons', 'Pets',
   'Gear', 'Quests', 'Arcanes', 'Fish',
-  'Resources', 'Mods',
+  'Resources', 'Mods', 'Railjack',
 ];
+
+// tipos DENTRO de Misc.json que valem virar item buscável (gear/coisas que o
+// jogador procura), além de recursos. Deixa de fora o lixo (Nightwave Challenge,
+// Captura, Conservation Tag, Medallion, Ship-cosmetic, Equipment Adapter…).
+const SEARCHABLE_MISC_TYPES = new Set([
+  'Amp', 'Focus Lens', 'Eidolon Shard', 'Ayatan Sculpture', 'Cut Gem',
+  'Exalted Weapon', 'Kitgun Component', 'K-Drive Component', 'Pet Resource',
+  'Ship Segment',
+]);
 
 const CONTENT_DIR = process.env.CONTENT_DIR || path.join(__dirname, '..', 'content');
 const REFINEMENT_RE = / (Intact|Exceptional|Flawless|Radiant)$/;
@@ -246,7 +255,7 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
   // recompensas de quest, sem jogar 9k cosméticos na busca.
   const assetMap = new Map(); // nome -> image_name (1º vence)
   const addAsset = (nm, img) => { if (nm && img && !assetMap.has(nm)) assetMap.set(nm, img); };
-  for (const file of ['Misc.json', 'Skins.json', 'Glyphs.json']) {
+  for (const file of ['Misc.json', 'Skins.json', 'Glyphs.json', 'Sigils.json']) {
     let arr;
     try { arr = await fetchJson(`${RAW_BASE}/${file}`, { timeoutMs: 120000 }); }
     catch (err) { log(`[ingest] ${file} falhou (seguindo): ${err.message}`); continue; }
@@ -261,10 +270,15 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
       // Misc (Archon Shards, itens de evento) tem parents 0 e fica de fora.
       const isCraftRes = it.type === 'Resource'
         || (Array.isArray(it.parents) && it.parents.length > 0);
-      if (file === 'Misc.json' && isCraftRes && typeof it.uniqueName === 'string') {
+      const isSearchableMisc = isCraftRes || SEARCHABLE_MISC_TYPES.has(it.type);
+      if (file === 'Misc.json' && isSearchableMisc && typeof it.uniqueName === 'string') {
         itemRows.push({
           unique_name: it.uniqueName, name: it.name, name_pt: null,
-          category: 'Resources', type: it.type, mastery_req: null, vaulted: null,
+          // recurso/ingrediente → categoria Resources (kind=resource, página de
+          // "onde farmar"); gear de Misc (Amp, Focus Lens…) fica como Misc.
+          category: isCraftRes ? 'Resources' : 'Misc',
+          type: it.type, mastery_req: Number.isFinite(it.masteryReq) ? it.masteryReq : null,
+          vaulted: null,
           image_name: it.imageName || null, wiki_url: it.wikiaUrl || null,
           tradable: it.tradable === true ? 1 : 0, slim: slimItem(it),
         });

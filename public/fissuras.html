@@ -15,22 +15,35 @@
     <div class="wrap">
       <p class="small" style="margin:0 0 12px"><a href="/" data-i18n="farm.back">← início</a></p>
 
-      <section class="panel" aria-labelledby="fiss-title">
-        <p class="eyebrow" id="fiss-title"><span data-i18n="fissures.title">Fissuras do Void — agora</span> <span class="hint" id="fiss-hint"></span></p>
-        <div class="tier-toggle" id="fiss-mode" role="group">
-          <button type="button" data-mode="normal" data-i18n="fissures.normal" aria-pressed="true">Normais</button>
-          <button type="button" data-mode="hard" data-i18n="fissures.hard" aria-pressed="false">Steel Path</button>
-          <button type="button" data-mode="storm" data-i18n="fissures.storm" aria-pressed="false">Railjack</button>
+      <details class="panel" id="farm" open>
+        <summary class="panel-summary"><span class="eyebrow" id="farm-title"><span data-i18n="farm.title">O que dá pra farmar agora</span> <span class="hint" id="farm-hint"></span></span></summary>
+        <div class="panel-body">
+          <p class="muted small" data-i18n="farm.lead">Armas e warframes prime cujas peças estão em relíquias disponíveis dos tiers com fissura ativa. Filtre pelo tier da relíquia que você tem.</p>
+          <div class="farm-controls">
+            <div class="tier-toggle" id="farm-mode" role="group" aria-label="Filtrar por tier"></div>
+            <div class="farm-sort">
+              <span class="sort-label" data-i18n="farm.sortLabel">Ordenar:</span>
+              <div class="tier-toggle" id="farm-sort" role="group" aria-label="Ordenar">
+                <button type="button" data-sort="value" data-i18n="farm.sortValue" aria-pressed="true">Valor</button>
+                <button type="button" data-sort="difficulty" data-i18n="farm.sortDiff" aria-pressed="false">Dificuldade</button>
+              </div>
+            </div>
+          </div>
+          <div class="card-grid" id="farm-grid"></div>
         </div>
-        <ul class="rowlist" id="fiss-list"></ul>
-      </section>
+      </details>
 
-      <section class="panel" aria-labelledby="farm-title">
-        <p class="eyebrow" id="farm-title"><span data-i18n="farm.title">Dá pra farmar agora</span> <span class="hint" id="farm-hint"></span></p>
-        <p class="muted small" data-i18n="farm.lead">Armas e warframes prime cujas peças estão em relíquias disponíveis dos tiers com fissura ativa. Filtre pelo tier da relíquia que você tem.</p>
-        <div class="tier-toggle" id="farm-mode" role="group" aria-label="Filtrar por tier"></div>
-        <div class="card-grid" id="farm-grid"></div>
-      </section>
+      <details class="panel" id="fissuras" open>
+        <summary class="panel-summary"><span class="eyebrow" id="fiss-title"><span data-i18n="fissures.title">Fissuras do Void — agora</span> <span class="hint" id="fiss-hint"></span></span></summary>
+        <div class="panel-body">
+          <div class="tier-toggle" id="fiss-mode" role="group">
+            <button type="button" data-mode="normal" data-i18n="fissures.normal" aria-pressed="true">Normais</button>
+            <button type="button" data-mode="hard" data-i18n="fissures.hard" aria-pressed="false">Steel Path</button>
+            <button type="button" data-mode="storm" data-i18n="fissures.storm" aria-pressed="false">Railjack</button>
+          </div>
+          <ul class="rowlist" id="fiss-list"></ul>
+        </div>
+      </details>
     </div>
   </main>
 

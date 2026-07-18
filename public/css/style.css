@@ -311,6 +311,33 @@ main { flex: 1; padding: 24px 0 56px; }
 .eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--line); }
 .eyebrow .hint { letter-spacing: 0.04em; text-transform: none; color: var(--text-faint); font-weight: 400; }
 
+/* painéis colapsáveis (<details class="panel">) — home + fissuras */
+details.panel > summary.panel-summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+details.panel > summary.panel-summary::-webkit-details-marker { display: none; }
+details.panel > summary.panel-summary .eyebrow { margin: 0; flex: 1; min-width: 0; }
+details.panel > summary.panel-summary::after {
+  content: '\25B8'; /* ▸ */
+  flex: none;
+  color: var(--text-dim);
+  font-size: 13px;
+  transition: transform 0.15s ease;
+}
+details.panel[open] > summary.panel-summary::after { transform: rotate(90deg); }
+details.panel > summary.panel-summary:focus-visible { outline: 2px solid var(--energy); outline-offset: 3px; }
+.panel-body { margin-top: 14px; }
+
+.btn-mini { padding: 4px 12px; font-size: 11px; }
+.farm-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; margin-bottom: 12px; }
+.farm-controls .tier-toggle { margin-bottom: 0; }
+.farm-sort { display: flex; align-items: center; gap: 8px; }
+.farm-sort .sort-label { font-size: 12px; color: var(--text-dim); }
+
 h1, h2, h3 { font-family: var(--font-display); line-height: 1.25; }
 h1 { font-size: clamp(24px, 5vw, 38px); font-weight: 700; margin: 0 0 8px; }
 h2 { font-size: 20px; font-weight: 600; margin: 26px 0 10px; }

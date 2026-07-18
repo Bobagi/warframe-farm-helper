@@ -20,24 +20,37 @@
         <div class="example-chips" id="example-chips" aria-label="Exemplos de busca"></div>
       </section>
 
+      <details class="panel" id="farm-home" open>
+        <summary class="panel-summary">
+          <span class="eyebrow"><span data-i18n="farm.title">O que dá pra farmar agora</span> <span class="hint" id="farm-home-hint"></span></span>
+          <a class="btn-line btn-mini" href="/fissuras.html" data-i18n="farm.more">Ver mais</a>
+        </summary>
+        <div class="panel-body">
+          <div class="card-grid" id="farm-home-grid"></div>
+        </div>
+      </details>
+
       <div class="cols-2">
-        <section class="panel" id="fissuras" aria-labelledby="fiss-title">
-          <p class="eyebrow" id="fiss-title"><span data-i18n="fissures.title">Fissuras do Void — agora</span> <span class="hint" id="fiss-hint"></span></p>
-          <div class="tier-toggle" id="fiss-mode" role="group">
-            <button type="button" data-mode="normal" data-i18n="fissures.normal" aria-pressed="true">Normais</button>
-            <button type="button" data-mode="hard" data-i18n="fissures.hard" aria-pressed="false">Steel Path</button>
-            <button type="button" data-mode="storm" data-i18n="fissures.storm" aria-pressed="false">Railjack</button>
+        <details class="panel" id="fissuras" open>
+          <summary class="panel-summary"><span class="eyebrow" id="fiss-title"><span data-i18n="fissures.title">Fissuras do Void — agora</span> <span class="hint" id="fiss-hint"></span></span></summary>
+          <div class="panel-body">
+            <div class="tier-toggle" id="fiss-mode" role="group">
+              <button type="button" data-mode="normal" data-i18n="fissures.normal" aria-pressed="true">Normais</button>
+              <button type="button" data-mode="hard" data-i18n="fissures.hard" aria-pressed="false">Steel Path</button>
+              <button type="button" data-mode="storm" data-i18n="fissures.storm" aria-pressed="false">Railjack</button>
+            </div>
+            <ul class="rowlist" id="fiss-list"></ul>
           </div>
-          <ul class="rowlist" id="fiss-list"></ul>
-          <p class="panel-cta"><a class="btn-line" href="/fissuras.html" data-i18n="farm.cta">O que dá pra farmar agora</a></p>
-        </section>
+        </details>
 
         <div>
-          <section class="panel" aria-labelledby="nw-title">
-            <p class="eyebrow" id="nw-title" data-i18n="nw.weekTitle">Nightwave — atos da semana</p>
-            <ul class="rowlist" id="nw-list"></ul>
-            <p class="panel-cta"><a class="btn-line" href="/nightwave.html" data-i18n="nw.allActs">Todos os atos + guias</a></p>
-          </section>
+          <details class="panel" id="nightwave" open>
+            <summary class="panel-summary"><span class="eyebrow" data-i18n="nw.weekTitle">Nightwave — atos da semana</span></summary>
+            <div class="panel-body">
+              <ul class="rowlist" id="nw-list"></ul>
+              <p class="panel-cta"><a class="btn-line" href="/nightwave.html" data-i18n="nw.allActs">Todos os atos + guias</a></p>
+            </div>
+          </details>
 
           <section class="panel panel-quiet" aria-labelledby="baro-title">
             <p class="eyebrow" id="baro-title" data-i18n="baro.title">Baro Ki'Teer</p>
@@ -45,12 +58,6 @@
           </section>
         </div>
       </div>
-
-      <section class="panel" aria-labelledby="farm-home-title">
-        <p class="eyebrow" id="farm-home-title"><span data-i18n="farm.title">Dá pra farmar agora</span> <span class="hint" id="farm-home-hint"></span></p>
-        <div class="card-grid" id="farm-home-grid"></div>
-        <p class="panel-cta"><a class="btn-line" href="/fissuras.html" data-i18n="farm.seeAll">Ver todos + filtrar por tier</a></p>
-      </section>
 
       <section class="panel" aria-labelledby="faq-title">
         <p class="eyebrow" id="faq-title" data-i18n="faq.title">FAQ — mecânicas do jogo</p>

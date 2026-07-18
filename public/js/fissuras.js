@@ -57,19 +57,44 @@
 
   // ---- dá pra farmar agora ----
   const TIERS = ['Lith', 'Meso', 'Neo', 'Axi'];
+  // dificuldade de farmar = quão alto é o tier de relíquia exigido (Lith é o mais
+  // fácil/cedo, Axi o mais difícil/tardio). Requiem fora dos primes normais.
+  const TIER_RANK = { Lith: 0, Meso: 1, Neo: 2, Axi: 3, Requiem: 4 };
+  const maxTier = (it) => Math.max(...it.tiers.map((tr) => (tr in TIER_RANK ? TIER_RANK[tr] : 9)));
+  const minTier = (it) => Math.min(...it.tiers.map((tr) => (tr in TIER_RANK ? TIER_RANK[tr] : 9)));
   let items = [];
   let tierFilter = 'all';
+  let sortBy = 'value'; // 'value' (ordem do backend, por platina) | 'difficulty'
   const grid = document.getElementById('farm-grid');
   const farmHint = document.getElementById('farm-hint');
   const farmMode = document.getElementById('farm-mode');
+  const farmSort = document.getElementById('farm-sort');
   grid.replaceChildren(el('p', { class: 'spin', text: t('farm.loading') }));
 
+  // ordena os mais FÁCEIS primeiro: menor tier exigido (o teto), depois o piso,
+  // e desempata pela platina (mais valioso primeiro).
+  function sortItems(arr) {
+    if (sortBy !== 'difficulty') return arr;
+    return [...arr].sort((a, b) => maxTier(a) - maxTier(b)
+      || minTier(a) - minTier(b)
+      || (b.platinum || 0) - (a.platinum || 0));
+  }
+
   function renderFarm() {
-    const shown = tierFilter === 'all' ? items : items.filter((it) => it.tiers.includes(tierFilter));
+    const filtered = tierFilter === 'all' ? items : items.filter((it) => it.tiers.includes(tierFilter));
+    const shown = sortItems(filtered);
     grid.replaceChildren(...(shown.length
       ? shown.map(farmCard)
       : [el('p', { class: 'empty', text: t('farm.none') })]));
   }
+
+  farmSort.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button[data-sort]');
+    if (!btn) return;
+    sortBy = btn.dataset.sort;
+    for (const b of farmSort.querySelectorAll('button')) b.setAttribute('aria-pressed', String(b === btn));
+    renderFarm();
+  });
 
   function buildFilter(activeTiers) {
     const mk = (val, label) => el('button', {
