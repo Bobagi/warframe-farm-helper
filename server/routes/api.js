@@ -73,7 +73,14 @@ router.get('/suggest', rateLimit, (req, res) => {
   res.json({ results: q.length >= 2 ? suggest(q, 8) : [] });
 });
 
-const pickLang = (v) => (String(v) === 'en' ? 'en' : 'pt');
+// idioma da PROSA do servidor (descrição, passo a passo, locais de drop): só há
+// redação em pt e en. 'pt' → pt; en/es/ru/qualquer outro → en (fallback
+// internacional — antes es/ru caíam em pt, vazando português); sem lang → pt
+// (o site é PT-first). Nomes de item seguem em inglês (convenção da comunidade).
+const pickLang = (v) => {
+  const s = String(v || '').toLowerCase();
+  return (s === '' || s === 'pt') ? 'pt' : 'en';
+};
 
 router.get('/item', asyncRoute(async (req, res) => {
   const u = String(req.query.u || '').slice(0, 250);

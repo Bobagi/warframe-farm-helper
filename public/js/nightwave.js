@@ -29,7 +29,7 @@
         el('br'),
         el('span', { class: 'sub', text: a.desc }),
       ]),
-      a.reputation ? el('span', { class: 'rep num', text: t('nw.standing', { n: a.reputation.toLocaleString(I18n.lang() === 'en' ? 'en-US' : 'pt-BR') }) }) : null,
+      a.reputation ? el('span', { class: 'rep num', text: t('nw.standing', { n: a.reputation.toLocaleString(I18n.locale()) }) }) : null,
       a.guide
         ? el('a', { class: 'guide-btn', href: `/nightwave.html?slug=${encodeURIComponent(a.guide.slug)}`, text: t('nw.howto') })
         : el('span', { class: 'kind-tag', text: t('nw.noguide') }),

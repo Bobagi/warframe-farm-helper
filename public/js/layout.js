@@ -42,12 +42,14 @@
     const nav = el('nav', { class: 'site-nav', 'aria-label': 'Principal' },
       NAV.map((n) => el('a', { href: n.href, text: t(n.key) })));
 
-    // bandeiras (SVG constante — nunca dado externo): 🇧🇷 para PT, 🇺🇸 para EN
+    // bandeiras (SVG constante — nunca dado externo): 🇧🇷 PT, 🇺🇸 EN, 🇪🇸 ES, 🇷🇺 RU
     const FLAGS = {
       pt: '<svg viewBox="0 0 20 14" aria-hidden="true"><rect width="20" height="14" fill="#009b3a"/><path d="M10 1.6 18.4 7 10 12.4 1.6 7Z" fill="#fedf00"/><circle cx="10" cy="7" r="3" fill="#002776"/></svg>',
       en: '<svg viewBox="0 0 20 14" aria-hidden="true"><rect width="20" height="14" fill="#fff"/><g fill="#b22234"><rect width="20" height="1.08" y="0"/><rect width="20" height="1.08" y="2.15"/><rect width="20" height="1.08" y="4.3"/><rect width="20" height="1.08" y="6.46"/><rect width="20" height="1.08" y="8.6"/><rect width="20" height="1.08" y="10.77"/><rect width="20" height="1.08" y="12.92"/></g><rect width="9" height="7.54" fill="#3c3b6e"/></svg>',
+      es: '<svg viewBox="0 0 20 14" aria-hidden="true"><rect width="20" height="14" fill="#c60b1e"/><rect width="20" height="7" y="3.5" fill="#ffc400"/></svg>',
+      ru: '<svg viewBox="0 0 20 14" aria-hidden="true"><rect width="20" height="14" fill="#fff"/><rect width="20" height="4.67" y="4.66" fill="#0039a6"/><rect width="20" height="4.67" y="9.33" fill="#d52b1e"/></svg>',
     };
-    const FLAG_LABEL = { pt: 'Português', en: 'English' };
+    const FLAG_LABEL = { pt: 'Português', en: 'English', es: 'Español', ru: 'Русский' };
     const langToggle = el('div', { class: 'lang-toggle', role: 'group', 'aria-label': t('lang.aria') },
       I18n.SUPPORTED.map((l) => {
         const btn = el('button', {

@@ -87,7 +87,7 @@
 
   function marketPanel(item) {
     const slugs = [];
-    if (item.setMarketSlug) slugs.push({ slug: item.setMarketSlug, label: lang() === 'en' ? 'Full set' : 'Set completo' });
+    if (item.setMarketSlug) slugs.push({ slug: item.setMarketSlug, label: t('item.fullSet') });
     for (const c of item.components) {
       if (c.marketSlug && c.relics.length) slugs.push({ slug: c.marketSlug, label: c.fullName });
     }

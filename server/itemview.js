@@ -100,7 +100,7 @@ const RARITY_PT = { Common: 'Comum', Uncommon: 'Incomum', Rare: 'Rara', Legendar
 
 const compAnchor = (name) => 'c-' + String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
-const rarityLabel = (r, lang) => (lang === 'en' ? (r || '') : (RARITY_PT[r] || r || ''));
+const rarityLabel = (r, lang = 'pt') => (lang === 'pt' ? (RARITY_PT[r] || r || '') : (r || ''));
 
 function marketSlugFor(name) {
   return String(name).toLowerCase()
@@ -109,15 +109,15 @@ function marketSlugFor(name) {
     .replace(/^_+|_+$/g, '');
 }
 
-function fmtBuildTime(sec, lang) {
+function fmtBuildTime(sec, lang = 'pt') {
   if (!Number.isFinite(sec) || sec <= 0) return null;
   const h = sec / 3600;
-  if (h >= 48) return `${Math.round(h / 24)} ${lang === 'en' ? 'days' : 'dias'}`;
+  if (h >= 48) return `${Math.round(h / 24)} ${lang === 'pt' ? 'dias' : 'days'}`;
   if (h >= 1) return `${Math.round(h)} h`;
   return `${Math.round(sec / 60)} min`;
 }
 
-const fmtPct = (n, lang) => (n == null ? null : (lang === 'en' ? `${n}%` : `${String(n).replace('.', ',')}%`));
+const fmtPct = (n, lang = 'pt') => (n == null ? null : (lang === 'pt' ? `${String(n).replace('.', ',')}%` : `${n}%`));
 
 /** Separa drops de um componente em relíquias (agrupadas) e outras fontes. */
 function classifyDrops(drops) {
@@ -208,9 +208,9 @@ function decorateRelics(db, relicRefs, fullName, fissuresByTier, relicCache) {
   return out;
 }
 
-/** Passo a passo bilíngue (pt/en). Escolhe a redação pelo `lang`. */
+/** Passo a passo bilíngue (pt/en). `lang==='pt'` → PT; qualquer outro → EN. */
 function buildSteps(raw, comps, itemSources, lang) {
-  const en = lang === 'en';
+  const en = lang !== 'pt';
   const L = (pt, enStr) => (en ? enStr : pt);
   const pct = (n) => fmtPct(n, lang);
   const steps = [];
@@ -443,7 +443,7 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
     type: raw.type || row.category,
     isQuest,
     questInfo,
-    description: (lang === 'en' ? raw.description : (raw.descriptionPt || raw.description)) || '',
+    description: (lang === 'pt' ? (raw.descriptionPt || raw.description) : raw.description) || '',
     vaulted: row.vaulted === 1 ? true : row.vaulted === 0 ? false : null,
     image: raw.imageName ? CDN_IMG + raw.imageName : null,
     // dataset traz wiki só p/ alguns; gera do nome quando falta (quests, etc.)

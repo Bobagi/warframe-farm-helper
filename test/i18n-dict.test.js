@@ -6,9 +6,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 // public/js/i18n.js roda no browser (localStorage/navigator) — aqui só lemos o
-// texto e comparamos os conjuntos de chaves de STRINGS.pt vs STRINGS.en, para
+// texto e comparamos os conjuntos de chaves de STRINGS.pt/en/es/ru, para
 // garantir que nenhuma string fica sem tradução (some/aparece só num idioma).
 const SRC = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'i18n.js'), 'utf8');
+const LANGS = ['pt', 'en', 'es', 'ru'];
 
 function keysOf(block) {
   const set = new Set();
@@ -25,25 +26,32 @@ function slice(from, to) {
   return SRC.slice(a + from.length, b);
 }
 
-test('STRINGS.pt e STRINGS.en têm exatamente as mesmas chaves', () => {
-  const ptBlock = slice('pt: {', 'en: {');
-  const enBlock = slice('en: {', 'const MISSIONS');
-  const pt = keysOf(ptBlock);
-  const en = keysOf(enBlock);
+// cada bloco de idioma vai do seu "<lang>: {" até o começo do próximo; o último
+// (ru) termina onde começa "const MISSIONS".
+const BOUNDS = { pt: 'en: {', en: 'es: {', es: 'ru: {', ru: 'const MISSIONS' };
 
-  assert.ok(pt.size > 80, `esperava muitas chaves em pt, achei ${pt.size}`);
+test('STRINGS.pt/en/es/ru têm exatamente as mesmas chaves', () => {
+  const keys = {};
+  for (const l of LANGS) keys[l] = keysOf(slice(`${l}: {`, BOUNDS[l]));
 
-  const soPt = [...pt].filter((k) => !en.has(k));
-  const soEn = [...en].filter((k) => !pt.has(k));
-  assert.deepEqual(soPt, [], `chaves só em PT (faltam em EN): ${soPt.join(', ')}`);
-  assert.deepEqual(soEn, [], `chaves só em EN (faltam em PT): ${soEn.join(', ')}`);
+  assert.ok(keys.pt.size > 80, `esperava muitas chaves em pt, achei ${keys.pt.size}`);
+
+  for (const l of LANGS) {
+    if (l === 'pt') continue;
+    const missing = [...keys.pt].filter((k) => !keys[l].has(k));
+    const extra = [...keys[l]].filter((k) => !keys.pt.has(k));
+    assert.deepEqual(missing, [], `chaves que faltam em ${l}: ${missing.join(', ')}`);
+    assert.deepEqual(extra, [], `chaves só em ${l} (faltam em pt): ${extra.join(', ')}`);
+  }
 });
 
-test('MISSIONS e ENEMIES têm pt e en em cada entrada', () => {
+test('MISSIONS e ENEMIES têm pt, en, es e ru em cada entrada', () => {
   const block = slice('const MISSIONS', 'function t(');
-  // cada entrada tem { pt: '...', en: '...' } — conta os pt e en
-  const pt = (block.match(/\bpt:\s*'/g) || []).length;
-  const en = (block.match(/\ben:\s*'/g) || []).length;
-  assert.ok(pt > 20, `poucas traduções de missão/inimigo: ${pt}`);
-  assert.equal(pt, en, 'toda entrada de missão/inimigo precisa de pt E en');
+  const counts = {};
+  for (const l of LANGS) counts[l] = (block.match(new RegExp(`\\b${l}:\\s*'`, 'g')) || []).length;
+  assert.ok(counts.pt > 20, `poucas traduções de missão/inimigo: ${counts.pt}`);
+  for (const l of LANGS) {
+    assert.equal(counts[l], counts.pt,
+      `toda entrada de missão/inimigo precisa de ${l} (achei ${counts[l]} vs ${counts.pt} em pt)`);
+  }
 });

@@ -33,7 +33,7 @@ const App = (() => {
     return res.json();
   }
 
-  const fmtInt = (n) => Number(n).toLocaleString(I18n.lang() === 'en' ? 'en-US' : 'pt-BR');
+  const fmtInt = (n) => Number(n).toLocaleString(I18n.locale());
   const fmtPct = (n) => (n == null ? '—' : (I18n.lang() === 'en' ? `${n}%` : `${String(n).replace('.', ',')}%`));
 
   function timeLeft(iso) {

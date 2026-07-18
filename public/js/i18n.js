@@ -9,14 +9,37 @@
 
 const I18n = (() => {
   const LANG_KEY = 'wfh-lang';
-  const SUPPORTED = ['pt', 'en'];
+  const SUPPORTED = ['pt', 'en', 'es', 'ru'];
+  // locale BCP-47 por idioma — usado só para formatação de número (Intl).
+  const NUM_LOCALE = { pt: 'pt-BR', en: 'en-US', es: 'es-ES', ru: 'ru-RU' };
 
-  let current = (localStorage.getItem(LANG_KEY) || (navigator.language || 'pt').slice(0, 2)).toLowerCase();
-  if (!SUPPORTED.includes(current)) current = 'pt';
+  // Idioma: 1) escolha salva no localStorage; 2) 1º idioma SUPORTADO na lista de
+  // preferências do navegador (navigator.languages cobre casos como "de,en,pt" →
+  // en, que antes caía direto no default); 3) default pt (o site é PT-first).
+  function detectLang() {
+    const saved = (localStorage.getItem(LANG_KEY) || '').toLowerCase();
+    if (SUPPORTED.includes(saved)) return saved;
+    const prefs = (Array.isArray(navigator.languages) && navigator.languages.length)
+      ? navigator.languages : [navigator.language || ''];
+    for (const p of prefs) {
+      const two = String(p).slice(0, 2).toLowerCase();
+      if (SUPPORTED.includes(two)) return two;
+    }
+    return 'pt';
+  }
+  let current = detectLang();
 
   const STRINGS = {
     pt: {
       'brand.sub': 'FARM HELPER',
+      'title.home': 'Warframe Farm Helper — onde farmar qualquer coisa',
+      'title.search': 'Buscar — Warframe Farm Helper',
+      'title.faq': 'FAQ — mecânicas do jogo — Warframe Farm Helper',
+      'title.fissures': 'Fissuras do Void — o que farmar agora — Warframe Farm Helper',
+      'title.nightwave': 'Nightwave — atos e guias — Warframe Farm Helper',
+      'title.relic': 'Relíquia — Warframe Farm Helper',
+      'title.item': 'Item — Warframe Farm Helper',
+      'title.e404': '404 — Warframe Farm Helper',
       'nav.search': 'Buscar', 'nav.fissures': 'Fissuras', 'nav.nightwave': 'Nightwave', 'nav.faq': 'FAQ',
       'search.placeholder': 'Item, relíquia, mecânica…',
       'search.placeholderBig': 'Ex.: Braton Prime Stock, Apótico do Anoitecer, o que fazer com kubrow…',
@@ -84,6 +107,7 @@ const I18n = (() => {
       'item.otherSources': 'Outras fontes', 'item.noSource': 'Sem fonte de drop nas tabelas oficiais (recurso comum, quest, loja ou pesquisa de clã — veja a wiki).',
       'item.noSourcePre': 'Sem fonte de drop nas tabelas oficiais (recurso, quest, loja ou pesquisa de clã). Veja a ',
       'item.noSourcePost': '.', 'item.wikiInline': 'página da wiki',
+      'item.fullSet': 'Set completo',
       'quest.title': 'Quest', 'quest.wikiCta': 'Requisitos e recompensas na wiki',
       'quest.requirements': 'Requisitos para iniciar', 'quest.rewards': 'Recompensas de conclusão',
       'quest.prev': 'Quest anterior', 'quest.next': 'Próxima quest', 'quest.source': 'Fonte:',
@@ -126,6 +150,14 @@ const I18n = (() => {
     },
     en: {
       'brand.sub': 'FARM HELPER',
+      'title.home': 'Warframe Farm Helper — where to farm anything',
+      'title.search': 'Search — Warframe Farm Helper',
+      'title.faq': 'FAQ — game mechanics — Warframe Farm Helper',
+      'title.fissures': 'Void Fissures — what to farm now — Warframe Farm Helper',
+      'title.nightwave': 'Nightwave — acts & guides — Warframe Farm Helper',
+      'title.relic': 'Relic — Warframe Farm Helper',
+      'title.item': 'Item — Warframe Farm Helper',
+      'title.e404': '404 — Warframe Farm Helper',
       'nav.search': 'Search', 'nav.fissures': 'Fissures', 'nav.nightwave': 'Nightwave', 'nav.faq': 'FAQ',
       'search.placeholder': 'Item, relic, mechanic…',
       'search.placeholderBig': 'e.g. Braton Prime Stock, Nightfall Apothic, what to do with a kubrow…',
@@ -193,6 +225,7 @@ const I18n = (() => {
       'item.otherSources': 'Other sources', 'item.noSource': 'No drop source in the official tables (common resource, quest, shop or clan research — see the wiki).',
       'item.noSourcePre': 'No drop source in the official tables (resource, quest, shop or clan research). See the ',
       'item.noSourcePost': '.', 'item.wikiInline': 'wiki page',
+      'item.fullSet': 'Full set',
       'quest.title': 'Quest', 'quest.wikiCta': 'Requirements & rewards on the wiki',
       'quest.requirements': 'Requirements to start', 'quest.rewards': 'Completion rewards',
       'quest.prev': 'Previous quest', 'quest.next': 'Next quest', 'quest.source': 'Source:',
@@ -233,48 +266,290 @@ const I18n = (() => {
       'cyc.s.sorrow': 'Sorrow', 'cyc.s.fear': 'Fear',
       'cyc.next': '{w}: {s} in {t}',
     },
+    es: {
+      'brand.sub': 'FARM HELPER',
+      'title.home': 'Warframe Farm Helper — dónde farmear cualquier cosa',
+      'title.search': 'Buscar — Warframe Farm Helper',
+      'title.faq': 'FAQ — mecánicas del juego — Warframe Farm Helper',
+      'title.fissures': 'Fisuras del Void — qué farmear ahora — Warframe Farm Helper',
+      'title.nightwave': 'Nightwave — actos y guías — Warframe Farm Helper',
+      'title.relic': 'Reliquia — Warframe Farm Helper',
+      'title.item': 'Objeto — Warframe Farm Helper',
+      'title.e404': '404 — Warframe Farm Helper',
+      'nav.search': 'Buscar', 'nav.fissures': 'Fisuras', 'nav.nightwave': 'Nightwave', 'nav.faq': 'FAQ',
+      'search.placeholder': 'Objeto, reliquia, mecánica…',
+      'search.placeholderBig': 'Ej.: Braton Prime Stock, Nightfall Apothic, qué hacer con un kubrow…',
+      'search.button': 'Buscar', 'search.aria': 'Buscar objeto, reliquia o duda',
+      'lang.aria': 'Idioma',
+      'home.h1a': 'Dónde', 'home.h1b': 'farmear', 'home.h1c': 'cualquier cosa en Warframe',
+      'home.lead': 'Objeto, reliquia, mecánica o acto de Nightwave — una sola búsqueda, con datos oficiales de drop y el estado del juego ahora.',
+      'home.examples': 'Ejemplos de búsqueda',
+      'home.searchHint': 'Usa la búsqueda en la parte superior. Empieza por un ejemplo:',
+      'ex.bratonStock': 'Braton Prime Stock', 'ex.kubrow': '¿Qué hacer con un Kubrow?',
+      'ex.apothic': 'Nightfall Apothic', 'ex.crewship': 'Crewship + Artillería Frontal',
+      'fissures.title': 'Fisuras del Void — ahora', 'fissures.active': '{n} activas',
+      'fissures.normal': 'Normales', 'fissures.hard': 'Steel Path', 'fissures.storm': 'Railjack',
+      'fissures.type': 'Tipo de fisura', 'fissures.loading': 'Consultando el worldstate…',
+      'fissures.none': 'No hay fisuras de este tipo ahora.',
+      'fissures.down': 'Worldstate no disponible ahora — intenta recargar.',
+      'farm.cta': 'Qué puedes farmear ahora', 'farm.back': '← inicio',
+      'farm.title': 'Qué puedes farmear ahora', 'farm.count': '{n} primes',
+      'farm.more': 'Ver más', 'farm.sortLabel': 'Ordenar:',
+      'farm.sortValue': 'Valor', 'farm.sortDiff': 'Dificultad',
+      'farm.lead': 'Armas y warframes prime cuyas piezas están en reliquias disponibles de los tiers con fisura activa, ordenados por valor de mercado (precio de venta más bajo del set, en platino). Filtra por el tier de reliquia que tengas.',
+      'farm.seeAll': 'Ver todo + filtrar por tier',
+      'farm.loading': 'Cruzando fisuras y reliquias…', 'farm.all': 'Todos',
+      'farm.none': 'Ningún prime en este tier ahora.',
+      'farm.noTiers': 'No hay fisura de reliquia prime activa ahora (solo Requiem/Omnia o entre rotaciones).',
+      'farm.down': 'No se pudo cargar ahora — intenta recargar.',
+      'nw.weekTitle': 'Nightwave — actos de la semana', 'nw.loading': 'Cargando actos…',
+      'nw.allActs': 'Todos los actos + guías', 'nw.none': 'Sin actos activos ahora (entre temporadas).',
+      'nw.down': 'Nightwave no disponible ahora.',
+      'nw.daily': 'diario', 'nw.weekly': 'semanal', 'nw.elite': 'élite', 'nw.guide': 'Guía',
+      'nw.howto': 'Cómo hacerlo', 'nw.noguide': 'sin guía aún',
+      'nw.dailyActs': 'Actos diarios', 'nw.weeklyActs': 'Actos semanales', 'nw.eliteActs': 'Actos de élite',
+      'nw.library': 'Biblioteca de guías', 'nw.libraryHint': 'actos recurrentes de otras semanas',
+      'nw.boardTitle': 'Nightwave — actos de la semana',
+      'nw.boardLead': 'Los actos activos ahora, cada uno con una guía de cómo completarlo. ',
+      'nw.seasonEnds': 'La temporada termina en {t}.',
+      'nw.backList': '← actos y guías de Nightwave', 'nw.standing': '{n} de prestigio',
+      'nw.seasonEndsPre': 'La temporada termina en ',
+      'baro.title': "Baro Ki'Teer", 'baro.loading': 'Consultando…',
+      'baro.none': 'Sin datos del Void Trader ahora.', 'baro.down': 'Void Trader no disponible ahora.',
+      'baro.here': 'En el relay {loc} con {n} objetos · se va en ', 'baro.coming': 'Llega en ',
+      'baro.comingTail': ' ({loc}). ¡Junta ducados!',
+      'faq.title': 'FAQ — mecánicas del juego', 'faq.all': 'Ver todas las preguntas',
+      'faq.lead': 'Las dudas que todo Tenno tiene — respondidas, directo al grano.',
+      'faq.back': '← todas las preguntas', 'faq.loading': 'Cargando FAQ…',
+      'search.loading': 'Buscando…', 'search.prompt': 'Escribe lo que quieres farmear o entender.',
+      'search.localResults': 'Resultados locales', 'search.extResults': 'Resultados externos',
+      'search.extHint': 'sitios de confianza de la comunidad', 'search.alsoWeb': 'Buscar también en la web',
+      'search.nLocal': '{n} resultado(s) local(es) para "{q}"', 'search.noLocal': 'Nada local para "{q}"',
+      'search.webCached': 'Resultados de la web (en caché) — fuentes externas:',
+      'search.web': 'Resultados de la web — fuentes externas:',
+      'search.webNone': 'La búsqueda web no devolvió nada para este término.',
+      'search.linksDefault': 'Busca directo en los sitios de confianza:',
+      'search.failed': 'La búsqueda falló: {e}', 'search.external': 'externo',
+      'item.loading': 'Cargando objeto…', 'item.back': '← volver', 'item.notItem': 'Objeto no especificado.',
+      'item.loadFail': 'No se pudo cargar el objeto: {e}',
+      'item.wiki': 'Página de la wiki', 'item.forge': 'Foundry',
+      'item.credits': 'Créditos', 'item.time': 'Tiempo', 'item.rush': 'Acelerar', 'item.platina': 'platino',
+      'item.mrMin': 'Maestría mínima', 'item.steps': 'Cómo conseguirlo — paso a paso',
+      'item.usedIn': 'Se usa para construir', 'item.usedInHint': 'este objeto es ingrediente de estos',
+      'item.allVaulted': 'Ninguna reliquia disponible ahora — todas están vaulted.',
+      'item.showVaulted': 'Ver {n} reliquias vaulted',
+      'item.showMoreSources': 'Ver {n} fuente(s) más',
+      'item.components': 'Componentes', 'item.componentsHint': 'reliquias disponibles primero',
+      'item.otherSources': 'Otras fuentes', 'item.noSource': 'Sin fuente de drop en las tablas oficiales (recurso común, misión, tienda o investigación de clan — mira la wiki).',
+      'item.noSourcePre': 'Sin fuente de drop en las tablas oficiales (recurso, misión, tienda o investigación de clan). Mira la ',
+      'item.noSourcePost': '.', 'item.wikiInline': 'página de la wiki',
+      'item.fullSet': 'Set completo',
+      'quest.title': 'Misión', 'quest.wikiCta': 'Requisitos y recompensas en la wiki',
+      'quest.requirements': 'Requisitos para empezar', 'quest.rewards': 'Recompensas al completar',
+      'quest.prev': 'Misión anterior', 'quest.next': 'Siguiente misión', 'quest.source': 'Fuente:',
+      'quest.note': 'Esto es una misión (quest de historia). Las tablas oficiales no traen sus prerrequisitos ni las recompensas de forma estructurada — la sinopsis está arriba, y el recorrido completo, los requisitos para empezar y las recompensas finales están en la página de la wiki.',
+      'item.whereDrops': 'Dónde dropea', 'item.fissNow': 'Fisuras activas para farmear ahora',
+      'item.fissHint': 'tiers de las reliquias disponibles',
+      'item.market': 'O cómpralo a otro jugador', 'item.marketHint': 'warframe.market · precio de venta más bajo',
+      'item.marketLoading': 'Consultando precios en warframe.market…', 'item.marketOrders': 'ver órdenes',
+      'relic.loading': 'Cargando reliquia…', 'relic.notFound': 'Reliquia no especificada (ej.: /relic.html?n=Lith K12).',
+      'relic.loadFail': 'No se pudo cargar la reliquia: {e}', 'relic.relic': 'Reliquia',
+      'relic.vaultedMsg': 'Esta reliquia está vaulted: ya no dropea en misiones. Si ya tienes copias, aún puedes abrirlas en fisuras {t}. Para conseguir más: intercambio con jugadores o Prime Resurgence (Varzia). ',
+      'relic.vaultedLink': 'Cómo funciona →', 'relic.availMsg': 'Reliquia activa en las tablas de drop — se puede farmear ahora.',
+      'relic.rewards': 'Recompensas por refinamiento', 'relic.refinement': 'Refinamiento {r} ({c} Void Traces)',
+      'relic.whereDrops': 'Dónde dropea la reliquia', 'relic.fissActive': 'Fisuras {t} activas ahora',
+      'th.relic': 'Reliquia', 'th.rarity': 'Rareza', 'th.status': 'Estado',
+      'item.dropsAt': 'dropea en', 'item.fissNowShort': 'fisura(s) {t} ahora',
+      'ref.Intact': 'Intacta', 'ref.Exceptional': 'Excepcional', 'ref.Flawless': 'Impecable', 'ref.Radiant': 'Radiante',
+      'status.available': 'Disponible', 'status.vaulted': 'Vaulted',
+      'rar.Common': 'Común', 'rar.Uncommon': 'Poco común', 'rar.Rare': 'Raro', 'rar.Legendary': 'Legendario',
+      'sub.relic': 'Reliquia', 'sub.faq': 'FAQ · mecánicas del juego', 'sub.nightwave': 'Guía · Nightwave',
+      'sub.component': 'Componente', 'sub.gear': 'Equipo (Gear)', 'sub.quest': 'Misión',
+      'sub.arcane': 'Arcano', 'sub.mod': 'Mod', 'sub.resource': 'Recurso', 'sub.fish': 'Pez', 'sub.item': 'Objeto',
+      'kind.item': 'Objeto', 'kind.component': 'Componente', 'kind.relic': 'Reliquia', 'kind.faq': 'FAQ',
+      'kind.nightwave': 'Nightwave', 'kind.mod': 'Mod', 'kind.resource': 'Recurso', 'kind.gear': 'Equipo',
+      'kind.quest': 'Misión', 'kind.arcane': 'Arcano', 'kind.fish': 'Pez',
+      'tag.mrShort': 'MR {n}', 'tag.tradable': 'Intercambiable', 'tag.ducats': '{n} ducados',
+      'foot.disclaimer': 'Sitio no oficial hecho por un fan. Sin afiliación con Digital Extremes. Warframe y el logo de Warframe son marcas de Digital Extremes Ltd.',
+      'foot.data': 'Datos de objetos y drops:', 'foot.state': 'Estado del juego:', 'foot.prices': 'Precios:',
+      'foot.code': 'Código abierto:', 'foot.dropSrc': '(drop tables oficiales de DE)',
+      'e404.title': '404 — perdido en el Void', 'e404.lead': 'Esta página no existe (o acabó en un vault). Vuelve a la búsqueda e inténtalo de nuevo.',
+      'e404.home': 'Volver al inicio',
+      'cyc.aria': 'Ciclos de los mundos',
+      'cyc.cetus': 'Cetus', 'cyc.vallis': 'Vallis', 'cyc.cambion': 'Deimos',
+      'cyc.duviri': 'Duviri', 'cyc.zariman': 'Zariman', 'cyc.earth': 'Tierra',
+      'cyc.s.day': 'Día', 'cyc.s.night': 'Noche', 'cyc.s.warm': 'Cálido', 'cyc.s.cold': 'Frío',
+      'cyc.s.fass': 'Fass', 'cyc.s.vome': 'Vome', 'cyc.s.grineer': 'Grineer', 'cyc.s.corpus': 'Corpus',
+      'cyc.s.joy': 'Alegría', 'cyc.s.anger': 'Ira', 'cyc.s.envy': 'Envidia',
+      'cyc.s.sorrow': 'Tristeza', 'cyc.s.fear': 'Miedo',
+      'cyc.next': '{w}: {s} en {t}',
+    },
+    ru: {
+      'brand.sub': 'FARM HELPER',
+      'title.home': 'Warframe Farm Helper — где фармить что угодно',
+      'title.search': 'Поиск — Warframe Farm Helper',
+      'title.faq': 'ЧаВо — механики игры — Warframe Farm Helper',
+      'title.fissures': 'Разломы Бездны — что фармить сейчас — Warframe Farm Helper',
+      'title.nightwave': 'Nightwave — задания и гайды — Warframe Farm Helper',
+      'title.relic': 'Реликвия — Warframe Farm Helper',
+      'title.item': 'Предмет — Warframe Farm Helper',
+      'title.e404': '404 — Warframe Farm Helper',
+      'nav.search': 'Поиск', 'nav.fissures': 'Разломы', 'nav.nightwave': 'Nightwave', 'nav.faq': 'ЧаВо',
+      'search.placeholder': 'Предмет, реликвия, механика…',
+      'search.placeholderBig': 'Напр.: Braton Prime Stock, Nightfall Apothic, что делать с куброу…',
+      'search.button': 'Найти', 'search.aria': 'Искать предмет, реликвию или вопрос',
+      'lang.aria': 'Язык',
+      'home.h1a': 'Где', 'home.h1b': 'фармить', 'home.h1c': 'что угодно в Warframe',
+      'home.lead': 'Предмет, реликвия, механика или задание Nightwave — один поиск, с официальными данными дропа и текущим состоянием игры.',
+      'home.examples': 'Примеры поиска',
+      'home.searchHint': 'Используйте поиск вверху страницы. Начните с примера:',
+      'ex.bratonStock': 'Braton Prime Stock', 'ex.kubrow': 'Что делать с куброу?',
+      'ex.apothic': 'Nightfall Apothic', 'ex.crewship': 'Crewship + Носовая артиллерия',
+      'fissures.title': 'Разломы Бездны — сейчас', 'fissures.active': 'активно: {n}',
+      'fissures.normal': 'Обычные', 'fissures.hard': 'Steel Path', 'fissures.storm': 'Railjack',
+      'fissures.type': 'Тип разлома', 'fissures.loading': 'Запрашиваем состояние мира…',
+      'fissures.none': 'Разломов этого типа сейчас нет.',
+      'fissures.down': 'Состояние мира недоступно — попробуйте обновить.',
+      'farm.cta': 'Что можно фармить сейчас', 'farm.back': '← домой',
+      'farm.title': 'Что можно фармить сейчас', 'farm.count': 'праймов: {n}',
+      'farm.more': 'Ещё', 'farm.sortLabel': 'Сортировка:',
+      'farm.sortValue': 'Ценность', 'farm.sortDiff': 'Сложность',
+      'farm.lead': 'Прайм-оружие и варфреймы, чьи части лежат в доступных реликвиях тиров с активным разломом, отсортированы по рыночной цене (минимальная цена продажи сета, в платине). Фильтруйте по тиру реликвии, которая у вас есть.',
+      'farm.seeAll': 'Показать все + фильтр по тиру',
+      'farm.loading': 'Сопоставляем разломы и реликвии…', 'farm.all': 'Все',
+      'farm.none': 'В этом тире сейчас нет праймов.',
+      'farm.noTiers': 'Сейчас нет активных разломов прайм-реликвий (только Requiem/Omnia или пауза между ротациями).',
+      'farm.down': 'Не удалось загрузить — попробуйте обновить.',
+      'nw.weekTitle': 'Nightwave — задания недели', 'nw.loading': 'Загрузка заданий…',
+      'nw.allActs': 'Все задания + гайды', 'nw.none': 'Активных заданий сейчас нет (пауза между сезонами).',
+      'nw.down': 'Nightwave сейчас недоступен.',
+      'nw.daily': 'ежедневное', 'nw.weekly': 'еженедельное', 'nw.elite': 'элитное', 'nw.guide': 'Гайд',
+      'nw.howto': 'Как выполнить', 'nw.noguide': 'гайда пока нет',
+      'nw.dailyActs': 'Ежедневные задания', 'nw.weeklyActs': 'Еженедельные задания', 'nw.eliteActs': 'Элитные задания',
+      'nw.library': 'Библиотека гайдов', 'nw.libraryHint': 'повторяющиеся задания прошлых недель',
+      'nw.boardTitle': 'Nightwave — задания недели',
+      'nw.boardLead': 'Активные сейчас задания, каждое с гайдом по выполнению. ',
+      'nw.seasonEnds': 'Сезон закончится через {t}.',
+      'nw.backList': '← задания и гайды Nightwave', 'nw.standing': 'репутация: {n}',
+      'nw.seasonEndsPre': 'Сезон закончится через ',
+      'baro.title': "Baro Ki'Teer", 'baro.loading': 'Запрос…',
+      'baro.none': 'Данных о Void Trader сейчас нет.', 'baro.down': 'Void Trader сейчас недоступен.',
+      'baro.here': 'На релее {loc}, товаров: {n} · уйдёт через ', 'baro.coming': 'Прибудет через ',
+      'baro.comingTail': ' ({loc}). Копите дукаты!',
+      'faq.title': 'ЧаВо — механики игры', 'faq.all': 'Все вопросы',
+      'faq.lead': 'Вопросы, которые есть у каждого Тенно — коротко и по делу.',
+      'faq.back': '← все вопросы', 'faq.loading': 'Загрузка ЧаВо…',
+      'search.loading': 'Поиск…', 'search.prompt': 'Напишите, что хотите фармить или понять.',
+      'search.localResults': 'Локальные результаты', 'search.extResults': 'Внешние результаты',
+      'search.extHint': 'проверенные сайты сообщества', 'search.alsoWeb': 'Искать также в вебе',
+      'search.nLocal': 'локальных результатов для «{q}»: {n}', 'search.noLocal': 'Ничего локального для «{q}»',
+      'search.webCached': 'Результаты веб-поиска (из кэша) — внешние источники:',
+      'search.web': 'Результаты веб-поиска — внешние источники:',
+      'search.webNone': 'Веб-поиск ничего не вернул по этому запросу.',
+      'search.linksDefault': 'Ищите прямо на проверенных сайтах:',
+      'search.failed': 'Поиск не удался: {e}', 'search.external': 'внешний',
+      'item.loading': 'Загрузка предмета…', 'item.back': '← назад', 'item.notItem': 'Предмет не указан.',
+      'item.loadFail': 'Не удалось загрузить предмет: {e}',
+      'item.wiki': 'Страница вики', 'item.forge': 'Кузница (Foundry)',
+      'item.credits': 'Кредиты', 'item.time': 'Время', 'item.rush': 'Ускорить', 'item.platina': 'платина',
+      'item.mrMin': 'Мин. ранг мастерства', 'item.steps': 'Как получить — пошагово',
+      'item.usedIn': 'Используется для сборки', 'item.usedInHint': 'этот предмет — ингредиент для следующих',
+      'item.allVaulted': 'Сейчас нет доступных реликвий — все в хранилище.',
+      'item.showVaulted': 'Показать реликвии в хранилище: {n}',
+      'item.showMoreSources': 'Показать ещё источников: {n}',
+      'item.components': 'Компоненты', 'item.componentsHint': 'сначала доступные реликвии',
+      'item.otherSources': 'Другие источники', 'item.noSource': 'В официальных таблицах нет источника дропа (обычный ресурс, задание, магазин или клановые исследования — смотрите вики).',
+      'item.noSourcePre': 'В официальных таблицах нет источника дропа (ресурс, задание, магазин или клановые исследования). Смотрите ',
+      'item.noSourcePost': '.', 'item.wikiInline': 'страницу вики',
+      'item.fullSet': 'Полный сет',
+      'quest.title': 'Задание', 'quest.wikiCta': 'Требования и награды на вики',
+      'quest.requirements': 'Требования для начала', 'quest.rewards': 'Награды за прохождение',
+      'quest.prev': 'Предыдущее задание', 'quest.next': 'Следующее задание', 'quest.source': 'Источник:',
+      'quest.note': 'Это сюжетное задание (квест). Официальные таблицы не содержат его требований и наград в структурированном виде — синопсис выше, а полное прохождение, требования для начала и финальные награды есть на странице вики.',
+      'item.whereDrops': 'Откуда падает', 'item.fissNow': 'Активные разломы для фарма сейчас',
+      'item.fissHint': 'тиры доступных реликвий',
+      'item.market': 'Или купите у другого игрока', 'item.marketHint': 'warframe.market · минимальная цена продажи',
+      'item.marketLoading': 'Запрос цен на warframe.market…', 'item.marketOrders': 'смотреть заказы',
+      'relic.loading': 'Загрузка реликвии…', 'relic.notFound': 'Реликвия не указана (напр.: /relic.html?n=Lith K12).',
+      'relic.loadFail': 'Не удалось загрузить реликвию: {e}', 'relic.relic': 'Реликвия',
+      'relic.vaultedMsg': 'Эта реликвия в хранилище: больше не падает в миссиях. Если у вас есть копии, их всё ещё можно вскрывать в разломах {t}. Чтобы получить ещё: обмен с игроками или Prime Resurgence (Varzia). ',
+      'relic.vaultedLink': 'Как это работает →', 'relic.availMsg': 'Реликвия активна в таблицах дропа — можно фармить сейчас.',
+      'relic.rewards': 'Награды по уровню очистки', 'relic.refinement': 'Очистка {r} ({c} Void Traces)',
+      'relic.whereDrops': 'Откуда падает реликвия', 'relic.fissActive': 'Разломы {t} активны сейчас',
+      'th.relic': 'Реликвия', 'th.rarity': 'Редкость', 'th.status': 'Статус',
+      'item.dropsAt': 'падает в', 'item.fissNowShort': 'разломов {t}: сейчас',
+      'ref.Intact': 'Нетронутая', 'ref.Exceptional': 'Незаурядная', 'ref.Flawless': 'Безупречная', 'ref.Radiant': 'Сияющая',
+      'status.available': 'Доступна', 'status.vaulted': 'В хранилище',
+      'rar.Common': 'Обычный', 'rar.Uncommon': 'Необычный', 'rar.Rare': 'Редкий', 'rar.Legendary': 'Легендарный',
+      'sub.relic': 'Реликвия', 'sub.faq': 'ЧаВо · механики игры', 'sub.nightwave': 'Гайд · Nightwave',
+      'sub.component': 'Компонент', 'sub.gear': 'Снаряжение (Gear)', 'sub.quest': 'Задание',
+      'sub.arcane': 'Аркан', 'sub.mod': 'Мод', 'sub.resource': 'Ресурс', 'sub.fish': 'Рыба', 'sub.item': 'Предмет',
+      'kind.item': 'Предмет', 'kind.component': 'Компонент', 'kind.relic': 'Реликвия', 'kind.faq': 'ЧаВо',
+      'kind.nightwave': 'Nightwave', 'kind.mod': 'Мод', 'kind.resource': 'Ресурс', 'kind.gear': 'Снаряжение',
+      'kind.quest': 'Задание', 'kind.arcane': 'Аркан', 'kind.fish': 'Рыба',
+      'tag.mrShort': 'MR {n}', 'tag.tradable': 'Обмениваемый', 'tag.ducats': 'дукатов: {n}',
+      'foot.disclaimer': 'Неофициальный фан-сайт. Не связан с Digital Extremes. Warframe и логотип Warframe — товарные знаки Digital Extremes Ltd.',
+      'foot.data': 'Данные предметов и дропа:', 'foot.state': 'Состояние игры:', 'foot.prices': 'Цены:',
+      'foot.code': 'Открытый код:', 'foot.dropSrc': '(официальные drop tables от DE)',
+      'e404.title': '404 — потерялся в Бездне', 'e404.lead': 'Этой страницы нет (или она попала в хранилище). Вернитесь к поиску и попробуйте снова.',
+      'e404.home': 'На главную',
+      'cyc.aria': 'Циклы миров',
+      'cyc.cetus': 'Cetus', 'cyc.vallis': 'Vallis', 'cyc.cambion': 'Deimos',
+      'cyc.duviri': 'Duviri', 'cyc.zariman': 'Zariman', 'cyc.earth': 'Земля',
+      'cyc.s.day': 'День', 'cyc.s.night': 'Ночь', 'cyc.s.warm': 'Тепло', 'cyc.s.cold': 'Холод',
+      'cyc.s.fass': 'Fass', 'cyc.s.vome': 'Vome', 'cyc.s.grineer': 'Grineer', 'cyc.s.corpus': 'Corpus',
+      'cyc.s.joy': 'Радость', 'cyc.s.anger': 'Гнев', 'cyc.s.envy': 'Зависть',
+      'cyc.s.sorrow': 'Печаль', 'cyc.s.fear': 'Страх',
+      'cyc.next': '{w}: {s} через {t}',
+    },
   };
 
   const MISSIONS = {
-    Extermination: { pt: 'Extermínio', en: 'Extermination' }, Capture: { pt: 'Captura', en: 'Capture' },
-    Survival: { pt: 'Sobrevivência', en: 'Survival' }, Defense: { pt: 'Defesa', en: 'Defense' },
-    'Mobile Defense': { pt: 'Defesa Móvel', en: 'Mobile Defense' }, Rescue: { pt: 'Resgate', en: 'Rescue' },
-    Sabotage: { pt: 'Sabotagem', en: 'Sabotage' }, Spy: { pt: 'Espionagem', en: 'Spy' },
-    Interception: { pt: 'Interceptação', en: 'Interception' }, Excavation: { pt: 'Escavação', en: 'Excavation' },
-    Disruption: { pt: 'Disrupção', en: 'Disruption' }, Hijack: { pt: 'Sequestro de Carga', en: 'Hijack' },
-    Assault: { pt: 'Assalto', en: 'Assault' }, 'Free Roam': { pt: 'Mundo Aberto', en: 'Free Roam' },
-    Skirmish: { pt: 'Escaramuça', en: 'Skirmish' }, Volatile: { pt: 'Volátil', en: 'Volatile' },
-    Orphix: { pt: 'Orphix', en: 'Orphix' }, 'Void Cascade': { pt: 'Cascata do Void', en: 'Void Cascade' },
-    'Void Flood': { pt: 'Inundação do Void', en: 'Void Flood' },
-    'Void Armageddon': { pt: 'Armagedom do Void', en: 'Void Armageddon' },
-    Alchemy: { pt: 'Alquimia', en: 'Alchemy' }, Hive: { pt: 'Colmeia', en: 'Hive' },
-    Assassination: { pt: 'Assassinato', en: 'Assassination' }, Arena: { pt: 'Arena', en: 'Arena' },
-    Defection: { pt: 'Deserção', en: 'Defection' }, 'Infested Salvage': { pt: 'Recuperação Infestada', en: 'Infested Salvage' },
+    Extermination: { pt: 'Extermínio', en: 'Extermination', es: 'Exterminio', ru: 'Истребление' }, Capture: { pt: 'Captura', en: 'Capture', es: 'Captura', ru: 'Захват' },
+    Survival: { pt: 'Sobrevivência', en: 'Survival', es: 'Supervivencia', ru: 'Выживание' }, Defense: { pt: 'Defesa', en: 'Defense', es: 'Defensa', ru: 'Оборона' },
+    'Mobile Defense': { pt: 'Defesa Móvel', en: 'Mobile Defense', es: 'Defensa móvil', ru: 'Мобильная оборона' }, Rescue: { pt: 'Resgate', en: 'Rescue', es: 'Rescate', ru: 'Спасение' },
+    Sabotage: { pt: 'Sabotagem', en: 'Sabotage', es: 'Sabotaje', ru: 'Саботаж' }, Spy: { pt: 'Espionagem', en: 'Spy', es: 'Espionaje', ru: 'Шпионаж' },
+    Interception: { pt: 'Interceptação', en: 'Interception', es: 'Interceptación', ru: 'Перехват' }, Excavation: { pt: 'Escavação', en: 'Excavation', es: 'Excavación', ru: 'Раскопки' },
+    Disruption: { pt: 'Disrupção', en: 'Disruption', es: 'Disrupción', ru: 'Дизрапшн' }, Hijack: { pt: 'Sequestro de Carga', en: 'Hijack', es: 'Secuestro', ru: 'Захват груза' },
+    Assault: { pt: 'Assalto', en: 'Assault', es: 'Asalto', ru: 'Штурм' }, 'Free Roam': { pt: 'Mundo Aberto', en: 'Free Roam', es: 'Mundo abierto', ru: 'Свободный режим' },
+    Skirmish: { pt: 'Escaramuça', en: 'Skirmish', es: 'Escaramuza', ru: 'Стычка' }, Volatile: { pt: 'Volátil', en: 'Volatile', es: 'Volátil', ru: 'Нестабильность' },
+    Orphix: { pt: 'Orphix', en: 'Orphix', es: 'Orphix', ru: 'Orphix' }, 'Void Cascade': { pt: 'Cascata do Void', en: 'Void Cascade', es: 'Cascada del Void', ru: 'Каскад Бездны' },
+    'Void Flood': { pt: 'Inundação do Void', en: 'Void Flood', es: 'Inundación del Void', ru: 'Потоп Бездны' },
+    'Void Armageddon': { pt: 'Armagedom do Void', en: 'Void Armageddon', es: 'Armagedón del Void', ru: 'Армагеддон Бездны' },
+    Alchemy: { pt: 'Alquimia', en: 'Alchemy', es: 'Alquimia', ru: 'Алхимия' }, Hive: { pt: 'Colmeia', en: 'Hive', es: 'Colmena', ru: 'Улей' },
+    Assassination: { pt: 'Assassinato', en: 'Assassination', es: 'Asesinato', ru: 'Убийство' }, Arena: { pt: 'Arena', en: 'Arena', es: 'Arena', ru: 'Арена' },
+    Defection: { pt: 'Deserção', en: 'Defection', es: 'Deserción', ru: 'Дезертирство' }, 'Infested Salvage': { pt: 'Recuperação Infestada', en: 'Infested Salvage', es: 'Rescate infestado', ru: 'Заражённые обломки' },
   };
 
   const ENEMIES = {
-    Grineer: { pt: 'Grineer', en: 'Grineer' }, Corpus: { pt: 'Corpus', en: 'Corpus' },
-    Infested: { pt: 'Infestados', en: 'Infested' }, Corrupted: { pt: 'Corrompidos', en: 'Corrupted' },
-    Orokin: { pt: 'Orokin', en: 'Orokin' }, Sentient: { pt: 'Senciente', en: 'Sentient' },
-    'The Murmur': { pt: 'The Murmur', en: 'The Murmur' }, Narmer: { pt: 'Narmer', en: 'Narmer' },
-    Crossfire: { pt: 'Fogo Cruzado', en: 'Crossfire' },
+    Grineer: { pt: 'Grineer', en: 'Grineer', es: 'Grineer', ru: 'Гринир' }, Corpus: { pt: 'Corpus', en: 'Corpus', es: 'Corpus', ru: 'Корпус' },
+    Infested: { pt: 'Infestados', en: 'Infested', es: 'Infestados', ru: 'Заражённые' }, Corrupted: { pt: 'Corrompidos', en: 'Corrupted', es: 'Corruptos', ru: 'Порченые' },
+    Orokin: { pt: 'Orokin', en: 'Orokin', es: 'Orokin', ru: 'Орокин' }, Sentient: { pt: 'Senciente', en: 'Sentient', es: 'Sentiente', ru: 'Разумные' },
+    'The Murmur': { pt: 'The Murmur', en: 'The Murmur', es: 'The Murmur', ru: 'The Murmur' }, Narmer: { pt: 'Narmer', en: 'Narmer', es: 'Narmer', ru: 'Нармер' },
+    Crossfire: { pt: 'Fogo Cruzado', en: 'Crossfire', es: 'Fuego cruzado', ru: 'Перекрёстный огонь' },
   };
 
   function t(key, vars) {
-    let s = (STRINGS[current] && STRINGS[current][key]) || (STRINGS.pt && STRINGS.pt[key]) || key;
+    // fallback: idioma atual → inglês (padrão internacional) → a própria chave.
+    let s = (STRINGS[current] && STRINGS[current][key]) || (STRINGS.en && STRINGS.en[key]) || key;
     if (vars) for (const k of Object.keys(vars)) s = s.replaceAll(`{${k}}`, vars[k]);
     return s;
   }
   const lang = () => current;
+  const locale = () => NUM_LOCALE[current] || 'en-US';
   function setLang(l) {
     if (SUPPORTED.includes(l) && l !== current) {
       localStorage.setItem(LANG_KEY, l);
       location.reload();
     }
   }
+  // nomes de item: PT tem tradução (namePt) do WFCD; en/es/ru usam o nome
+  // canônico em inglês — que é como a comunidade Warframe (market/wiki/trade)
+  // se refere aos itens em qualquer idioma.
   const nameFor = (o) => (o ? (current === 'pt' ? (o.namePt || o.name) : o.name) : '');
-  const missionName = (m) => (MISSIONS[m] ? MISSIONS[m][current] : m);
-  const enemyName = (e) => (ENEMIES[e] ? ENEMIES[e][current] : e);
+  // missão/inimigo: idioma atual → inglês (se faltar tradução) → a chave crua.
+  const missionName = (m) => (MISSIONS[m] ? (MISSIONS[m][current] || MISSIONS[m].en) : m);
+  const enemyName = (e) => (ENEMIES[e] ? (ENEMIES[e][current] || ENEMIES[e].en) : e);
 
   function subLabel(r) {
     switch (r.kind) {
@@ -303,5 +578,5 @@ const I18n = (() => {
   }
 
   document.documentElement.lang = current;
-  return { t, lang, setLang, nameFor, missionName, enemyName, subLabel, applyStatic, SUPPORTED };
+  return { t, lang, locale, setLang, nameFor, missionName, enemyName, subLabel, applyStatic, SUPPORTED };
 })();
