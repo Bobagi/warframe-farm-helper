@@ -442,6 +442,7 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
   color: var(--text);
 }
 .suggest .sg:last-child { border-bottom: 0; }
+.suggest a.sg, .suggest a.sg:hover { text-decoration: none; color: var(--text); }
 .suggest .sg:hover, .suggest .sg.active { background: var(--void-700); }
 .suggest .sg img { width: 30px; height: 30px; object-fit: contain; flex: none; }
 .suggest .sg .sg-sub { color: var(--text-faint); font-size: 12px; margin-left: auto; text-align: right; }
@@ -626,6 +627,10 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
 .quest-list li { margin: 3px 0; }
 .quest-list li::marker { color: var(--orokin); }
 .quest-chain { margin: 6px 0 0; }
+.quest-rewards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.quest-reward { display: flex; align-items: center; gap: 10px; }
+.qr-img { width: 34px; height: 34px; object-fit: contain; flex: none; background: var(--void-750); border: 1px solid var(--line-soft); }
+.qr-noimg { background: var(--void-800); }
 
 /* link de recompensa na página de relíquia — piso de toque 24px */
 .rw-link { display: inline-block; padding: 4px 0; min-height: 24px; }

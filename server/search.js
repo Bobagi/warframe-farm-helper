@@ -69,8 +69,15 @@ function buildDocs() {
   // nomes que já são itens próprios (recursos: Morphics, Orokin Cell, plantas…)
   // — não devem virar "componente" de outro item na busca
   const itemNames = new Set(items.map((i) => i.name));
+  // o dataset do WFCD tem o MESMO item com uniqueNames diferentes (ex.: "Entrati
+  // Lanthorn" em EntratiLab e Zariman; mods/peixes repetidos) — mostra 1 só na
+  // busca, deduplicando por (tipo + nome). O 1º ganha (páginas idênticas).
+  const seenItemKey = new Set();
   for (const it of items) {
     const kind = CATEGORY_KIND[it.category] || 'item';
+    const dedupKey = `${kind}::${stripDiacritics(String(it.name).toLowerCase())}`;
+    if (seenItemKey.has(dedupKey)) continue;
+    seenItemKey.add(dedupKey);
     const url = `/item.html?u=${encodeURIComponent(it.unique_name)}`;
     push({
       id: `i:${it.unique_name}`, kind,

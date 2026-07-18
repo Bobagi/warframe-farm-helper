@@ -122,12 +122,18 @@ const App = (() => {
     const render = () => {
       suggestBox.replaceChildren();
       items.forEach((r, i) => {
-        const rowEl = el('div', { class: `sg${i === active ? ' active' : ''}`, role: 'option' }, [
+        // <a href> real → middle-click / ctrl-click / "abrir em nova guia"
+        // funcionam nativamente; o click esquerdo navega na mesma aba
+        const rowEl = el('a', { class: `sg${i === active ? ' active' : ''}`, role: 'option', href: r.url }, [
           r.image ? el('img', { src: r.image, alt: '', loading: 'lazy' }) : null,
           el('span', { text: I18n.nameFor(r) }),
           el('span', { class: 'sg-sub', text: I18n.subLabel(r) }),
         ]);
-        rowEl.addEventListener('mousedown', (ev) => { ev.preventDefault(); location.href = r.url; });
+        // só o clique ESQUERDO simples não deve tirar o foco do input antes de
+        // navegar; middle/ctrl/meta passam direto para o browser abrir nova aba
+        rowEl.addEventListener('mousedown', (ev) => {
+          if (ev.button === 0 && !ev.ctrlKey && !ev.metaKey && !ev.shiftKey) ev.preventDefault();
+        });
         suggestBox.append(rowEl);
       });
       suggestBox.hidden = items.length === 0;

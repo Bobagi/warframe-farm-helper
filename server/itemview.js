@@ -39,6 +39,26 @@ function rewardPt(reward, nameLookup) {
   return nameLookup(s) || s;
 }
 
+const REWARD_SUFFIX_RE = /\s+(Blueprint|Scene|Portrait|Glyph|Sigil|Emblem|Segment|Decoration|Noggle|Mod)$/i;
+
+/**
+ * Enriquece as recompensas de quest (string[]) em [{label, image}]: procura no
+ * dataset o item pelo nome (sem o sufixo tipo "Blueprint") para pegar a imagem;
+ * label = traduzido em PT, cru em EN. Cosméticos sem item ficam sem imagem.
+ */
+function enrichRewards(rewards, db, lang) {
+  const findItem = db.prepare('SELECT image_name, name_pt FROM items WHERE name = ? LIMIT 1');
+  const nameLookup = (nm) => { const r = findItem.get(nm); return r && r.name_pt ? r.name_pt : null; };
+  return rewards.map((rw) => {
+    const base = String(rw).replace(REWARD_SUFFIX_RE, '').trim();
+    const row = findItem.get(base) || findItem.get(String(rw).trim());
+    return {
+      label: lang === 'pt' ? rewardPt(rw, nameLookup) : String(rw),
+      image: row && row.image_name ? CDN_IMG + row.image_name : null,
+    };
+  });
+}
+
 const CDN_IMG = 'https://cdn.warframestat.us/img/';
 const WIKI_BASE = 'https://wiki.warframe.com/w/';
 
@@ -359,11 +379,11 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
       c.resourceDrops = trLoc(c.resourceDrops);
       for (const r of c.relics) r.relicDrops = trLoc(r.relicDrops);
     }
-    if (questInfo && questInfo.reward && questInfo.reward.length) {
-      const namePt = db.prepare('SELECT name_pt FROM items WHERE name = ? AND name_pt IS NOT NULL');
-      const lookup = (nm) => { const row2 = namePt.get(nm); return row2 ? row2.name_pt : null; };
-      questInfo = { ...questInfo, reward: questInfo.reward.map((r) => rewardPt(r, lookup)) };
-    }
+  }
+
+  // recompensas de quest: string[] → [{label, image}] (label traduzido em PT)
+  if (questInfo && questInfo.reward && questInfo.reward.length) {
+    questInfo = { ...questInfo, reward: enrichRewards(questInfo.reward, db, lang) };
   }
 
   return {
@@ -542,6 +562,6 @@ async function buildFarmable(fissuresArg, { prices = true } = {}) {
 }
 
 module.exports = {
-  buildItemDetail, buildRelicDetail, buildFarmable, activePrimeTiers, rewardPt,
+  buildItemDetail, buildRelicDetail, buildFarmable, activePrimeTiers, rewardPt, enrichRewards,
   classifyDrops, marketSlugFor, fmtBuildTime, fmtPct, rarityLabel, buildSteps, wikiUrlFor,
 };

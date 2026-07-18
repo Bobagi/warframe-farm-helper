@@ -160,7 +160,12 @@
         ]));
         if (qi.reward.length) body.push(el('div', { class: 'quest-block' }, [
           el('h3', { text: t('quest.rewards') }),
-          el('ul', { class: 'quest-list' }, qi.reward.map((r) => el('li', { text: r }))),
+          el('ul', { class: 'quest-rewards' }, qi.reward.map((r) => el('li', { class: 'quest-reward' }, [
+            r.image
+              ? el('img', { class: 'qr-img', src: r.image, alt: '', loading: 'lazy' })
+              : el('span', { class: 'qr-img qr-noimg', 'aria-hidden': 'true' }),
+            el('span', { text: r.label }),
+          ]))),
         ]));
         if (qi.previousQuest || qi.nextQuest) body.push(el('p', { class: 'quest-chain small muted' }, [
           qi.previousQuest ? `${t('quest.prev')}: ${qi.previousQuest}` : null,
