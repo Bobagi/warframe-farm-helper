@@ -1,0 +1,51 @@
+# Warframe Farm Helper
+
+> Buscador de farm unificado para Warframe, em português. Responde numa busca só o que
+> normalmente exige visitar três ou mais sites: onde dropa cada item, se a relíquia está
+> disponível ou vaulted, quais fissuras do Void estão ativas agora, um FAQ de mecânicas e
+> guias dos atos do Nightwave.
+
+Site não-oficial, feito por fã, sem afiliação com a Digital Extremes. Fontes de dados:
+drop tables oficiais da DE via WFCD (github.com/WFCD/warframe-items), estado do jogo em
+tempo real via warframestat.us, preços via warframe.market. Os dados de drop são
+reingeridos diariamente, então as chances e o status vaulted/disponível acompanham os
+updates do jogo.
+
+## Páginas principais
+
+- [Início](https://warframe.bobagi.space/): busca unificada, fissuras ativas agora, atos do Nightwave da semana e o que vale a pena farmar no momento
+- [Buscar](https://warframe.bobagi.space/buscar): busca fuzzy e sem acento por item, componente, relíquia, artigo de FAQ ou guia; tolera erro de digitação e PT/EN misturados
+- [Fissuras do Void](https://warframe.bobagi.space/fissuras): fissuras ativas (Normais, Steel Path, Railjack) com contagem regressiva
+- [FAQ](https://warframe.bobagi.space/faq): artigos de mecânica do jogo explicados em português (Helminth, slots, ducats, Forma, platina, vaulted e mais)
+- [Nightwave](https://warframe.bobagi.space/nightwave): atos ativos da semana cruzados com guias de como completar cada um, incluindo os difíceis (Artilharia Frontal em Crewship, enigmas do Duviri)
+
+## Estrutura de URL
+
+- Item: `https://warframe.bobagi.space/item/<slug>` — ex.: `/item/braton-prime`
+- Relíquia: `https://warframe.bobagi.space/relic/<slug>` — ex.: `/relic/lith-k12`
+- Artigo de FAQ: `https://warframe.bobagi.space/faq/<slug>`
+- Guia de Nightwave: `https://warframe.bobagi.space/nightwave/<slug>`
+- Índice completo de páginas: [sitemap.xml](https://warframe.bobagi.space/sitemap.xml) (mais de 4.000 URLs)
+
+## O que uma página de item responde
+
+- Quais relíquias dropam cada componente do item, marcando disponível × vaulted
+- Chance de cada recompensa por refinamento da relíquia (Intact até Radiant)
+- Locais de drop que não são relíquia, com as chances oficiais da drop table
+- Requisitos de forja: créditos, tempo, materiais e maestria
+- Passo a passo em linguagem simples de como conseguir o item do zero
+- "Usado para construir": índice reverso de quais outros itens consomem este como material
+
+Cobre armas, warframes, mods, recursos, arcanos, peixes, equipamentos e itens de quest —
+não só primes.
+
+## Idiomas
+
+Interface em português, inglês, espanhol e russo. Fora do português, os **nomes de item
+permanecem em inglês** de propósito: é como a wiki, o warframe.market e o chat de trade se
+referem a eles, então traduzir atrapalharia a busca. Os artigos de FAQ e os guias de
+Nightwave são escritos em português.
+
+## Código-fonte
+
+- [Repositório no GitHub (MIT)](https://github.com/Bobagi/warframe-farm-helper) — Node + Express + SQLite, roda em Docker, sem serviços pagos
