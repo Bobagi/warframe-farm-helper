@@ -12,10 +12,10 @@
   const { t, lang, setLang, applyStatic } = I18n;
 
   const NAV = [
-    { key: 'nav.search', href: '/buscar.html' },
-    { key: 'nav.fissures', href: '/fissuras.html' },
-    { key: 'nav.nightwave', href: '/nightwave.html' },
-    { key: 'nav.faq', href: '/faq.html' },
+    { key: 'nav.search', href: '/buscar' },
+    { key: 'nav.fissures', href: '/fissuras' },
+    { key: 'nav.nightwave', href: '/nightwave' },
+    { key: 'nav.faq', href: '/faq' },
   ];
 
   function buildHeader(mount) {
@@ -36,7 +36,7 @@
     form.addEventListener('submit', (ev) => {
       ev.preventDefault();
       const q = input.value.trim();
-      if (q) location.href = `/buscar.html?q=${encodeURIComponent(q)}`;
+      if (q) location.href = `/buscar?q=${encodeURIComponent(q)}`;
     });
 
     const nav = el('nav', { class: 'site-nav', 'aria-label': 'Principal' },

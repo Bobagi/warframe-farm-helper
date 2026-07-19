@@ -19,7 +19,7 @@
   form.addEventListener('submit', (ev) => {
     ev.preventDefault();
     const q = input.value.trim();
-    if (q) location.href = `/buscar.html?q=${encodeURIComponent(q)}`;
+    if (q) location.href = `/buscar?q=${encodeURIComponent(q)}`;
   });
 
   function renderWeb(web) {

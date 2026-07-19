@@ -55,4 +55,18 @@ const COMMON_RESOURCES = new Set([
   'Hexenon', 'Nano Spores', 'Ferrite',
 ]);
 
-module.exports = { fetchJson, sleep, nowSec, stripDiacritics, escapeHtml, USER_AGENT, COMMON_RESOURCES };
+/**
+ * Categoria do WFCD → "kind" usado na busca e na deduplicação de itens de
+ * mesmo nome (o dataset repete o MESMO item com uniqueNames diferentes).
+ * Compartilhado entre search.js (dedup do índice) e seo.js (canonical/sitemap)
+ * para os dois elegerem o MESMO vencedor.
+ */
+const CATEGORY_KIND = {
+  Mods: 'mod', Resources: 'resource', Fish: 'fish',
+  Gear: 'gear', Quests: 'quest', Arcanes: 'arcane',
+};
+
+module.exports = {
+  fetchJson, sleep, nowSec, stripDiacritics, escapeHtml, USER_AGENT,
+  COMMON_RESOURCES, CATEGORY_KIND,
+};

@@ -53,7 +53,7 @@
             relic.vaulted
               ? el('p', { class: 'desc' }, [
                 t('relic.vaultedMsg', { t: relic.tier }),
-                el('a', { href: '/faq.html?slug=24-primes-vaulted', text: t('relic.vaultedLink') }),
+                el('a', { href: '/faq/24-primes-vaulted', text: t('relic.vaultedLink') }),
               ])
               : el('p', { class: 'desc', text: t('relic.availMsg') }),
           ]),
@@ -96,7 +96,9 @@
     startTimers();
   }
 
-  const name = (qs('n') || '').trim();
+  // URL bonita (/relic/<slug>): o server injeta o nome real em data-relic-name;
+  // ?n= segue como fallback das URLs legadas
+  const name = (document.body.dataset.relicName || qs('n') || '').trim();
   if (!name) {
     root.replaceChildren(el('div', { class: 'error-box', text: t('relic.notFound') }));
   } else {

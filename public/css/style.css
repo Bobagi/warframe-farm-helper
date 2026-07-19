@@ -767,3 +767,55 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
   .console-wrap { animation: none; }
   * { transition: none !important; scroll-behavior: auto !important; }
 }
+
+/* ============================================================
+   Publicidade (A-ads — iframe puro, sem cookies/JS de terceiro)
+   Rails fixos nas calhas laterais no desktop largo; um bloco em
+   fluxo antes do rodapé no restante. Ver public/js/ads.js.
+   ============================================================ */
+.ad-rail { display: none; }
+
+@media (min-width: 1420px) {
+  .ad-rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 40;
+    width: 160px;
+  }
+  /* centro da calha = (100vw - 1060px)/4 da borda; -80px centraliza o rail */
+  .ad-rail.left { left: calc((100vw - 1060px) / 4 - 80px); }
+  .ad-rail.right { right: calc((100vw - 1060px) / 4 - 80px); }
+}
+
+.ad-mobile { display: none; }
+
+@media (max-width: 1419px) {
+  .ad-mobile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 24px 16px;
+    border-top: 1px solid var(--line-soft);
+  }
+}
+
+.ad-label {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  opacity: 0.7;
+}
+
+.ad-frame {
+  display: block;
+  max-width: 100%;
+  border: 0;
+  background: transparent;
+}

@@ -13,7 +13,7 @@
     body.innerHTML = art.html;
     root.replaceChildren(
       el('p', { class: 'small', style: 'margin:0 0 12px' }, [
-        el('a', { href: '/nightwave.html', text: t('nw.backList') }),
+        el('a', { href: '/nightwave', text: t('nw.backList') }),
       ]),
       el('article', { class: 'panel article' }, [
         el('h1', { text: art.title }),
@@ -31,7 +31,7 @@
       ]),
       a.reputation ? el('span', { class: 'rep num', text: t('nw.standing', { n: a.reputation.toLocaleString(I18n.locale()) }) }) : null,
       a.guide
-        ? el('a', { class: 'guide-btn', href: `/nightwave.html?slug=${encodeURIComponent(a.guide.slug)}`, text: t('nw.howto') })
+        ? el('a', { class: 'guide-btn', href: `/nightwave/${encodeURIComponent(a.guide.slug)}`, text: t('nw.howto') })
         : el('span', { class: 'kind-tag', text: t('nw.noguide') }),
     ]);
   }
@@ -71,7 +71,7 @@
     sections.push(el('section', { class: 'panel' }, [
       el('p', { class: 'eyebrow' }, [`${t('nw.library')} `, el('span', { class: 'hint', text: t('nw.libraryHint') })]),
       el('div', { class: 'card-grid' }, (data.guides || []).map((g) =>
-        el('a', { class: 'card', href: `/nightwave.html?slug=${encodeURIComponent(g.slug)}` }, [
+        el('a', { class: 'card', href: `/nightwave/${encodeURIComponent(g.slug)}` }, [
           el('span', { class: 't', text: g.title }),
         ]))),
     ]));
@@ -80,7 +80,8 @@
     startTimers();
   }
 
-  const slug = qs('slug');
+  // URL bonita (/nightwave/<slug>): slug injetado pelo server em data-art-slug
+  const slug = document.body.dataset.artSlug || qs('slug');
   (slug ? showGuide(slug) : showBoard()).catch((err) => {
     root.replaceChildren(el('div', { class: 'error-box', text: t('search.failed', { e: err.message }) }));
   });

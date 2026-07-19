@@ -12,10 +12,10 @@
     { k: 'ex.bratonStock', q: 'Braton Prime Stock' },
     { k: 'ex.kubrow', q: 'o que fazer com kubrow' },
     { k: 'ex.apothic', q: 'Apótico do Anoitecer' },
-    { k: 'ex.crewship', href: '/nightwave.html?slug=10-artilharia-frontal-crewship' },
+    { k: 'ex.crewship', href: '/nightwave/10-artilharia-frontal-crewship' },
   ];
   document.getElementById('example-chips').replaceChildren(...chips.map((c) =>
-    el('a', { href: c.href || `/buscar.html?q=${encodeURIComponent(c.q)}`, text: t(c.k) })));
+    el('a', { href: c.href || `/buscar?q=${encodeURIComponent(c.q)}`, text: t(c.k) })));
 
   // ---- fissuras ----
   let fissures = [];
@@ -78,7 +78,7 @@
         el('span', { class: 'sub', text: a.desc }),
       ]),
       a.guide
-        ? el('a', { class: 'guide-btn', href: `/nightwave.html?slug=${encodeURIComponent(a.guide.slug)}`, text: t('nw.guide') })
+        ? el('a', { class: 'guide-btn', href: `/nightwave/${encodeURIComponent(a.guide.slug)}`, text: t('nw.guide') })
         : el('span', { class: 'kind-tag', text: a.isDaily ? t('nw.daily') : a.isElite ? t('nw.elite') : t('nw.weekly') }),
     ])));
   }).catch(() => {
@@ -123,7 +123,7 @@
   const cards = document.getElementById('faq-cards');
   api('/api/faq').then((data) => {
     cards.replaceChildren(...(data.articles || []).slice(0, 6).map((a) =>
-      el('a', { class: 'card', href: `/faq.html?slug=${encodeURIComponent(a.slug)}` }, [
+      el('a', { class: 'card', href: `/faq/${encodeURIComponent(a.slug)}` }, [
         el('span', { class: 't', text: a.title }),
       ])));
   }).catch(() => { /* teaser opcional */ });

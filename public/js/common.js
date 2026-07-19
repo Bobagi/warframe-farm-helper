@@ -23,6 +23,9 @@ const App = (() => {
 
   const qs = (name) => new URLSearchParams(location.search).get(name);
 
+  /** URL bonita da relíquia ("Lith K12" → "/relic/lith-k12") — espelha o server */
+  const relicUrl = (name) => `/relic/${String(name).trim().toLowerCase().replace(/\s+/g, '-')}`;
+
   async function api(path, opts = {}) {
     const res = await fetch(path, { headers: { Accept: 'application/json' }, ...opts });
     if (!res.ok) {
@@ -170,19 +173,19 @@ const App = (() => {
     });
   }
 
-  /** marca o link ativo no menu */
+  /** marca o link ativo no menu (casa também subcaminhos: /faq/slug → /faq) */
   function navCurrent() {
-    const here = location.pathname.replace(/\/$/, '') || '/index.html';
+    const here = location.pathname.replace(/\/$/, '') || '/';
     for (const a of document.querySelectorAll('.site-nav a')) {
-      const target = new URL(a.href).pathname.replace(/\/$/, '') || '/index.html';
-      if (target === here || (target === '/index.html' && here === '')) {
+      const target = new URL(a.href).pathname.replace(/\/$/, '') || '/';
+      if (target === here || (target !== '/' && here.startsWith(`${target}/`))) {
         a.setAttribute('aria-current', 'page');
       }
     }
   }
 
   return {
-    el, qs, api, fmtInt, fmtPct, timeLeft, startTimers,
+    el, qs, relicUrl, api, fmtInt, fmtPct, timeLeft, startTimers,
     tierBadge, rarityChip, statusBadge, resultRow, farmCard, attachSearch, debounce, navCurrent,
   };
 })();

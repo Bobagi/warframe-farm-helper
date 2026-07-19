@@ -13,7 +13,7 @@
     body.innerHTML = art.html;
     root.replaceChildren(
       el('p', { class: 'small', style: 'margin:0 0 12px' }, [
-        el('a', { href: '/faq.html', text: t('faq.back') }),
+        el('a', { href: '/faq', text: t('faq.back') }),
       ]),
       el('article', { class: 'panel article' }, [
         el('h1', { text: art.title }),
@@ -31,14 +31,16 @@
       ]),
       el('section', { class: 'panel panel-quiet' }, [
         el('div', { class: 'card-grid' }, (data.articles || []).map((a) =>
-          el('a', { class: 'card', href: `/faq.html?slug=${encodeURIComponent(a.slug)}` }, [
+          el('a', { class: 'card', href: `/faq/${encodeURIComponent(a.slug)}` }, [
             el('span', { class: 't', text: a.title }),
           ]))),
       ])
     );
   }
 
-  const slug = qs('slug');
+  // URL bonita (/faq/<slug>): o server injeta o slug em data-art-slug;
+  // ?slug= segue como fallback das URLs legadas
+  const slug = document.body.dataset.artSlug || qs('slug');
   (slug ? showArticle(slug) : showList()).catch((err) => {
     root.replaceChildren(el('div', { class: 'error-box', text: t('search.failed', { e: err.message }) }));
   });

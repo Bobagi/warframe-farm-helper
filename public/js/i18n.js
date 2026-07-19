@@ -45,6 +45,7 @@ const I18n = (() => {
       'search.placeholderBig': 'Ex.: Braton Prime Stock, Apótico do Anoitecer, o que fazer com kubrow…',
       'search.button': 'Buscar', 'search.aria': 'Buscar item, relíquia ou dúvida',
       'lang.aria': 'Idioma',
+      'ads.label': 'Anúncio',
       'home.h1a': 'Onde', 'home.h1b': 'farmar', 'home.h1c': 'qualquer coisa em Warframe',
       'home.lead': 'Item, relíquia, mecânica ou ato do Nightwave — uma busca só, em português, com dados oficiais de drop e o estado do jogo agora.',
       'home.examples': 'Exemplos de busca',
@@ -116,7 +117,7 @@ const I18n = (() => {
       'item.fissHint': 'tiers das relíquias disponíveis',
       'item.market': 'Ou compre de outro jogador', 'item.marketHint': 'warframe.market · menor preço de venda',
       'item.marketLoading': 'Consultando preços no warframe.market…', 'item.marketOrders': 'ver ordens',
-      'relic.loading': 'Carregando relíquia…', 'relic.notFound': 'Relíquia não especificada (ex.: /relic.html?n=Lith K12).',
+      'relic.loading': 'Carregando relíquia…', 'relic.notFound': 'Relíquia não especificada (ex.: /relic/lith-k12).',
       'relic.loadFail': 'Não deu para carregar a relíquia: {e}', 'relic.relic': 'Relíquia',
       'relic.vaultedMsg': 'Esta relíquia está vaulted: não dropa mais em missões. Se você já tem cópias, ainda pode abri-las em fissuras {t}. Para conseguir de novo: troca com jogadores ou Prime Resurgence (Varzia). ',
       'relic.vaultedLink': 'Como funciona →', 'relic.availMsg': 'Relíquia ativa nas tabelas de drop — dá para farmar agora.',
@@ -163,6 +164,7 @@ const I18n = (() => {
       'search.placeholderBig': 'e.g. Braton Prime Stock, Nightfall Apothic, what to do with a kubrow…',
       'search.button': 'Search', 'search.aria': 'Search item, relic or question',
       'lang.aria': 'Language',
+      'ads.label': 'Ad',
       'home.h1a': 'Where to', 'home.h1b': 'farm', 'home.h1c': 'anything in Warframe',
       'home.lead': 'Item, relic, mechanic or Nightwave act — one search, with official drop data and the live game state.',
       'home.examples': 'Search examples',
@@ -234,7 +236,7 @@ const I18n = (() => {
       'item.fissHint': 'tiers of the available relics',
       'item.market': 'Or buy from another player', 'item.marketHint': 'warframe.market · lowest sell price',
       'item.marketLoading': 'Querying prices on warframe.market…', 'item.marketOrders': 'view orders',
-      'relic.loading': 'Loading relic…', 'relic.notFound': 'No relic specified (e.g. /relic.html?n=Lith K12).',
+      'relic.loading': 'Loading relic…', 'relic.notFound': 'No relic specified (e.g. /relic/lith-k12).',
       'relic.loadFail': "Couldn't load the relic: {e}", 'relic.relic': 'Relic',
       'relic.vaultedMsg': 'This relic is vaulted: it no longer drops in missions. If you already have copies, you can still crack them in {t} fissures. To get more: trade with players or Prime Resurgence (Varzia). ',
       'relic.vaultedLink': 'How it works →', 'relic.availMsg': 'Relic active in the drop tables — farmable now.',
@@ -281,6 +283,7 @@ const I18n = (() => {
       'search.placeholderBig': 'Ej.: Braton Prime Stock, Nightfall Apothic, qué hacer con un kubrow…',
       'search.button': 'Buscar', 'search.aria': 'Buscar objeto, reliquia o duda',
       'lang.aria': 'Idioma',
+      'ads.label': 'Anuncio',
       'home.h1a': 'Dónde', 'home.h1b': 'farmear', 'home.h1c': 'cualquier cosa en Warframe',
       'home.lead': 'Objeto, reliquia, mecánica o acto de Nightwave — una sola búsqueda, con datos oficiales de drop y el estado del juego ahora.',
       'home.examples': 'Ejemplos de búsqueda',
@@ -352,7 +355,7 @@ const I18n = (() => {
       'item.fissHint': 'tiers de las reliquias disponibles',
       'item.market': 'O cómpralo a otro jugador', 'item.marketHint': 'warframe.market · precio de venta más bajo',
       'item.marketLoading': 'Consultando precios en warframe.market…', 'item.marketOrders': 'ver órdenes',
-      'relic.loading': 'Cargando reliquia…', 'relic.notFound': 'Reliquia no especificada (ej.: /relic.html?n=Lith K12).',
+      'relic.loading': 'Cargando reliquia…', 'relic.notFound': 'Reliquia no especificada (ej.: /relic/lith-k12).',
       'relic.loadFail': 'No se pudo cargar la reliquia: {e}', 'relic.relic': 'Reliquia',
       'relic.vaultedMsg': 'Esta reliquia está vaulted: ya no dropea en misiones. Si ya tienes copias, aún puedes abrirlas en fisuras {t}. Para conseguir más: intercambio con jugadores o Prime Resurgence (Varzia). ',
       'relic.vaultedLink': 'Cómo funciona →', 'relic.availMsg': 'Reliquia activa en las tablas de drop — se puede farmear ahora.',
@@ -399,6 +402,7 @@ const I18n = (() => {
       'search.placeholderBig': 'Напр.: Braton Prime Stock, Nightfall Apothic, что делать с куброу…',
       'search.button': 'Найти', 'search.aria': 'Искать предмет, реликвию или вопрос',
       'lang.aria': 'Язык',
+      'ads.label': 'Реклама',
       'home.h1a': 'Где', 'home.h1b': 'фармить', 'home.h1c': 'что угодно в Warframe',
       'home.lead': 'Предмет, реликвия, механика или задание Nightwave — один поиск, с официальными данными дропа и текущим состоянием игры.',
       'home.examples': 'Примеры поиска',
@@ -470,7 +474,7 @@ const I18n = (() => {
       'item.fissHint': 'тиры доступных реликвий',
       'item.market': 'Или купите у другого игрока', 'item.marketHint': 'warframe.market · минимальная цена продажи',
       'item.marketLoading': 'Запрос цен на warframe.market…', 'item.marketOrders': 'смотреть заказы',
-      'relic.loading': 'Загрузка реликвии…', 'relic.notFound': 'Реликвия не указана (напр.: /relic.html?n=Lith K12).',
+      'relic.loading': 'Загрузка реликвии…', 'relic.notFound': 'Реликвия не указана (напр.: /relic/lith-k12).',
       'relic.loadFail': 'Не удалось загрузить реликвию: {e}', 'relic.relic': 'Реликвия',
       'relic.vaultedMsg': 'Эта реликвия в хранилище: больше не падает в миссиях. Если у вас есть копии, их всё ещё можно вскрывать в разломах {t}. Чтобы получить ещё: обмен с игроками или Prime Resurgence (Varzia). ',
       'relic.vaultedLink': 'Как это работает →', 'relic.availMsg': 'Реликвия активна в таблицах дропа — можно фармить сейчас.',
@@ -569,6 +573,9 @@ const I18n = (() => {
 
   /** Preenche elementos estáticos: [data-i18n]=textContent, [data-i18n-ph]=placeholder. */
   function applyStatic(root) {
+    // reflete o idioma ativo no <html lang> (o estático é pt-BR; o cliente troca)
+    const HTML_LANG = { pt: 'pt-BR', en: 'en', es: 'es', ru: 'ru' };
+    document.documentElement.lang = HTML_LANG[current] || 'pt-BR';
     for (const el of (root || document).querySelectorAll('[data-i18n]')) {
       el.textContent = t(el.getAttribute('data-i18n'));
     }

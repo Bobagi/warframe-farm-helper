@@ -7,8 +7,9 @@
  */
 
 const MiniSearch = require('minisearch');
-const { stripDiacritics, COMMON_RESOURCES } = require('./util');
+const { stripDiacritics, COMMON_RESOURCES, CATEGORY_KIND } = require('./util');
 const { getDb, getMeta } = require('./db');
+const seo = require('./seo');
 
 const CDN_IMG = 'https://cdn.warframestat.us/img/';
 
@@ -16,11 +17,6 @@ const KIND_BOOST = {
   item: 1.25, component: 1.2, relic: 1.1,
   faq: 1.4, nightwave: 1.3, mod: 1.0, resource: 1.15,
   gear: 1.2, quest: 1.25, arcane: 1.15, fish: 1.05,
-};
-
-const CATEGORY_KIND = {
-  Mods: 'mod', Resources: 'resource', Fish: 'fish',
-  Gear: 'gear', Quests: 'quest', Arcanes: 'arcane',
 };
 // só itens com componentes/drops geram sub-documentos de componente
 const HAS_COMPONENTS = new Set(['item', 'gear']);
@@ -63,8 +59,9 @@ function buildDocs() {
     docs.push(doc);
   };
 
+  // ordem estável = mesmo "vencedor" do dedup que o seo.js elege como canônico
   const items = db.prepare(
-    'SELECT unique_name, name, name_pt, category, type, image_name, raw FROM items'
+    'SELECT unique_name, name, name_pt, category, type, image_name, raw FROM items ORDER BY name, unique_name'
   ).all();
   // nomes que já são itens próprios (recursos: Morphics, Orokin Cell, plantas…)
   // — não devem virar "componente" de outro item na busca
@@ -78,7 +75,7 @@ function buildDocs() {
     const dedupKey = `${kind}::${stripDiacritics(String(it.name).toLowerCase())}`;
     if (seenItemKey.has(dedupKey)) continue;
     seenItemKey.add(dedupKey);
-    const url = `/item.html?u=${encodeURIComponent(it.unique_name)}`;
+    const url = seo.itemUrl(it.unique_name);
     push({
       id: `i:${it.unique_name}`, kind,
       name: it.name, namePt: it.name_pt || '', alt: it.name_pt || '',
@@ -114,7 +111,7 @@ function buildDocs() {
       name: `${r.name} Relic`, namePt: `Relíquia ${r.name}`, alt: `Relíquia ${r.name}`,
       sub: r.vaulted ? 'vaulted' : 'available',
       image: null,
-      url: `/relic.html?n=${encodeURIComponent(r.name)}`,
+      url: seo.relicUrl(r.name),
     });
   }
 
@@ -126,9 +123,7 @@ function buildDocs() {
       name: a.title, namePt: a.title, alt: a.keywords || '',
       sub: a.kind === 'faq' ? 'faq' : 'nightwave',
       image: null,
-      url: a.kind === 'faq'
-        ? `/faq.html?slug=${encodeURIComponent(a.slug)}`
-        : `/nightwave.html?slug=${encodeURIComponent(a.slug)}`,
+      url: seo.articleUrl(a.kind, a.slug),
     });
   }
 
@@ -136,6 +131,7 @@ function buildDocs() {
 }
 
 function buildIndex() {
+  seo.rebuild(); // os slugs precisam existir ANTES de buildDocs gerar as URLs
   const docs = buildDocs();
   const ms = new MiniSearch({
     fields: ['name', 'alt'],

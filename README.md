@@ -48,6 +48,12 @@ os chatos: destruir Crewship com Artilharia Frontal, enigmas do Duviri, etc.).
 - **Recursos e quests** — recurso de craft sem tabela no dataset (ex.: Orokin Cell) mostra "onde dropa"
   buscado na API de drops do warframestat.us (+ link da wiki). Quests mostram sinopse + link da wiki (o
   dataset oficial não traz requisitos/recompensas estruturados de quest).
+- **SEO** — cada item/relíquia/artigo tem uma **URL limpa e estável** (`/item/braton-prime`,
+  `/relic/lith-k12`, `/faq/<slug>`, `/nightwave/<slug>`) com `<title>`, meta description, canonical,
+  Open Graph/Twitter e JSON-LD **renderizados no servidor** (crawler sem JS já lê o conteúdo essencial —
+  h1, drops, recompensas, artigo inteiro); a home tem `WebSite`+`SearchAction` e o FAQ um `FAQPage`.
+  `sitemap.xml` é gerado dinâmico (só a página canônica de cada item; gêmeos ficam de fora) e apontado no
+  `robots.txt`. As URLs `.html?u=/…` antigas dão **301** para as novas. Detalhe em `server/seo.js`.
 - **Preços** (opcional) — menor preço de venda no warframe.market na página do item.
 
 ## Stack
@@ -57,12 +63,17 @@ Node 22 + Express 5, **SQLite** (better-sqlite3), busca **MiniSearch** em memór
 público com HTTPS. Sem serviços pagos.
 
 ```
-server/        ingest.js (WFCD→SQLite) · search · worldstate · nightwave · itemview · websearch · market · routes/api.js
+server/        ingest.js (WFCD→SQLite) · search · seo (URLs limpas/meta SSR/sitemap) · worldstate · nightwave · itemview · websearch · market · routes/api.js
 content/       faq/*.md  nightwave/*.md   (fonte dos artigos; frontmatter + markdown)
-public/        *.html + js/ (uma pág. por rota) + css/ + fontes Exo 2 self-hosted
-test/          node --test (ingestão, busca, quota CSE, sanitização)
+public/        *.html + js/ (uma pág. por rota, + ads.js) + css/ + og-banner.png + fontes Exo 2 self-hosted
+test/          node --test (ingestão, busca, quota CSE, sanitização, SEO/slug/escape)
 data/          SQLite + WAL (git-ignored, recriado pela ingestão)
 ```
+
+**Anúncios:** rails A-ads (iframe isolado, mesma rede/units do Coin Hub) nas calhas laterais em telas
+largas (≥1420px) + um bloco em fluxo no mobile — `public/js/ads.js`. A-ads é cookieless (sem banner de
+consentimento); o `<iframe>` roda o código do anunciante na origem DELES, então a CSP mantém
+`script-src 'self'` e só abre `frame-src acceptable.a-ads.com`.
 
 ## Rodar localmente
 

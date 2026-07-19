@@ -13,6 +13,7 @@ const { getQuestInfo } = require('./questwiki');
 const { getTopOrders } = require('./market');
 const { placePt } = require('../public/js/places');
 const { COMMON_RESOURCES } = require('./util');
+const { itemUrl } = require('./seo');
 
 // sufixo EN de cosmético/coisa → rótulo PT (mostrado ANTES do nome, com ":")
 const REWARD_SUFFIX = {
@@ -371,7 +372,7 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
     image: u.imageName ? CDN_IMG + u.imageName : null,
     itemCount: u.itemCount,
     vaulted: u.vaulted === 1 ? true : u.vaulted === 0 ? false : null,
-    url: `/item.html?u=${encodeURIComponent(u.uniqueName)}`,
+    url: itemUrl(u.uniqueName),
   }));
 
   let itemSources = classifyDrops(raw.drops);
@@ -486,7 +487,7 @@ function buildRelicDetail(name) {
       const cleanName = String(rw.name).replace(/ Blueprint$/, '');
       const parent = findExact.get(cleanName) || findParent.get(cleanName) || findParent.get(rw.name);
       rw.rarityPt = RARITY_PT[rw.rarity] || rw.rarity;
-      if (parent) rw.parentUrl = `/item.html?u=${encodeURIComponent(parent.unique_name)}`;
+      if (parent) rw.parentUrl = itemUrl(parent.unique_name);
     }
   }
   return {
@@ -588,7 +589,7 @@ async function buildFarmable(fissuresArg, { prices = true } = {}) {
         e = {
           uniqueName: p.unique_name, name: p.name, namePt: p.name_pt, category: p.category,
           image: p.image_name ? CDN_IMG + p.image_name : null,
-          url: `/item.html?u=${encodeURIComponent(p.unique_name)}`,
+          url: itemUrl(p.unique_name),
           tiers: new Set(),
         };
         bySet.set(p.unique_name, e);

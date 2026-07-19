@@ -22,7 +22,7 @@
     for (const r of comp.relics) {
       tbody.append(el('tr', { class: r.vaulted ? 'is-vaulted' : '' }, [
         el('td', {}, [
-          el('a', { href: `/relic.html?n=${encodeURIComponent(r.relic)}` }, [tierBadge(r.tier), ` ${r.relic}`]),
+          el('a', { href: App.relicUrl(r.relic) }, [tierBadge(r.tier), ` ${r.relic}`]),
           r.vaulted === false && r.relicDrops[0]
             ? el('div', { class: 'dim small', text: `${t('item.dropsAt')}: ${r.relicDrops[0].location} (${fmtPct(r.relicDrops[0].chance)})` })
             : null,
@@ -121,7 +121,7 @@
 
     frag.push(el('p', { class: 'small', style: 'margin:0 0 12px' }, [
       el('a', {
-        href: '/buscar.html', text: t('item.back'),
+        href: '/buscar', text: t('item.back'),
         onclick: (ev) => { if (history.length > 1) { ev.preventDefault(); history.back(); } },
       }),
     ]));
@@ -305,7 +305,9 @@
     }
   }
 
-  const u = qs('u');
+  // URL bonita (/item/<slug>): o server injeta o uniqueName em data-item-u;
+  // ?u= segue como fallback das URLs legadas
+  const u = document.body.dataset.itemU || qs('u');
   if (!u) {
     root.replaceChildren(el('div', { class: 'error-box', text: t('item.notItem') }));
   } else {

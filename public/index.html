@@ -5,6 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title data-i18n="title.home">Warframe Farm Helper — onde farmar qualquer coisa</title>
   <meta name="description" content="Buscador de farm para Warframe: onde dropa cada item, relíquias disponíveis ou vaulted, fissuras do Void ativas agora, FAQ de mecânicas e guias dos atos do Nightwave. PT-BR e inglês.">
+  <meta name="theme-color" content="#0b0e17">
+  <link rel="preload" href="/fonts/exo2-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="canonical" href="https://warframe.bobagi.space/">
+  <meta property="og:url" content="https://warframe.bobagi.space/">
+  <meta property="og:title" content="Warframe Farm Helper — onde farmar qualquer coisa">
+  <meta property="og:description" content="Buscador de farm para Warframe: onde dropa cada item, relíquias disponíveis ou vaulted, fissuras do Void ativas agora, FAQ de mecânicas e guias dos atos do Nightwave. PT-BR e inglês.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Warframe Farm Helper">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:image" content="https://warframe.bobagi.space/og-banner.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Warframe Farm Helper — onde farmar qualquer coisa">
+  <meta name="twitter:description" content="Buscador de farm para Warframe: onde dropa cada item, relíquias disponíveis ou vaulted, fissuras do Void ativas agora, FAQ de mecânicas e guias dos atos do Nightwave. PT-BR e inglês.">
+  <meta name="twitter:image" content="https://warframe.bobagi.space/og-banner.png">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Warframe Farm Helper","alternateName":"Onde farmar em Warframe","url":"https://warframe.bobagi.space/","inLanguage":"pt-BR","potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://warframe.bobagi.space/buscar?q={search_term_string}"},"query-input":"required name=search_term_string"}}</script>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/css/style.css">
 </head>
@@ -23,7 +38,7 @@
       <details class="panel" id="farm-home" open>
         <summary class="panel-summary">
           <span class="eyebrow"><span data-i18n="farm.title">O que dá pra farmar agora</span> <span class="hint" id="farm-home-hint"></span></span>
-          <a class="btn-line btn-mini" href="/fissuras.html" data-i18n="farm.more">Ver mais</a>
+          <a class="btn-line btn-mini" href="/fissuras" data-i18n="farm.more">Ver mais</a>
         </summary>
         <div class="panel-body">
           <div class="card-grid" id="farm-home-grid"></div>
@@ -48,7 +63,7 @@
             <summary class="panel-summary"><span class="eyebrow" data-i18n="nw.weekTitle">Nightwave — atos da semana</span></summary>
             <div class="panel-body">
               <ul class="rowlist" id="nw-list"></ul>
-              <p class="panel-cta"><a class="btn-line" href="/nightwave.html" data-i18n="nw.allActs">Todos os atos + guias</a></p>
+              <p class="panel-cta"><a class="btn-line" href="/nightwave" data-i18n="nw.allActs">Todos os atos + guias</a></p>
             </div>
           </details>
 
@@ -62,7 +77,7 @@
       <section class="panel" aria-labelledby="faq-title">
         <p class="eyebrow" id="faq-title" data-i18n="faq.title">FAQ — mecânicas do jogo</p>
         <div class="card-grid" id="faq-cards"></div>
-        <p class="panel-cta"><a class="btn-line" href="/faq.html" data-i18n="faq.all">Ver todas as perguntas</a></p>
+        <p class="panel-cta"><a class="btn-line" href="/faq" data-i18n="faq.all">Ver todas as perguntas</a></p>
       </section>
     </div>
   </main>
@@ -76,5 +91,6 @@
   <script src="/js/layout.js"></script>
   <script src="/js/cycles.js"></script>
   <script src="/js/home.js"></script>
+  <script src="/js/ads.js"></script>
 </body>
 </html>
