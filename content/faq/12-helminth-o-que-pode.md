@@ -4,7 +4,7 @@ keywords: helminth, subsumir, o que pode subsumir, armas helminth, companion hel
 order: 12
 ---
 
-Não. O Helminth **só subsume warframes** — e apenas a **versão base** de cada um (nada de Prime/Umbra).
+Não. O Helminth **só subsume warframes** - e apenas a **versão base** de cada um (nada de Prime/Umbra).
 
 ## O que o Helminth faz
 
@@ -14,9 +14,9 @@ Não. O Helminth **só subsume warframes** — e apenas a **versão base** de ca
 
 ## O que NÃO entra no Helminth
 
-- **Armas** — nunca. Arma encostada = vender por créditos ou guardar (veja o artigo sobre armas).
-- **Companions** (sentinelas, Kubrows, Kavats, Moas, Hounds) — também não. Pets têm os próprios destinos (veja o artigo sobre Kubrow/Kavat).
+- **Armas** - nunca. Arma encostada = vender por créditos ou guardar (veja o artigo sobre armas).
+- **Companions** (sentinelas, Kubrows, Kavats, Moas, Hounds) - também não. Pets têm os próprios destinos (veja o artigo sobre Kubrow/Kavat).
 
 ## Custos
 
-Cada injeção de habilidade consome os "apetites" do Helminth (recursos convertidos em secreções: biotics, calx, oxides...). Alimente-o com recursos que você tem sobrando — ele muda o apetite com o tempo, então varie o cardápio.
+Cada injeção de habilidade consome os "apetites" do Helminth (recursos convertidos em secreções: biotics, calx, oxides...). Alimente-o com recursos que você tem sobrando - ele muda o apetite com o tempo, então varie o cardápio.

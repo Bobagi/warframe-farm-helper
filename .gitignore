@@ -2,7 +2,7 @@
 node_modules/
 npm-debug.log*
 
-# dados locais (SQLite + caches) — recriados pela ingestão
+# dados locais (SQLite + caches) - recriados pela ingestão
 data/
 
 # segredos

@@ -1,7 +1,7 @@
 {
   "name": "warframe-farm-helper",
   "version": "1.0.0",
-  "description": "Buscador de farm unificado para Warframe em PT-BR — drops, relíquias vaulted/disponíveis, fissuras ativas, FAQ de mecânicas e guias de Nightwave.",
+  "description": "Buscador de farm unificado para Warframe em PT-BR - drops, relíquias vaulted/disponíveis, fissuras ativas, FAQ de mecânicas e guias de Nightwave.",
   "license": "MIT",
   "private": true,
   "repository": "github:Bobagi/warframe-farm-helper",

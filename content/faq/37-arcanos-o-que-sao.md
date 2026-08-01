@@ -1,5 +1,5 @@
 ---
-title: Arcanes — o que são e onde conseguir?
+title: Arcanes · o que são e onde conseguir?
 keywords: arcane, arcano, energize, eidolon, aprimoramento
 order: 37
 ---
@@ -8,7 +8,7 @@ order: 37
 
 ## Como funcionam
 
-Cada arcane sobe até o **rank 5** — e o custo é agressivo: 21 cópias para o rank máximo. Arcanes se ativam por condição ("ao receber dano...", "ao acertar headshot...").
+Cada arcane sobe até o **rank 5** - e o custo é agressivo: 21 cópias para o rank máximo. Arcanes se ativam por condição ("ao receber dano...", "ao acertar headshot...").
 
 ## Onde conseguir (as fontes principais)
 
@@ -20,4 +20,4 @@ Cada arcane sobe até o **rank 5** — e o custo é agressivo: 21 cópias para o
 
 ## Valem a pena?
 
-Sim — **Arcane Energize** e os arcanes de arma mudam builds inteiras. E são **trocáveis**: rank 0 repetido é moeda de troca; Energize max vale centenas de platina. Começando: pegue os baratos de vendor (Zariman/Duviri) primeiro.
+Sim - **Arcane Energize** e os arcanes de arma mudam builds inteiras. E são **trocáveis**: rank 0 repetido é moeda de troca; Energize max vale centenas de platina. Começando: pegue os baratos de vendor (Zariman/Duviri) primeiro.

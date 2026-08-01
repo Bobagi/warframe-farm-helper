@@ -17,11 +17,11 @@ order: 34
 1. Leia os **modificadores** de cada missão (escudos aumentados, radiação ambiente, só arma secundária...). Eles mudam a build ideal.
 2. Leve um frame de sobrevivência (Rhino/Nezha/Wisp) e uma arma forte no elemento certo contra a facção.
 3. Modificadores chatos e como reagir:
-   - **Radiation hazard**: cuidado com fogo amigo — espalhe o grupo.
+   - **Radiation hazard**: cuidado com fogo amigo - espalhe o grupo.
    - **Energy reduction**: leve tanque de vida, não de habilidade.
    - **Eximus stronghold**: dano alto, matar Energy Leech primeiro.
    - **Assassination final**: alguns bosses pedem mecânica (Lephantis: mirar nas bocas).
-4. Jogue em público — a maioria dos grupos carrega qualquer missão.
+4. Jogue em público - a maioria dos grupos carrega qualquer missão.
 
 ## Recompensa
 

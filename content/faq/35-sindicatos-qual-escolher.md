@@ -1,5 +1,5 @@
 ---
-title: Sindicatos — qual escolher e como não se enrolar?
+title: Sindicatos · qual escolher e como não se enrolar?
 keywords: sindicato, syndicate, standing, steel meridian, red veil, augment
 order: 35
 ---
@@ -12,11 +12,11 @@ Os 6 sindicatos principais (Steel Meridian, Arbiters of Hexis, Cephalon Suda, Pe
 - **Arbiters of Hexis ↔ Cephalon Suda**
 - **New Loka ↔ Perrin Sequence**
 
-Subir standing num sindicato dá metade de standing no aliado — e derruba os rivais. Na prática, a maioria dos jogadores estaciona em **um par aliado** (+ tolera o resto negativo) ou faz malabarismo com sigilos para manter 3-4 acessíveis.
+Subir standing num sindicato dá metade de standing no aliado - e derruba os rivais. Na prática, a maioria dos jogadores estaciona em **um par aliado** (+ tolera o resto negativo) ou faz malabarismo com sigilos para manter 3-4 acessíveis.
 
 ## Como escolher
 
-Escolha pelos **augments dos frames que você joga** e pelas armas exclusivas — confira as ofertas de cada um na wiki antes de vestir o sigilo. Não existe escolha errada permanente: dá para reverter depois (com sacrifícios de recursos e paciência).
+Escolha pelos **augments dos frames que você joga** e pelas armas exclusivas - confira as ofertas de cada um na wiki antes de vestir o sigilo. Não existe escolha errada permanente: dá para reverter depois (com sacrifícios de recursos e paciência).
 
 ## Como o standing sobe
 

@@ -1,5 +1,5 @@
 ---
-title: Steel Path — o que é e quando encarar?
+title: Steel Path · o que é e quando encarar?
 keywords: steel path, caminho de aco, steel essence, dificuldade
 order: 36
 ---
@@ -13,9 +13,9 @@ Completar **todos os nodos** do mapa estelar normal. O Teshin (relay) libera o a
 ## Por que ir
 
 - **Steel Essence** (dropa de Eximus e Acolytes): troca com o Teshin por **Umbra Forma, Kuva, Rivens** e outros itens raros.
-- **Incursões diárias** (5 missões SP): 5 Steel Essence cada — a rotina diária de quem já está lá.
+- **Incursões diárias** (5 missões SP): 5 Steel Essence cada - a rotina diária de quem já está lá.
 - **Acolytes** aparecem nas missões e dropam **arcanes de arma** (Merciless, Deadhead, Dexterity).
-- Fissuras Steel Path existem — mesmo loot prime, inimigos mais gordos.
+- Fissuras Steel Path existem - mesmo loot prime, inimigos mais gordos.
 - **Maestria extra**: cada nodo SP completado dá pontos de maestria de novo, e completar planetas rende recompensas únicas (Riven, potatoes...).
 
 ## Quando você está pronto
