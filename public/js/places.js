@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Tradução de strings de local de drop (PT-BR) — planetas, regiões abertas,
+ * Tradução de strings de local de drop (PT-BR) - planetas, regiões abertas,
  * tipos de missão e termos ("Rotation"→"Rotação"), mantendo os nomes próprios
  * dos nós/bosses. Ex.: "Venus/Orb Vallis (Level 40 - 60 Bounty), Rotation C" →
  * "Vênus/Vale dos Orbes (Nível 40 - 60 Contrato), Rotação C".

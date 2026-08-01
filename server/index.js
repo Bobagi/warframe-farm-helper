@@ -11,7 +11,7 @@ const api = require('./routes/api');
 const PORT = parseInt(process.env.PORT || '3064', 10);
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 
-// horário da atualização diária dos dados (UTC) — drop tables mudam com updates
+// horário da atualização diária dos dados (UTC) - drop tables mudam com updates
 const INGEST_UTC_HOUR = 7;
 const INGEST_UTC_MINUTE = 43;
 
@@ -26,14 +26,14 @@ app.use((req, res, next) => {
     // destino do redirect, então ambos precisam estar liberados p/ as artes
     "img-src 'self' https://cdn.warframestat.us https://raw.githubusercontent.com data:",
     // 'unsafe-inline' cobre os atributos style="" do layout; script-src fica
-    // estrito ('self', sem inline) — é ele que barra XSS, não o style.
+    // estrito ('self', sem inline) - é ele que barra XSS, não o style.
     // (JSON-LD <script type="application/ld+json"> é bloco de DADOS, não
-    // executa — o CSP não o bloqueia.)
+    // executa - o CSP não o bloqueia.)
     "style-src 'self' 'unsafe-inline'",
     "script-src 'self'",
     "connect-src 'self'",
     "font-src 'self'",
-    // anúncios A-ads (mesma rede/units do Coin Hub): iframe puro — o código do
+    // anúncios A-ads (mesma rede/units do Coin Hub): iframe puro - o código do
     // anunciante roda na ORIGEM DELES, nunca na nossa página; script-src segue
     // 'self'. É a única exceção de frame permitida.
     'frame-src https://acceptable.a-ads.com',
@@ -159,7 +159,7 @@ async function boot() {
   const db = getDb();
   const count = db.prepare('SELECT COUNT(*) c FROM items').get().c;
   if (count === 0) {
-    console.log('[boot] banco vazio — rodando a primeira ingestão (pode levar alguns minutos)...');
+    console.log('[boot] banco vazio - rodando a primeira ingestão (pode levar alguns minutos)...');
     try {
       await runIngest({});
     } catch (err) {

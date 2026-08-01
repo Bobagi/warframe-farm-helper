@@ -54,7 +54,7 @@ async function webSearch(q) {
   if (!key || !cx) {
     return {
       mode: 'links', configured: false, links: linkPack(nq),
-      note: 'Busca web não configurada — use os links diretos nos sites confiáveis:',
+      note: 'Busca web não configurada - use os links diretos nos sites confiáveis:',
     };
   }
 
@@ -68,7 +68,7 @@ async function webSearch(q) {
   if (quota.left <= 0) {
     return {
       mode: 'links', configured: true, links: linkPack(nq),
-      note: 'Cota diária de busca web esgotada — use os links diretos:',
+      note: 'Cota diária de busca web esgotada - use os links diretos:',
     };
   }
 
@@ -96,7 +96,7 @@ async function webSearch(q) {
   } catch {
     return {
       mode: 'links', configured: true, links: linkPack(nq),
-      note: 'Busca web indisponível agora — use os links diretos:',
+      note: 'Busca web indisponível agora - use os links diretos:',
     };
   }
 }

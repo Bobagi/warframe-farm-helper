@@ -1,5 +1,5 @@
 /* ============================================================
-   Warframe Farm Helper — design system
+   Warframe Farm Helper - design system
    Void navy + dourado Orokin + ciano void-energy.
    Assinatura: cantos chanfrados (como os painéis da UI do jogo).
    ============================================================ */
@@ -43,6 +43,9 @@
   --text-faint: #6b7590;
   --ok: #6ee7f2;
   --vaulted: #c97b5a;
+  /* Varzia/Aya: precisa se distinguir do disponível (ciano) E do vaulted
+     (laranja), porque o estado "vaulted mas à venda agora" fica ao lado deles */
+  --aya: #b98cf0;
   --danger: #e36d5d;
   --bronze: #c08a5a;
   --silver: #b9c4d6;
@@ -205,7 +208,7 @@ main { flex: 1; padding: 24px 0 56px; }
 
 .panel-cta { margin: 14px 0 0; }
 
-/* header — empilhamento mobile-first */
+/* header - empilhamento mobile-first */
 .head-inner .brand { order: 1; }
 .head-inner .lang-toggle { order: 2; margin-left: auto; }
 .head-inner .head-search { order: 3; flex-basis: 100%; }
@@ -311,7 +314,7 @@ main { flex: 1; padding: 24px 0 56px; }
 .eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--line); }
 .eyebrow .hint { letter-spacing: 0.04em; text-transform: none; color: var(--text-faint); font-weight: 400; }
 
-/* painéis colapsáveis (<details class="panel">) — home + fissuras */
+/* painéis colapsáveis (<details class="panel">) - home + fissuras */
 details.panel > summary.panel-summary {
   list-style: none;
   cursor: pointer;
@@ -367,6 +370,7 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
 }
 .badge-ok { color: var(--void-950); background: var(--ok); border-color: var(--ok); }
 .badge-vaulted { color: #ffd9c9; background: rgba(201, 123, 90, 0.16); border-color: var(--vaulted); }
+.badge-varzia { color: #ece0ff; background: rgba(185, 140, 240, 0.18); border-color: var(--aya); }
 .badge-gold { color: var(--orokin-bright); border-color: var(--line-gold); }
 .badge-tier { border-color: currentColor; background: transparent; }
 .tier-Lith { color: var(--lith); }
@@ -670,7 +674,7 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
 }
 .qr-link:hover { color: var(--orokin-bright); text-decoration: underline solid; }
 
-/* link de recompensa na página de relíquia — piso de toque 24px */
+/* link de recompensa na página de relíquia - piso de toque 24px */
 .rw-link { display: inline-block; padding: 4px 0; min-height: 24px; }
 
 /* nightwave acts */
@@ -769,7 +773,7 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
 }
 
 /* ============================================================
-   Publicidade (A-ads — iframe puro, sem cookies/JS de terceiro)
+   Publicidade (A-ads - iframe puro, sem cookies/JS de terceiro)
    Rails fixos nas calhas laterais no desktop largo; um bloco em
    fluxo antes do rodapé no restante. Ver public/js/ads.js.
    ============================================================ */

@@ -45,7 +45,7 @@ test('advanceCycle: cetus dia vencido vira noite (+50 min)', () => {
 
 test('advanceCycle: avança vários passos e mantém a paridade (cetus, ~5h velho)', () => {
   const expiry = Date.parse('2026-07-16T00:00:00.000Z'); // fim de um dia
-  // 299 min depois: noite(0–50) → dia(50–150) → noite(150–200) → dia(200–300)
+  // 299 min depois: noite(0-50) → dia(50-150) → noite(150-200) → dia(200-300)
   const now = expiry + 299 * MIN;
   const adv = advanceCycle(def('cetus'), 'day', expiry, now);
   assert.equal(adv.state, 'day');
@@ -59,7 +59,7 @@ test('advanceCycle: Duviri roda os 5 humores na ordem e dá a volta', () => {
   // fear venceu → volta para joy
   const wrap = advanceCycle(d, 'fear', expiry, 1);
   assert.equal(wrap.state, 'joy');
-  // 7h depois do fim de joy: anger(0–2h) → envy(2–4h) → sorrow(4–6h) → fear(6–8h)
+  // 7h depois do fim de joy: anger(0-2h) → envy(2-4h) → sorrow(4-6h) → fear(6-8h)
   const later = advanceCycle(d, 'joy', expiry, 7 * 60 * MIN);
   assert.equal(later.state, 'fear');
   assert.equal(later.expiryMs, 8 * 60 * MIN);

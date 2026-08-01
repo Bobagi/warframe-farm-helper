@@ -2,7 +2,7 @@
 
 /**
  * Faixa de relógios dos ciclos dos mundos (Cetus dia/noite, Vallis
- * quente/frio, Deimos Fass/Vome, Duviri, Zariman, Terra) — como no topo do
+ * quente/frio, Deimos Fass/Vome, Duviri, Zariman, Terra) - como no topo do
  * hub.warframestat.us. Inserida logo abaixo do cabeçalho em todas as páginas.
  *
  * A contagem regressiva roda localmente a cada segundo; quando um ciclo vira,
@@ -23,7 +23,7 @@
   // só, "Cetus / Terra". Ordem de exibição dos 5 relógios distintos.
   const ORDER = ['cetus', 'vallis', 'cambion', 'duviri', 'zariman'];
 
-  // Glifos inline (constantes estáticas — innerHTML aqui nunca vê dado externo).
+  // Glifos inline (constantes estáticas - innerHTML aqui nunca vê dado externo).
   const SVG = (d, extra = '') =>
     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${extra}${d ? `<path d="${d}"/>` : ''}</svg>`;
   const GLYPHS = {
@@ -38,12 +38,12 @@
     mood: SVG('M12 12a1.6 1.6 0 0 0 3.2 0 4.2 4.2 0 0 0-8.4 0 6.8 6.8 0 0 0 13.6 0 9.4 9.4 0 0 0-18.8 0'),
   };
   // `state` vem da API: usado SÓ como chave própria de GLYPHS (nunca entra no
-  // markup) — hasOwnProperty barra chaves herdadas tipo "constructor"
+  // markup) - hasOwnProperty barra chaves herdadas tipo "constructor"
   const glyphFor = (state) => (Object.prototype.hasOwnProperty.call(GLYPHS, state)
     ? GLYPHS[state]
     : (['joy', 'anger', 'envy', 'sorrow', 'fear'].includes(state) ? GLYPHS.mood : GLYPHS.night));
 
-  // estrutura fixa logo abaixo do header (skeleton estável — sem pulo de layout)
+  // estrutura fixa logo abaixo do header (skeleton estável - sem pulo de layout)
   const inner = el('div', { class: 'cyc-inner', role: 'list' });
   const strip = el('div', { class: 'cycle-strip', 'aria-label': t('cyc.aria') }, [inner]);
   header.insertAdjacentElement('afterend', strip);
@@ -58,7 +58,7 @@
     return label === key ? s : label; // estado desconhecido: mostra cru
   };
 
-  // Segundos só aparecem perto da virada (<10 min), quando importam — mantém os
+  // Segundos só aparecem perto da virada (<10 min), quando importam - mantém os
   // relógios curtos e a faixa numa linha só no desktop (rola no mobile).
   function fmtLeft(ms) {
     const s = Math.max(0, Math.ceil(ms / 1000));
@@ -71,7 +71,7 @@
   }
 
   function nextState(c) {
-    // só para o rótulo "vira X em..." — a ordem real vive no servidor
+    // só para o rótulo "vira X em..." - a ordem real vive no servidor
     const ORDERS = {
       cetus: ['day', 'night'], vallis: ['warm', 'cold'],
       cambion: ['fass', 'vome'], zariman: ['grineer', 'corpus'],

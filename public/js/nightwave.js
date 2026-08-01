@@ -7,7 +7,7 @@
 
   async function showGuide(slug) {
     const art = await api(`/api/article/${encodeURIComponent(slug)}`);
-    document.title = `${art.title} — Warframe Farm Helper`;
+    document.title = `${art.title} - Warframe Farm Helper`;
     const body = el('div', { class: 'art-body' });
     // conteúdo local confiável (markdown do repositório, sanitizado na ingestão)
     body.innerHTML = art.html;

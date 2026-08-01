@@ -2,7 +2,7 @@
 
 /**
  * "Onde dropa" para recursos que não estão nas tabelas do nosso dataset (ex.:
- * Orokin Cell, Morphics — ingredientes de craft). Busca na API de drops do
+ * Orokin Cell, Morphics - ingredientes de craft). Busca na API de drops do
  * warframestat.us e resume os melhores locais (dedup por local, maior chance).
  * Cache longo em memória: drop de recurso muda raríssimo (só em grandes updates).
  */

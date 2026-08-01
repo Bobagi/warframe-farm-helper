@@ -59,7 +59,7 @@ test('buildSteps gera texto em inglês', () => {
 
 // es/ru não têm redação própria no servidor: devem cair no INGLÊS (fallback
 // internacional), NUNCA no português. Antes, o ternário `=== 'en'` jogava
-// qualquer idioma ≠ en no ramo PT — es/ru vazavam português.
+// qualquer idioma ≠ en no ramo PT - es/ru vazavam português.
 test('es/ru caem no inglês, nunca no português (sem vazamento PT)', () => {
   for (const lang of ['es', 'ru', 'de', 'fr']) {
     assert.equal(fmtBuildTime(259200, lang), '3 days', `${lang} deveria usar 'days'`);

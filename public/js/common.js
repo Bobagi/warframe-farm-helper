@@ -1,6 +1,6 @@
 'use strict';
 
-/* Helpers compartilhados — renderização sempre via DOM APIs (textContent),
+/* Helpers compartilhados - renderização sempre via DOM APIs (textContent),
    nunca innerHTML com dados externos. */
 
 const App = (() => {
@@ -21,9 +21,24 @@ const App = (() => {
     return node;
   }
 
+  /**
+   * Esquema seguro para href montado a partir de DADO (API nossa, WFCD,
+   * worldstate). Aceita só caminho interno ("/x", nunca "//host" que é
+   * protocol-relative) ou http(s) explícito; qualquer outro esquema
+   * (`javascript:`, `data:`, `vbscript:`) vira null e o el() omite o atributo.
+   * A CSP `script-src 'self'` já barra a execução de `javascript:`: isto é a
+   * segunda camada, para o caso de um dado externo chegar envenenado.
+   */
+  function safeHref(url) {
+    const s = String(url == null ? '' : url).trim();
+    if (/^\/(?!\/)/.test(s)) return s;
+    if (/^https?:\/\//i.test(s)) return s;
+    return null;
+  }
+
   const qs = (name) => new URLSearchParams(location.search).get(name);
 
-  /** URL bonita da relíquia ("Lith K12" → "/relic/lith-k12") — espelha o server */
+  /** URL bonita da relíquia ("Lith K12" → "/relic/lith-k12") - espelha o server */
   const relicUrl = (name) => `/relic/${String(name).trim().toLowerCase().replace(/\s+/g, '-')}`;
 
   async function api(path, opts = {}) {
@@ -37,7 +52,7 @@ const App = (() => {
   }
 
   const fmtInt = (n) => Number(n).toLocaleString(I18n.locale());
-  const fmtPct = (n) => (n == null ? '—' : (I18n.lang() === 'en' ? `${n}%` : `${String(n).replace('.', ',')}%`));
+  const fmtPct = (n) => (n == null ? '-' : (I18n.lang() === 'en' ? `${n}%` : `${String(n).replace('.', ',')}%`));
 
   function timeLeft(iso) {
     const ms = Date.parse(iso) - Date.now();
@@ -79,7 +94,7 @@ const App = (() => {
   function resultRow(r) {
     const left = [];
     if (r.image) left.push(el('img', { src: r.image, alt: '', loading: 'lazy' }));
-    return el('a', { class: 'row row-link result-item', href: r.url }, [
+    return el('a', { class: 'row row-link result-item', href: safeHref(r.url) }, [
       ...left,
       el('span', { class: 'grow' }, [
         el('span', { class: 'name', text: I18n.nameFor(r) }),
@@ -92,7 +107,7 @@ const App = (() => {
 
   /** card de "dá pra farmar agora": arte + nome + badges de tier + preço (pl) */
   function farmCard(it) {
-    return el('a', { class: 'card farm-card', href: it.url }, [
+    return el('a', { class: 'card farm-card', href: safeHref(it.url) }, [
       el('div', { class: 'farm-card-top' }, [
         it.image ? el('img', { class: 'farm-art', src: it.image, alt: '', loading: 'lazy' }) : null,
         el('span', { class: 't', text: I18n.nameFor(it) }),
@@ -101,7 +116,7 @@ const App = (() => {
         ...it.tiers.map((tr) => tierBadge(tr)),
         el('span', {
           class: `farm-plat${it.platinum == null ? ' dim' : ''}`,
-          text: it.platinum == null ? '—' : `${it.platinum} pl`,
+          text: it.platinum == null ? '-' : `${it.platinum} pl`,
         }),
       ]),
     ]);
@@ -127,7 +142,7 @@ const App = (() => {
       items.forEach((r, i) => {
         // <a href> real → middle-click / ctrl-click / "abrir em nova guia"
         // funcionam nativamente; o click esquerdo navega na mesma aba
-        const rowEl = el('a', { class: `sg${i === active ? ' active' : ''}`, role: 'option', href: r.url }, [
+        const rowEl = el('a', { class: `sg${i === active ? ' active' : ''}`, role: 'option', href: safeHref(r.url) }, [
           r.image ? el('img', { src: r.image, alt: '', loading: 'lazy' }) : null,
           el('span', { text: I18n.nameFor(r) }),
           el('span', { class: 'sg-sub', text: I18n.subLabel(r) }),
@@ -187,6 +202,7 @@ const App = (() => {
   return {
     el, qs, relicUrl, api, fmtInt, fmtPct, timeLeft, startTimers,
     tierBadge, rarityChip, statusBadge, resultRow, farmCard, attachSearch, debounce, navCurrent,
+    safeHref,
   };
 })();
 // navCurrent é chamado por layout.js, depois de o cabeçalho ser construído

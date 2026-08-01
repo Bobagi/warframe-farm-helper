@@ -21,8 +21,8 @@ updates do jogo.
 
 ## Estrutura de URL
 
-- Item: `https://warframe.bobagi.space/item/<slug>` — ex.: `/item/braton-prime`
-- Relíquia: `https://warframe.bobagi.space/relic/<slug>` — ex.: `/relic/lith-k12`
+- Item: `https://warframe.bobagi.space/item/<slug>` - ex.: `/item/braton-prime`
+- Relíquia: `https://warframe.bobagi.space/relic/<slug>` - ex.: `/relic/lith-k12`
 - Artigo de FAQ: `https://warframe.bobagi.space/faq/<slug>`
 - Guia de Nightwave: `https://warframe.bobagi.space/nightwave/<slug>`
 - Índice completo de páginas: [sitemap.xml](https://warframe.bobagi.space/sitemap.xml) (mais de 4.000 URLs)
@@ -36,7 +36,7 @@ updates do jogo.
 - Passo a passo em linguagem simples de como conseguir o item do zero
 - "Usado para construir": índice reverso de quais outros itens consomem este como material
 
-Cobre armas, warframes, mods, recursos, arcanos, peixes, equipamentos e itens de quest —
+Cobre armas, warframes, mods, recursos, arcanos, peixes, equipamentos e itens de quest -
 não só primes.
 
 ## Idiomas
@@ -48,4 +48,4 @@ Nightwave são escritos em português.
 
 ## Código-fonte
 
-- [Repositório no GitHub (MIT)](https://github.com/Bobagi/warframe-farm-helper) — Node + Express + SQLite, roda em Docker, sem serviços pagos
+- [Repositório no GitHub (MIT)](https://github.com/Bobagi/warframe-farm-helper) - Node + Express + SQLite, roda em Docker, sem serviços pagos

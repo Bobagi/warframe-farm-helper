@@ -9,7 +9,7 @@
  * para os testes não dependerem do banco; a cola com o SQLite fica nos
  * wrappers (rebuild/itemForSlug/render*Page/sitemapXml).
  *
- * Segurança: TODO texto que entra em HTML/XML passa por escapeHtml/escapeXml —
+ * Segurança: TODO texto que entra em HTML/XML passa por escapeHtml/escapeXml -
  * nomes de item e artigos vêm de dados EXTERNOS (WFCD/wiki), nunca confiar.
  */
 
@@ -23,7 +23,7 @@ const CDN_IMG = 'https://cdn.warframestat.us/img/';
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 const OG_IMAGE = `${SITE_ORIGIN}/og-banner.png`;
 
-// rótulo PT por categoria do WFCD — usado em descriptions e no bloco SSR
+// rótulo PT por categoria do WFCD - usado em descriptions e no bloco SSR
 const CATEGORY_PT = {
   Mods: 'Mod', Resources: 'Recurso', Melee: 'Arma corpo a corpo',
   Primary: 'Arma primária', Secondary: 'Arma secundária', Warframes: 'Warframe',
@@ -41,7 +41,7 @@ const escapeXml = escapeHtml; // mesmo conjunto de entidades cobre XML 1.0
 
 /**
  * URL segura para um `href` renderizado no servidor: só http/https passa.
- * `escapeHtml` neutraliza aspas/tags mas NÃO o esquema — um `wiki_url` do
+ * `escapeHtml` neutraliza aspas/tags mas NÃO o esquema - um `wiki_url` do
  * dataset externo (WFCD) valendo `javascript:...` viraria href executável
  * (a CSP script-src 'self' já bloquearia a execução, mas sanitizamos na
  * origem, como a ingestão de markdown faz). Esquema perigoso → null (sem link).
@@ -83,7 +83,7 @@ function assignSlugs(rows) {
  * Página canônica por (kind + nome sem acento): o MESMO critério de dedup da
  * busca (search.js), para o canonical apontar exatamente para a página que a
  * busca linka. Itens "gêmeos" (uniqueNames diferentes, mesmo nome) apontam o
- * canonical para o primeiro da ordem estável — o Google consolida neles.
+ * canonical para o primeiro da ordem estável - o Google consolida neles.
  */
 function assignCanonicals(rows) {
   const canonicalByUnique = new Map();
@@ -121,12 +121,12 @@ function truncate(text, max = 158) {
  * Injeta metadados no <head> de um template:
  *  - substitui o <title>. Por padrão remove o data-i18n (páginas de item/relíquia/
  *    artigo têm título específico que o cliente reescreve via document.title após o
- *    fetch). Se `meta.titleI18n` vier, MANTÉM um data-i18n=<chave> — usado nos
+ *    fetch). Se `meta.titleI18n` vier, MANTÉM um data-i18n=<chave> - usado nos
  *    ÍNDICES (/faq, /nightwave), que o cliente não reescreve: assim o crawler lê o
  *    título rico (SSR) e o cliente JS relocaliza a aba para en/es/ru;
  *  - substitui a <meta name="description"> (ou insere se não houver);
  *  - insere canonical + Open Graph/Twitter + JSON-LD antes do </head>.
- * Tudo escapado — os valores vêm de dados externos. Os .replace() usam FUNÇÃO de
+ * Tudo escapado - os valores vêm de dados externos. Os .replace() usam FUNÇÃO de
  * substituição (não string) para que `$&`/`$'`/`$$`/`` $` `` num nome de item ou
  * artigo do WFCD sejam inseridos literalmente, nunca interpretados como padrão.
  */
@@ -279,14 +279,14 @@ function template(file) {
 
 const safeParse = (s) => { try { return JSON.parse(s); } catch { return {}; } };
 
-/** Título/descrição/JSON-LD de um item (puro dado o row — testável). */
+/** Título/descrição/JSON-LD de um item (puro dado o row - testável). */
 function itemMeta(row, canonicalSlug) {
   const raw = safeParse(row.raw);
   const display = row.name_pt && row.name_pt !== row.name
     ? `${row.name_pt} (${row.name})` : row.name;
   const isPrime = / Prime( |$)/.test(row.name);
   const cat = CATEGORY_PT[row.category] || row.category;
-  const title = `Onde farmar ${display} — Warframe Farm Helper`;
+  const title = `Onde farmar ${display} · Warframe Farm Helper`;
   const description = truncate(isPrime
     ? `Como farmar ${display} em Warframe: relíquias que dropam cada componente (disponíveis vs vaulted), chances por refinamento, forja e passo a passo.`
     : `Onde conseguir ${display} em Warframe: locais de drop com chances oficiais, forja e passo a passo. ${cat}.`);
@@ -346,7 +346,7 @@ function relicSsrBlock(row) {
   const intact = Array.isArray(rewards.Intact) ? rewards.Intact : [];
   const parts = ['<section class="hero" style="padding-top:8px">'];
   parts.push(`<h1>Relíquia ${escapeHtml(row.name)}</h1>`);
-  parts.push(`<p class="lead">Tier ${escapeHtml(row.tier)} · ${row.vaulted ? 'Vaulted (fora de rotação)' : 'Disponível — dropa em missões agora'}</p>`);
+  parts.push(`<p class="lead">Tier ${escapeHtml(row.tier)} · ${row.vaulted ? 'Vaulted (fora de rotação)' : 'Disponível - dropa em missões agora'}</p>`);
   if (intact.length) {
     parts.push('<h2 class="eyebrow">Recompensas (Intact)</h2><ul class="rowlist">');
     for (const rw of intact) {
@@ -362,7 +362,7 @@ function renderRelicPage(slug) {
   const row = relicForSlug(slug);
   if (!row) return null;
   const meta = {
-    title: `Relíquia ${row.name} — drops e recompensas | Warframe Farm Helper`,
+    title: `Relíquia ${row.name} · drops e recompensas | Warframe Farm Helper`,
     description: truncate(`Conteúdo da relíquia ${row.name} de Warframe por refinamento (Intact a Radiant), chances de cada recompensa, onde a relíquia dropa e se está vaulted.`),
     canonical: relicUrl(row.name),
     ogType: 'article',
@@ -378,7 +378,7 @@ function renderArticlePage(kind, slug) {
   if (!art) return null;
   const text = stripTags(art.html);
   const meta = {
-    title: `${art.title} — Warframe Farm Helper`,
+    title: `${art.title} · Warframe Farm Helper`,
     description: truncate(text),
     canonical: articleUrl(kind, art.slug),
     ogType: 'article',
@@ -413,9 +413,9 @@ function renderFaqIndex() {
     })),
   };
   return injectHead(template('faq.html'), {
-    title: 'FAQ — mecânicas de Warframe explicadas em português',
+    title: 'FAQ · mecânicas de Warframe explicadas em português',
     titleI18n: 'title.faq', // índice: cliente relocaliza a aba (en/es/ru); crawler lê o título rico
-    description: 'Guia de mecânicas de Warframe em português: Helminth, slots, relíquias, ducats, Forma, platina, vaulted e mais — direto ao ponto.',
+    description: 'Guia de mecânicas de Warframe em português: Helminth, slots, relíquias, ducats, Forma, platina, vaulted e mais - direto ao ponto.',
     canonical: '/faq',
     jsonLd,
   });
@@ -424,9 +424,9 @@ function renderFaqIndex() {
 /** Lista de guias do Nightwave (canonical limpo). */
 function renderNightwaveIndex() {
   return injectHead(template('nightwave.html'), {
-    title: 'Nightwave — atos da semana e guias — Warframe Farm Helper',
+    title: 'Nightwave · atos da semana e guias · Warframe Farm Helper',
     titleI18n: 'title.nightwave', // índice: cliente relocaliza a aba (en/es/ru); crawler lê o título rico
-    description: 'Atos ativos do Nightwave de Warframe com guia em português de como completar cada um — Artilharia Frontal, Enigmas do Duviri, Eximus e mais.',
+    description: 'Atos ativos do Nightwave de Warframe com guia em português de como completar cada um - Artilharia Frontal, Enigmas do Duviri, Eximus e mais.',
     canonical: '/nightwave',
   });
 }
@@ -452,7 +452,7 @@ function sitemapXml() {
     { loc: '/nightwave', lastmod, changefreq: 'daily', priority: '0.8' },
     { loc: '/buscar', lastmod, changefreq: 'weekly', priority: '0.5' },
   ];
-  // itens: só a página CANÔNICA de cada (kind+nome) — gêmeos ficam de fora
+  // itens: só a página CANÔNICA de cada (kind+nome) - gêmeos ficam de fora
   const rows = db.prepare(
     'SELECT unique_name, name, category FROM items ORDER BY name, unique_name'
   ).all();

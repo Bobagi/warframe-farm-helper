@@ -4,7 +4,7 @@ const os = require('node:os');
 const path = require('node:path');
 const fs = require('node:fs');
 
-// DB efêmero — precisa ser definido ANTES de carregar os módulos
+// DB efêmero - precisa ser definido ANTES de carregar os módulos
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'wfh-search-'));
 process.env.DB_PATH = path.join(TMP, 'test.db');
 process.env.DATA_DIR = TMP;
@@ -33,13 +33,13 @@ function seed() {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
   ins.run('/Lotus/Test/BratonPrime', 'Braton Prime', null, 'Primary', 'Rifle', 8, 0, 'bp.png', null, 1, rawBraton);
   ins.run('/Lotus/Test/Akfuris', 'Akfuris', null, 'Secondary', 'Pistol', 0, null, null, null, 0, rawAk);
-  // quest cujo name_pt tem a preposição "da" (não "de") — o usuário digita "de"
+  // quest cujo name_pt tem a preposição "da" (não "de") - o usuário digita "de"
   ins.run('/Lotus/Test/JadeShadows', 'Jade Shadows', 'Sombras da Jade', 'Quests', 'Key', null, null, null, null, 0,
     JSON.stringify({ name: 'Jade Shadows' }));
   db.prepare('INSERT OR REPLACE INTO relics(name, tier, code, vaulted, drops, rewards) VALUES (?,?,?,?,?,?)')
     .run('Lith K12', 'Lith', 'K12', 0, '[]', '{}');
   db.prepare(`INSERT OR REPLACE INTO articles(slug, kind, title, keywords, match_json, html, body_md, sort)
-    VALUES ('reliquias-teste', 'faq', 'Relíquias do Void — como funcionam?', 'reliquia, refinar', NULL, '<p>x</p>', 'x', 10)`).run();
+    VALUES ('reliquias-teste', 'faq', 'Relíquias do Void - como funcionam?', 'reliquia, refinar', NULL, '<p>x</p>', 'x', 10)`).run();
 }
 
 test('buildIndex não explode com componentes duplicados e indexa tudo', () => {

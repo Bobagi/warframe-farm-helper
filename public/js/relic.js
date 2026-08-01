@@ -1,7 +1,7 @@
 'use strict';
 
 (() => {
-  const { el, api, qs, fmtPct, tierBadge, rarityChip, statusBadge, startTimers } = App;
+  const { el, api, qs, fmtPct, tierBadge, rarityChip, statusBadge, startTimers, safeHref } = App;
   const { t, missionName, enemyName } = I18n;
   const placeName = (n) => (I18n.lang() === 'pt' ? Places.placePt(n) : n);
   const root = document.getElementById('content');
@@ -10,7 +10,7 @@
   const REF_COST = { Intact: '0', Exceptional: '25', Flawless: '50', Radiant: '100' };
 
   function render(relic) {
-    document.title = `${relic.name} Relic — Warframe Farm Helper`;
+    document.title = `${relic.name} Relic · Warframe Farm Helper`;
     let current = 'Intact';
 
     const rewardsBody = el('div');
@@ -24,7 +24,7 @@
         el('ul', { class: 'rowlist' }, rows.map((r) => el('li', { class: 'row' }, [
           el('span', { class: 'grow' }, [
             r.parentUrl
-              ? el('a', { class: 'rw-link', href: r.parentUrl }, [el('span', { class: 'name', text: r.name })])
+              ? el('a', { class: 'rw-link', href: safeHref(r.parentUrl) }, [el('span', { class: 'name', text: r.name })])
               : el('span', { class: 'name', text: r.name }),
           ]),
           rarityChip(r.rarity),
@@ -49,13 +49,25 @@
         el('div', { class: 'item-hero' }, [
           el('div', { class: 'meta' }, [
             el('h1', {}, [tierBadge(relic.tier), ` ${t('relic.relic')} ${relic.name}`]),
-            el('div', { class: 'badges-line' }, [statusBadge(relic.vaulted)]),
-            relic.vaulted
+            el('div', { class: 'badges-line' }, [
+              statusBadge(relic.vaulted),
+              // vaulted + à venda na Varzia é o caso que mais confunde: não cai
+              // em missão, mas dá para comprar com Aya agora
+              relic.varzia ? el('span', { class: 'badge badge-varzia', text: t('status.varzia') }) : null,
+            ]),
+            relic.varzia
               ? el('p', { class: 'desc' }, [
-                t('relic.vaultedMsg', { t: relic.tier }),
+                t('relic.varziaMsg', { loc: relic.varzia.location }),
+                el('span', { class: 'num', dataset: { expiry: relic.varzia.expiry } }),
+                '. ',
                 el('a', { href: '/faq/24-primes-vaulted', text: t('relic.vaultedLink') }),
               ])
-              : el('p', { class: 'desc', text: t('relic.availMsg') }),
+              : relic.vaulted
+                ? el('p', { class: 'desc' }, [
+                  t('relic.vaultedMsg', { t: relic.tier }),
+                  el('a', { href: '/faq/24-primes-vaulted', text: t('relic.vaultedLink') }),
+                ])
+                : el('p', { class: 'desc', text: t('relic.availMsg') }),
           ]),
         ]),
       ]),

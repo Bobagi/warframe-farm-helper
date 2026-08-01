@@ -12,49 +12,58 @@ os chatos: destruir Crewship com Artilharia Frontal, enigmas do Duviri, etc.).
 
 ## O que ele faz
 
-- **Busca no topo de todas as páginas** — barra fixa no cabeçalho (com autocomplete) como entrada única de
+- **Busca no topo de todas as páginas** - barra fixa no cabeçalho (com autocomplete) como entrada única de
   busca; a home usa chips de exemplo como atalhos. O autocomplete é resistente a corrida ("última vence":
-  aborta a query anterior e descarta respostas fora de ordem — ver `public/js/latest.js`), então o dropdown
+  aborta a query anterior e descarta respostas fora de ordem - ver `public/js/latest.js`), então o dropdown
   nunca mostra resultado de um texto já apagado. A página `/buscar` mantém a barra grande da própria página.
-- **Idioma PT / EN** — toggle no cabeçalho. Detecta o idioma pelo navegador e deixa trocar na mão (persiste).
+- **Idioma PT / EN** - toggle no cabeçalho. Detecta o idioma pelo navegador e deixa trocar na mão (persiste).
   Traduz a interface, os **nomes de item** (i18n do WFCD), as missões das fissuras e o **passo a passo**
-  (gerado bilíngue no servidor). Os artigos de FAQ/Nightwave são escritos em PT — em modo EN o título e a
+  (gerado bilíngue no servidor). Os artigos de FAQ/Nightwave são escritos em PT - em modo EN o título e a
   navegação traduzem, mas o corpo do artigo permanece em português (conteúdo da comunidade).
-- **Página de item** — árvore de componentes com relíquias (destaque disponível × vaulted), chances
+- **Página de item** - árvore de componentes com relíquias (destaque disponível × vaulted), chances
   intact/radiante, requisitos de forja (créditos/tempo/MR), fontes de drop não-relíquia e **passo a passo**
   em linguagem simples. Cobre armas, warframes, **gear/itens de quest** (ex.: Apótico do Anoitecer),
-  arcanos e peixes — não só primes. Mostra também **"usado para construir"** (índice reverso: quando o
+  arcanos e peixes - não só primes. Mostra também **"usado para construir"** (índice reverso: quando o
   item é matéria-prima de outro, ex.: Furis → Afuris), montado na ingestão a partir dos components.
-- **Relíquias** — recompensas por refinamento (Intact→Radiant), onde a relíquia dropa, status vaulted e
+- **Relíquias** - recompensas por refinamento (Intact→Radiant), onde a relíquia dropa, status vaulted e
   fissuras ativas do tier.
-- **Relógios dos mundos** — faixa fixa abaixo do cabeçalho (em todas as páginas) com o ciclo de cada
+- **Prime Resurgence (Varzia)** - painel na home com a rotação de ~28 dias que **desvaulta** um conjunto de
+  primes, com contagem regressiva, os primes da vez, quantas relíquias voltaram, os tiers à venda e qual é
+  a **próxima** rotação (lida do `schedule` da API). Uma relíquia de prime em rotação continua `vaulted` na
+  drop table (não volta a cair em missão), mas dá para **comprá-la com Aya** enquanto durar - então ela
+  ganha o badge **"Na Varzia"** na página da relíquia, sobe para o nível das disponíveis na página do item,
+  e o passo a passo passa a mandar comprar em vez de "aguarde voltar".
+  A API não diz QUAIS relíquias a Varzia vende (o inventário traz os primes e pacotes genéricos por tier),
+  então a lista é **derivada**: entra a relíquia que contém peça de um dos primes da rotação, que é o mesmo
+  critério do pacote no jogo. Ver `server/varzia.js`.
+- **Relógios dos mundos** - faixa fixa abaixo do cabeçalho (em todas as páginas) com o ciclo de cada
   mundo que tem dia/noite: **Cetus / Terra** (dia/noite), **Vallis** (quente/frio), **Deimos** (Fass/Vome),
   **Duviri** (humores do Spiral) e **Zariman** (Grineer/Corpus), cada um com contagem regressiva ao vivo.
-  O servidor avança o estado localmente pela tabela de durações, então a faixa nunca mostra ciclo vencido —
+  O servidor avança o estado localmente pela tabela de durações, então a faixa nunca mostra ciclo vencido -
   mesmo se o worldstate upstream cair.
-  **Cetus / Terra num chip só:** desde o Update 38.5 a Terra não tem mais ciclo próprio de 8h — ela segue o
+  **Cetus / Terra num chip só:** desde o Update 38.5 a Terra não tem mais ciclo próprio de 8h - ela segue o
   Cetus/Plains (dia 100min, noite 50min), então carrega **sempre** a mesma info e é mostrada junto. A API
   `/earthCycle` ainda calcula o ciclo legado de 8h e fica dessincronizada do jogo; por isso a Terra vem do
-  `cetusCycle` (fonte real da DE) — o ciclo do Cetus declara `worlds: ['cetus','earth']` e o front funde o
+  `cetusCycle` (fonte real da DE) - o ciclo do Cetus declara `worlds: ['cetus','earth']` e o front funde o
   rótulo. Nunca reintroduzir o `/earthCycle`.
-- **Fissuras agora** — worldstate ao vivo (Normais / Steel Path / Railjack) com contagem regressiva.
-- **FAQ** — 20 artigos de mecânica (Helminth, slots, ducats, Forma, platina, vaulted…).
-- **Nightwave** — cruza os atos ativos da semana com uma biblioteca de 18 guias em PT-BR (match por
+- **Fissuras agora** - worldstate ao vivo (Normais / Steel Path / Railjack) com contagem regressiva.
+- **FAQ** - 20 artigos de mecânica (Helminth, slots, ducats, Forma, platina, vaulted…).
+- **Nightwave** - cruza os atos ativos da semana com uma biblioteca de 18 guias em PT-BR (match por
   palavra-chave) e lista os guias recorrentes.
-- **Busca unificada** — itens + componentes + relíquias + FAQ + guias, fuzzy e sem acento (tolera
+- **Busca unificada** - itens + componentes + relíquias + FAQ + guias, fuzzy e sem acento (tolera
   erro de digitação e PT/EN misturado). Ignora preposições/artigos (de, da, of, the…) para não travar em
   frases ("Sombras de" acha "Sombras da Jade"). Sem resultado local relevante → **fallback de busca web**
   restrita aos sites confiáveis (ver "Chaves do Google").
-- **Recursos e quests** — recurso de craft sem tabela no dataset (ex.: Orokin Cell) mostra "onde dropa"
+- **Recursos e quests** - recurso de craft sem tabela no dataset (ex.: Orokin Cell) mostra "onde dropa"
   buscado na API de drops do warframestat.us (+ link da wiki). Quests mostram sinopse + link da wiki (o
   dataset oficial não traz requisitos/recompensas estruturados de quest).
-- **SEO** — cada item/relíquia/artigo tem uma **URL limpa e estável** (`/item/braton-prime`,
+- **SEO** - cada item/relíquia/artigo tem uma **URL limpa e estável** (`/item/braton-prime`,
   `/relic/lith-k12`, `/faq/<slug>`, `/nightwave/<slug>`) com `<title>`, meta description, canonical,
-  Open Graph/Twitter e JSON-LD **renderizados no servidor** (crawler sem JS já lê o conteúdo essencial —
+  Open Graph/Twitter e JSON-LD **renderizados no servidor** (crawler sem JS já lê o conteúdo essencial -
   h1, drops, recompensas, artigo inteiro); a home tem `WebSite`+`SearchAction` e o FAQ um `FAQPage`.
   `sitemap.xml` é gerado dinâmico (só a página canônica de cada item; gêmeos ficam de fora) e apontado no
   `robots.txt`. As URLs `.html?u=/…` antigas dão **301** para as novas. Detalhe em `server/seo.js`.
-- **Preços** (opcional) — menor preço de venda no warframe.market na página do item.
+- **Preços** (opcional) - menor preço de venda no warframe.market na página do item.
 
 ## Stack
 
@@ -71,7 +80,7 @@ data/          SQLite + WAL (git-ignored, recriado pela ingestão)
 ```
 
 **Anúncios:** rails A-ads (iframe isolado, mesma rede/units do Coin Hub) nas calhas laterais em telas
-largas (≥1420px) + um bloco em fluxo no mobile — `public/js/ads.js`. A-ads é cookieless (sem banner de
+largas (≥1420px) + um bloco em fluxo no mobile - `public/js/ads.js`. A-ads é cookieless (sem banner de
 consentimento); o `<iframe>` roda o código do anunciante na origem DELES, então a CSP mantém
 `script-src 'self'` e só abre `frame-src acceptable.a-ads.com`.
 
@@ -83,7 +92,7 @@ docker compose up -d --build  # sobe em 127.0.0.1:3064
 ```
 
 Na **primeira subida** o container roda a ingestão sozinho (baixa os JSONs do WFCD + i18n ~50 MB e popula o
-SQLite — alguns minutos). Acompanhe: `docker logs -f warframe-helper`. Quando `GET /api/health` responder
+SQLite - alguns minutos). Acompanhe: `docker logs -f warframe-helper`. Quando `GET /api/health` responder
 `"ready": true`, está pronto.
 
 ## Atualizar os dados (drop tables mudam a cada update do jogo)
@@ -95,8 +104,18 @@ reiniciar o servidor:
 docker exec warframe-helper node server/ingest.js
 ```
 
-A ingestão é **idempotente** (DELETE+INSERT numa transação) — rodar de novo não duplica nada. O índice de
+A ingestão é **idempotente** (DELETE+INSERT numa transação) - rodar de novo não duplica nada. O índice de
 busca detecta a nova ingestão e se reindexa em até 5 min (ou no próximo boot).
+
+**Duas velocidades de atualização, não confundir:**
+
+| Camada | Fonte | Frequência | O que cobre |
+|---|---|---|---|
+| **Catálogo** (SQLite) | JSONs do WFCD/warframe-items | **1×/dia**, ~07:43 UTC | itens, relíquias, flag vaulted, drop tables, nomes PT, artigos do FAQ |
+| **Estado do jogo** (memória) | api.warframestat.us | **a cada request**, cache de 90s | fissuras, Nightwave, Baro, ciclos dos mundos, rotação da Varzia (cache 6h) |
+
+Consequência prática: **conteúdo derivado do markdown vive no banco**. Editar `content/**/*.md` só aparece
+no site depois de rodar a ingestão - o mesmo vale para qualquer varredura de texto.
 
 ## Ver logs
 
@@ -105,7 +124,7 @@ docker logs -f warframe-helper          # app + ingestão + cron
 docker logs --tail 100 warframe-helper  # últimas linhas
 ```
 
-## Chaves do Google (busca web — opcional)
+## Chaves do Google (busca web - opcional)
 
 Sem chaves, a busca web **degrada graciosamente**: em vez de quebrar, mostra links prontos de busca por
 site confiável (wiki, Overframe, Reddit, market, fóruns). Para ativar resultados reais (Google Programmable
@@ -117,7 +136,7 @@ Search Engine / Custom Search JSON API):
 2. Ative a **Custom Search API** no Google Cloud e gere uma **API key** → `GOOGLE_API_KEY`.
 3. Preencha os dois no `.env` e `docker compose up -d` para recriar o container.
 
-A cota gratuita é ~100 buscas/dia — o app **cacheia** cada busca (3 dias) e respeita um teto diário
+A cota gratuita é ~100 buscas/dia - o app **cacheia** cada busca (3 dias) e respeita um teto diário
 (`CSE_DAILY_LIMIT`, default 90); ao estourar, volta aos links prontos.
 
 ## Adicionar / editar FAQs e guias de Nightwave
@@ -129,7 +148,7 @@ Cada artigo é **um arquivo Markdown** com frontmatter, em `content/faq/` ou `co
 title: Pergunta ou nome do ato
 keywords: termos, de, busca, extras
 order: 25
-# só para guias de nightwave — casa o guia com o ato ativo:
+# só para guias de nightwave - casa o guia com o ato ativo:
 match: [["crewship","artillery"],["crewship","artilharia"]]
 ---
 
@@ -159,7 +178,7 @@ Rodar os testes:
 docker compose build && docker compose run --rm --no-deps web npm test
 ```
 
-> **Atenção:** o compose só monta `./data` como volume — o **código vem da imagem**. `docker compose run`
+> **Atenção:** o compose só monta `./data` como volume - o **código vem da imagem**. `docker compose run`
 > executa o código **da última build**, não a working tree. Rode `docker compose build` (ou `up -d --build`)
 > **antes** de testar/verificar código novo, senão você valida a versão antiga sem perceber.
 
@@ -174,4 +193,4 @@ docker compose build && docker compose run --rm --no-deps web npm test
 
 ## Licença
 
-MIT — ver [LICENSE](LICENSE).
+MIT - ver [LICENSE](LICENSE).

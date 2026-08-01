@@ -57,7 +57,7 @@ async function getFissures() {
     .map((f) => ({
       id: f.id,
       node: f.node,
-      // missionType/enemy ficam no inglês cru (chave) — o cliente traduz por idioma
+      // missionType/enemy ficam no inglês cru (chave) - o cliente traduz por idioma
       missionType: f.missionType,
       tier: f.tier,
       tierNum: f.tierNum,
@@ -74,14 +74,22 @@ async function getNightwaveRaw() {
   return cached('nightwave', `${BASE}/nightwave`);
 }
 
+// A rotação da Varzia dura ~28 dias: cache velho segue válido por horas se a
+// API cair (ao contrário das fissuras, que viram em minutos).
+const VAULT_STALE_MS = 6 * 60 * 60 * 1000;
+
+async function getVaultTraderRaw() {
+  return cached('vaultTrader', `${BASE}/vaultTrader`, VAULT_STALE_MS);
+}
+
 /**
  * Ciclos dos mundos (dia/noite de Cetus, quente/frio do Vallis, Fass/Vome de
  * Deimos, etc.). Cada ciclo é determinístico: se o cache está velho e o expiry
- * já passou, dá para AVANÇAR o estado localmente pela tabela de durações —
+ * já passou, dá para AVANÇAR o estado localmente pela tabela de durações -
  * assim a API nunca devolve um ciclo "vencido", mesmo com o upstream fora.
  */
 // Mundos cujo ciclo a DE emite no worldstate REAL (via timers de bounty/expiry)
-// — fonte confiável, todas as fontes concordam. A TERRA **não** está aqui de
+// - fonte confiável, todas as fontes concordam. A TERRA **não** está aqui de
 // propósito: desde o Update 38.5 ela não tem mais ciclo próprio e passou a
 // seguir o Cetus/Plains (dia 100min, noite 50min). A API /earthCycle ainda
 // calcula o ciclo LEGADO de 8h (4h dia/4h noite) e fica dessincronizada do jogo
@@ -95,7 +103,7 @@ const CYCLE_DEFS = [
   { id: 'zariman', path: 'zarimanCycle', order: ['grineer', 'corpus'], dur: { grineer: 150 * 60e3, corpus: 150 * 60e3 } },
 ];
 
-// ciclos são previsíveis — cache velho continua útil por horas (avançado localmente)
+// ciclos são previsíveis - cache velho continua útil por horas (avançado localmente)
 const CYCLE_STALE_MS = 6 * 60 * 60 * 1000;
 const MAX_ADVANCE_STEPS = 5000; // trava de segurança contra dados corrompidos
 
@@ -104,7 +112,7 @@ function advanceCycle(def, state, expiryMs, nowMs) {
   let predicted = false;
   for (let i = 0; expiryMs <= nowMs && i < MAX_ADVANCE_STEPS; i++) {
     const idx = def.order.indexOf(state);
-    if (idx < 0) break; // estado desconhecido (mundo novo?) — devolve como veio
+    if (idx < 0) break; // estado desconhecido (mundo novo?) - devolve como veio
     state = def.order[(idx + 1) % def.order.length];
     expiryMs += def.dur[state];
     predicted = true;
@@ -134,12 +142,12 @@ async function getCycles() {
   const now = Date.now();
   const cycles = [];
   settled.forEach((s, i) => {
-    if (s.status !== 'fulfilled') return; // mundo indisponível — os outros seguem
+    if (s.status !== 'fulfilled') return; // mundo indisponível - os outros seguem
     const c = normalizeCycle(s.value, CYCLE_DEFS[i], now);
     if (c) cycles.push(c);
   });
   // Terra = Cetus desde o Update 38.5 (MESMA fase dia/noite, mesma fonte
-  // confiável — o cetusCycle real da DE, não o /earthCycle legado e defasado).
+  // confiável - o cetusCycle real da DE, não o /earthCycle legado e defasado).
   // Como carregam sempre a mesma info, NÃO é um relógio separado: o ciclo do
   // Cetus apenas declara que também representa a Terra (`worlds`), e o front
   // mostra um chip só ("Cetus / Terra"). Cada ciclo representa a si mesmo por
@@ -164,7 +172,7 @@ async function getBaro() {
 }
 
 module.exports = {
-  getFissures, getNightwaveRaw, getBaro, getCycles, MISSION_PT,
+  getFissures, getNightwaveRaw, getVaultTraderRaw, getBaro, getCycles, MISSION_PT,
   // exportados para testes
   CYCLE_DEFS, advanceCycle, normalizeCycle,
 };

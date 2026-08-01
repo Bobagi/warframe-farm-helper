@@ -6,6 +6,7 @@ const { searchLocal, suggest, stats } = require('../search');
 const { webSearch } = require('../websearch');
 const { getTopOrders } = require('../market');
 const { getFissures, getBaro, getCycles } = require('../worldstate');
+const { getVarzia } = require('../varzia');
 const { getActs } = require('../nightwave');
 const { buildItemDetail, buildRelicDetail, buildFarmable } = require('../itemview');
 
@@ -27,7 +28,7 @@ function rateLimit(req, res, next) {
   b.tokens = Math.min(BUCKET_MAX, b.tokens + ((now - b.at) / 1000) * REFILL_PER_SEC);
   b.at = now;
   if (b.tokens < 1) {
-    res.status(429).json({ error: 'Muitas requisições — espere um instante e tente de novo.' });
+    res.status(429).json({ error: 'Muitas requisições - espere um instante e tente de novo.' });
     return;
   }
   b.tokens -= 1;
@@ -75,7 +76,7 @@ router.get('/suggest', rateLimit, (req, res) => {
 
 // idioma da PROSA do servidor (descrição, passo a passo, locais de drop): só há
 // redação em pt e en. 'pt' → pt; en/es/ru/qualquer outro → en (fallback
-// internacional — antes es/ru caíam em pt, vazando português); sem lang → pt
+// internacional - antes es/ru caíam em pt, vazando português); sem lang → pt
 // (o site é PT-first). Nomes de item seguem em inglês (convenção da comunidade).
 const pickLang = (v) => {
   const s = String(v || '').toLowerCase();
@@ -93,6 +94,8 @@ router.get('/item', asyncRoute(async (req, res) => {
     res.status(404).json({ error: 'item não encontrado' });
     return;
   }
+  // a marcação da Varzia nas relíquias vive no buildItemDetail: o passo a passo
+  // precisa dela para não contradizer a tabela de relíquias
   res.json(detail);
 }));
 
@@ -109,7 +112,17 @@ router.get('/relic', asyncRoute(async (req, res) => {
   }
   let fissures = [];
   try { fissures = (await getFissures()).filter((f) => f.tier === detail.tier); } catch { fissures = []; }
-  res.json({ ...detail, activeFissures: fissures });
+  const varzia = await getVarzia().catch(() => null);
+  const inVarzia = !!(varzia && varzia.relics.includes(detail.name));
+  res.json({
+    ...detail,
+    activeFissures: fissures,
+    // só interessa quando a relíquia está vaulted: é o caso em que o site
+    // dizia "espere voltar" e ela já voltou
+    varzia: inVarzia
+      ? { expiry: varzia.expiry, location: varzia.location, primes: varzia.primes.map((p) => p.name) }
+      : null,
+  });
 }));
 
 router.get('/fissures', asyncRoute(async (req, res) => {
@@ -126,6 +139,10 @@ router.get('/nightwave', asyncRoute(async (req, res) => {
 
 router.get('/baro', asyncRoute(async (req, res) => {
   res.json({ baro: await getBaro() });
+}));
+
+router.get('/varzia', asyncRoute(async (req, res) => {
+  res.json({ varzia: await getVarzia() });
 }));
 
 router.get('/cycles', asyncRoute(async (req, res) => {
@@ -158,7 +175,7 @@ router.get('/article/:slug', (req, res) => {
 router.get('/market/:slug', rateLimit, asyncRoute(async (req, res) => {
   const slug = String(req.params.slug || '').slice(0, 80);
   // valida antes de qualquer coisa (o slug entra numa URL externa) e responde
-  // com o status certo — slug malformado é erro do cliente, não 200
+  // com o status certo - slug malformado é erro do cliente, não 200
   if (!/^[a-z0-9_]{2,80}$/.test(slug)) {
     res.status(400).json({ error: 'slug inválido' });
     return;

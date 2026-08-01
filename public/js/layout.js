@@ -42,7 +42,7 @@
     const nav = el('nav', { class: 'site-nav', 'aria-label': 'Principal' },
       NAV.map((n) => el('a', { href: n.href, text: t(n.key) })));
 
-    // bandeiras (SVG constante — nunca dado externo): 🇧🇷 PT, 🇺🇸 EN, 🇪🇸 ES, 🇷🇺 RU
+    // bandeiras (SVG constante - nunca dado externo): 🇧🇷 PT, 🇺🇸 EN, 🇪🇸 ES, 🇷🇺 RU
     const FLAGS = {
       pt: '<svg viewBox="0 0 20 14" aria-hidden="true"><rect width="20" height="14" fill="#009b3a"/><path d="M10 1.6 18.4 7 10 12.4 1.6 7Z" fill="#fedf00"/><circle cx="10" cy="7" r="3" fill="#002776"/></svg>',
       en: '<svg viewBox="0 0 20 14" aria-hidden="true"><rect width="20" height="14" fill="#fff"/><g fill="#b22234"><rect width="20" height="1.08" y="0"/><rect width="20" height="1.08" y="2.15"/><rect width="20" height="1.08" y="4.3"/><rect width="20" height="1.08" y="6.46"/><rect width="20" height="1.08" y="8.6"/><rect width="20" height="1.08" y="10.77"/><rect width="20" height="1.08" y="12.92"/></g><rect width="9" height="7.54" fill="#3c3b6e"/></svg>',

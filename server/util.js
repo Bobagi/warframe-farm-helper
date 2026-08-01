@@ -15,7 +15,7 @@ function escapeHtml(s) {
 }
 
 /**
- * GET JSON com timeout e retry — usado só contra hosts fixos e confiáveis
+ * GET JSON com timeout e retry - usado só contra hosts fixos e confiáveis
  * (WFCD/GitHub, warframestat.us, warframe.market, Google CSE).
  */
 async function fetchJson(url, { timeoutMs = 20000, retries = 2, headers = {} } = {}) {

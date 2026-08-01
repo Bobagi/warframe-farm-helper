@@ -1,20 +1,20 @@
 'use strict';
 
 /**
- * Publicidade — A-ads (aads.com), a MESMA rede/units do Coin Hub.
+ * Publicidade - A-ads (aads.com), a MESMA rede/units do Coin Hub.
  *
- * Por que A-ads: o ad unit é um <iframe> puro — nenhum JavaScript de terceiro
+ * Por que A-ads: o ad unit é um <iframe> puro - nenhum JavaScript de terceiro
  * roda na NOSSA página (o código do anunciante fica isolado na origem do
  * iframe), então o CSP continua com script-src 'self' e só libera o host do
  * frame em frame-src (server/index.js). A rede também é cookieless (não seta
  * cookies nem rastreia usuários), por isso não exige banner de consentimento
- * LGPD — diferente de AdSense e afins.
+ * LGPD - diferente de AdSense e afins.
  *
  * Placements (espelham o AdRails do Coin Hub):
  *  - Desktop (≥1420px): dois skyscrapers 160x600 fixos nas calhas laterais
  *    vazias (o .wrap tem 1060px → sobra ≥180px de calha em cada lado).
  *  - Mobile/estreito (<1420px): um 300x250 em fluxo, imediatamente antes do
- *    rodapé — nunca cobre navegação, só rola com a página.
+ *    rodapé - nunca cobre navegação, só rola com a página.
  * O id pode repetir nos dois rails (ganhos idênticos; unit extra só compraria
  * estatística por slot). String vazia desliga o placement.
  */

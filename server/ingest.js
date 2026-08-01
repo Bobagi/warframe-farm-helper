@@ -15,7 +15,7 @@ const { fetchJson, escapeHtml, COMMON_RESOURCES } = require('./util');
 const { getDb, setMeta } = require('./db');
 
 // Sanitização na origem: HTML cru dentro do markdown vira texto escapado e
-// links só saem com esquemas seguros — o cliente pode confiar no html gerado.
+// links só saem com esquemas seguros - o cliente pode confiar no html gerado.
 const SAFE_HREF = /^(https?:\/\/|\/|#|mailto:)/i;
 marked.use({
   renderer: {
@@ -73,7 +73,7 @@ function slimComponent(c) {
   };
 }
 
-/** Guarda só o que o site renderiza — mantém o banco pequeno. */
+/** Guarda só o que o site renderiza - mantém o banco pequeno. */
 function slimItem(it) {
   const s = {
     name: it.name,
@@ -145,7 +145,7 @@ function groupRelics(entries) {
 /**
  * Índice reverso "usado para construir": varre os components de cada item e,
  * quando um componente É um item avulso que vale uma página (uma arma/
- * companheiro — não um recurso bruto), registra component -> produto. Ex.:
+ * companheiro - não um recurso bruto), registra component -> produto. Ex.:
  * Furis -> Afuris. Casa por `uniqueName` (robusto a nomes iguais). Dedup por
  * (componente, produto), SOMANDO a quantidade quando o produto lista o mesmo
  * componente mais de uma vez (a Afuris pede 2× Furis). `itemRows` = as linhas
@@ -162,7 +162,7 @@ function buildCraftingUses(itemRows) {
       if (!cu || cu === r.unique_name) continue; // sem id ou auto-referência
       const compItem = byUnique.get(cu);
       // só itens avulsos indexados que NÃO são recurso bruto (senão "Morphics
-      // usado em 500 coisas" polui) — filtra por categoria e pela lista comum
+      // usado em 500 coisas" polui) - filtra por categoria e pela lista comum
       if (!compItem || compItem.category === 'Resources' || COMMON_RESOURCES.has(c.name)) continue;
       const key = `${cu} ${r.unique_name}`;
       const prev = uses.get(key);
@@ -250,7 +250,7 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
 
   // Recursos "clássicos" de craft (Plastids, Ferrite, Orokin Cell, Neurodes…) e
   // os cosméticos de recompensa (retratos/cenas/glifos) vivem em Misc/Skins/
-  // Glyphs.json — fora das CATEGORIES. Puxa os RECURSOS como itens buscáveis
+  // Glyphs.json - fora das CATEGORIES. Puxa os RECURSOS como itens buscáveis
   // (página com "onde farmar") e monta um mapa nome→imagem p/ a arte das
   // recompensas de quest, sem jogar 9k cosméticos na busca.
   const assetMap = new Map(); // nome -> image_name (1º vence)
@@ -266,7 +266,7 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
       addAsset(it.name, it.imageName);
       // recurso de craft = type "Resource" OU usado como ingrediente em alguma
       // receita (`parents`). O WFCD tagueia inconsistente: Neurodes/Ferrite são
-      // type "Misc" mas têm parents (115/160 usos) — o `parents>0` os pega; lixo
+      // type "Misc" mas têm parents (115/160 usos) - o `parents>0` os pega; lixo
       // Misc (Archon Shards, itens de evento) tem parents 0 e fica de fora.
       const isCraftRes = it.type === 'Resource'
         || (Array.isArray(it.parents) && it.parents.length > 0);

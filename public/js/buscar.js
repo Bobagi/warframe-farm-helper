@@ -1,7 +1,7 @@
 'use strict';
 
 (() => {
-  const { el, api, qs, attachSearch, resultRow } = App;
+  const { el, api, qs, attachSearch, resultRow, safeHref } = App;
   const { t } = I18n;
 
   const input = document.getElementById('q');
@@ -34,7 +34,7 @@
       for (const r of web.results) {
         webList.append(el('li', { class: 'row web-result' }, [
           el('span', { class: 'grow' }, [
-            el('a', { href: r.link, rel: 'noopener nofollow', target: '_blank' }, [
+            el('a', { href: safeHref(r.link), rel: 'noopener nofollow', target: '_blank' }, [
               el('span', { class: 'name', text: r.title || r.link }),
             ]),
             el('br'),
@@ -48,7 +48,7 @@
       webNote.textContent = web.note || t('search.linksDefault');
       for (const l of web.links) {
         webList.append(el('li', {}, [
-          el('a', { class: 'row row-link', href: l.url, rel: 'noopener', target: '_blank' }, [
+          el('a', { class: 'row row-link', href: safeHref(l.url), rel: 'noopener', target: '_blank' }, [
             el('span', { class: 'grow name', text: l.label }),
             el('span', { class: 'kind-tag', text: t('search.external') }),
           ]),
@@ -87,7 +87,7 @@
   const initial = (qs('q') || '').trim();
   if (initial) {
     input.value = initial;
-    document.title = `${initial} — Warframe Farm Helper`;
+    document.title = `${initial} - Warframe Farm Helper`;
     run(initial, false);
     webMore.addEventListener('click', () => run(initial, true));
   } else {

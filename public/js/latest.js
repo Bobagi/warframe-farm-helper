@@ -8,7 +8,7 @@
  * autocomplete: você digita/apaga/digita e o dropdown mostra um resultado
  * anterior). Este runner resolve isso com duas garantias:
  *   1) ao iniciar uma nova chamada, ABORTA a anterior ainda em voo (via
- *      AbortController — passa o signal para o fetch, que é cancelado de fato);
+ *      AbortController - passa o signal para o fetch, que é cancelado de fato);
  *   2) mesmo que uma resposta antiga escape do abort e volte, ela é marcada como
  *      `superseded` (o número de sequência não é mais o atual) e o chamador a
  *      descarta em vez de renderizar.
@@ -28,7 +28,7 @@
     /**
      * Executa `task(signal)` como a busca mais recente. Retorna
      * `{ superseded: true }` se uma chamada mais nova começou antes desta
-     * resolver (resultado obsoleto — descarte); senão `{ superseded: false,
+     * resolver (resultado obsoleto - descarte); senão `{ superseded: false,
      * value }`. Erros do task (incl. AbortError) propagam para o chamador.
      */
     async function run(task) {

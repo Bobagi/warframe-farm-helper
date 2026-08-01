@@ -5,7 +5,7 @@
   const { t, missionName, enemyName } = I18n;
   const placeName = (n) => (I18n.lang() === 'pt' ? Places.placePt(n) : n);
 
-  // (a busca vive fixa no cabeçalho — sem barra duplicada no hero)
+  // (a busca vive fixa no cabeçalho - sem barra duplicada no hero)
 
   // chips de exemplo (traduzíveis)
   const chips = [
@@ -93,17 +93,50 @@
     baro.replaceChildren(
       b.active
         ? el('span', {}, [
-          t('baro.here', { loc: b.location || '—', n: b.items }),
+          t('baro.here', { loc: b.location || '-', n: b.items }),
           el('span', { class: 'num', dataset: { expiry: b.expiry } }),
         ])
         : el('span', {}, [
           t('baro.coming'),
           el('span', { class: 'num', dataset: { expiry: b.activation } }),
-          t('baro.comingTail', { loc: b.location || '—' }),
+          t('baro.comingTail', { loc: b.location || '-' }),
         ])
     );
     startTimers();
   }).catch(() => { baro.textContent = t('baro.down'); });
+
+  // ---- varzia (prime resurgence) ----
+  // O painel nasce hidden: rotação é informação de "está rolando agora", então
+  // um bloco vazio/quebrado é pior que bloco nenhum.
+  const varziaPanel = document.getElementById('varzia');
+  const varziaBody = document.getElementById('varzia-body');
+  api('/api/varzia').then(({ varzia: v }) => {
+    if (!v || !v.primes.length) return;
+    varziaBody.replaceChildren(
+      el('p', { class: 'muted small' }, [
+        t('varzia.until'),
+        el('span', { class: 'num', dataset: { expiry: v.expiry } }),
+        t('varzia.at', { loc: v.location }),
+      ]),
+      el('ul', { class: 'rowlist' }, v.primes.map((p) => el('li', { class: 'row' }, [
+        el('span', { class: 'grow' }, [
+          el('a', { class: 'rw-link', href: App.safeHref(p.url) }, [
+            el('span', { class: 'name', text: I18n.lang() === 'pt' && p.namePt ? p.namePt : p.name }),
+          ]),
+        ]),
+        el('span', { class: 'chip-rar rar-Uncommon', text: t(`varzia.cat.${p.category === 'Warframes' ? 'frame' : 'weapon'}`) }),
+      ]))),
+      el('p', { class: 'muted small', text: t('varzia.relics', { n: v.relicCount, tiers: v.tiers.join(', ') }) }),
+      v.next
+        ? el('p', { class: 'muted small' }, [t('varzia.next', { item: v.next.item })])
+        : null,
+      el('p', { class: 'panel-cta' }, [
+        el('a', { class: 'btn-line', href: '/faq/24-primes-vaulted', text: t('varzia.how') }),
+      ])
+    );
+    varziaPanel.hidden = false;
+    startTimers();
+  }).catch(() => { /* rotação é extra: falha em silêncio, sem painel vazio */ });
 
   // ---- dá pra farmar agora (top por valor) ----
   const farmGrid = document.getElementById('farm-home-grid');

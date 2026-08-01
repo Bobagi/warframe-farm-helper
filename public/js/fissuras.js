@@ -2,7 +2,7 @@
 
 /**
  * Página de fissuras: lista as fissuras ativas (Normais/Steel Path/Railjack) e,
- * abaixo, os sets prime que dá pra farmar AGORA — cruzando os tiers com fissura
+ * abaixo, os sets prime que dá pra farmar AGORA - cruzando os tiers com fissura
  * ativa × relíquias disponíveis desses tiers (dados de /api/farmable). Filtra os
  * cards pelo tier da relíquia que o jogador tem.
  */

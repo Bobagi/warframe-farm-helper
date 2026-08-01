@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Preços do warframe.market (API pública v2) com cache no SQLite —
+ * Preços do warframe.market (API pública v2) com cache no SQLite -
  * nice-to-have: "ou compre de outro jogador por ~X platina".
  */
 

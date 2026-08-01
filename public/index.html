@@ -3,20 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title data-i18n="title.home">Warframe Farm Helper — onde farmar qualquer coisa</title>
+  <title data-i18n="title.home">Warframe Farm Helper · onde farmar qualquer coisa</title>
   <meta name="description" content="Buscador de farm para Warframe: onde dropa cada item, relíquias disponíveis ou vaulted, fissuras do Void ativas agora, FAQ de mecânicas e guias dos atos do Nightwave. PT-BR e inglês.">
   <meta name="theme-color" content="#0b0e17">
   <link rel="preload" href="/fonts/exo2-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="canonical" href="https://warframe.bobagi.space/">
   <meta property="og:url" content="https://warframe.bobagi.space/">
-  <meta property="og:title" content="Warframe Farm Helper — onde farmar qualquer coisa">
+  <meta property="og:title" content="Warframe Farm Helper · onde farmar qualquer coisa">
   <meta property="og:description" content="Buscador de farm para Warframe: onde dropa cada item, relíquias disponíveis ou vaulted, fissuras do Void ativas agora, FAQ de mecânicas e guias dos atos do Nightwave. PT-BR e inglês.">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Warframe Farm Helper">
   <meta property="og:locale" content="pt_BR">
   <meta property="og:image" content="https://warframe.bobagi.space/og-banner.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Warframe Farm Helper — onde farmar qualquer coisa">
+  <meta name="twitter:title" content="Warframe Farm Helper · onde farmar qualquer coisa">
   <meta name="twitter:description" content="Buscador de farm para Warframe: onde dropa cada item, relíquias disponíveis ou vaulted, fissuras do Void ativas agora, FAQ de mecânicas e guias dos atos do Nightwave. PT-BR e inglês.">
   <meta name="twitter:image" content="https://warframe.bobagi.space/og-banner.png">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Warframe Farm Helper","alternateName":"Onde farmar em Warframe","url":"https://warframe.bobagi.space/","inLanguage":"pt-BR","potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://warframe.bobagi.space/buscar?q={search_term_string}"},"query-input":"required name=search_term_string"}}</script>
@@ -30,7 +30,7 @@
     <div class="wrap">
       <section class="hero">
         <h1><span data-i18n="home.h1a">Onde</span> <span class="glow" data-i18n="home.h1b">farmar</span> <span data-i18n="home.h1c">qualquer coisa em Warframe</span></h1>
-        <p class="lead" data-i18n="home.lead">Item, relíquia, mecânica ou ato do Nightwave — uma busca só, em português, com dados oficiais de drop e o estado do jogo agora.</p>
+        <p class="lead" data-i18n="home.lead">Item, relíquia, mecânica ou ato do Nightwave - uma busca só, em português, com dados oficiais de drop e o estado do jogo agora.</p>
         <p class="hero-hint" data-i18n="home.searchHint">Use a busca no topo da página. Comece por um exemplo:</p>
         <div class="example-chips" id="example-chips" aria-label="Exemplos de busca"></div>
       </section>
@@ -47,7 +47,7 @@
 
       <div class="cols-2">
         <details class="panel" id="fissuras" open>
-          <summary class="panel-summary"><span class="eyebrow" id="fiss-title"><span data-i18n="fissures.title">Fissuras do Void — agora</span> <span class="hint" id="fiss-hint"></span></span></summary>
+          <summary class="panel-summary"><span class="eyebrow" id="fiss-title"><span data-i18n="fissures.title">Fissuras do Void - agora</span> <span class="hint" id="fiss-hint"></span></span></summary>
           <div class="panel-body">
             <div class="tier-toggle" id="fiss-mode" role="group">
               <button type="button" data-mode="normal" data-i18n="fissures.normal" aria-pressed="true">Normais</button>
@@ -60,12 +60,17 @@
 
         <div>
           <details class="panel" id="nightwave" open>
-            <summary class="panel-summary"><span class="eyebrow" data-i18n="nw.weekTitle">Nightwave — atos da semana</span></summary>
+            <summary class="panel-summary"><span class="eyebrow" data-i18n="nw.weekTitle">Nightwave - atos da semana</span></summary>
             <div class="panel-body">
               <ul class="rowlist" id="nw-list"></ul>
               <p class="panel-cta"><a class="btn-line" href="/nightwave" data-i18n="nw.allActs">Todos os atos + guias</a></p>
             </div>
           </details>
+
+          <section class="panel" id="varzia" aria-labelledby="varzia-title" hidden>
+            <p class="eyebrow" id="varzia-title" data-i18n="varzia.title">Prime Resurgence (Varzia)</p>
+            <div id="varzia-body"></div>
+          </section>
 
           <section class="panel panel-quiet" aria-labelledby="baro-title">
             <p class="eyebrow" id="baro-title" data-i18n="baro.title">Baro Ki'Teer</p>
@@ -75,7 +80,7 @@
       </div>
 
       <section class="panel" aria-labelledby="faq-title">
-        <p class="eyebrow" id="faq-title" data-i18n="faq.title">FAQ — mecânicas do jogo</p>
+        <p class="eyebrow" id="faq-title" data-i18n="faq.title">FAQ - mecânicas do jogo</p>
         <div class="card-grid" id="faq-cards"></div>
         <p class="panel-cta"><a class="btn-line" href="/faq" data-i18n="faq.all">Ver todas as perguntas</a></p>
       </section>

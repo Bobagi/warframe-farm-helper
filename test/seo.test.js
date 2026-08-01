@@ -4,7 +4,7 @@ const os = require('node:os');
 const path = require('node:path');
 const fs = require('node:fs');
 
-// DB efêmero — precisa ser definido ANTES de carregar os módulos
+// DB efêmero - precisa ser definido ANTES de carregar os módulos
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'wfh-seo-'));
 process.env.DB_PATH = path.join(TMP, 'test.db');
 process.env.DATA_DIR = TMP;
@@ -85,7 +85,7 @@ test('injectBodyData/injectContent: data-attrs escapados e marcador substituído
 
 test('injectHead: titleI18n mantém data-i18n; $-patterns de dado externo entram literais', () => {
   const tpl = '<html><head><title data-i18n="x">Genérico</title>\n</head><body></body></html>';
-  // título com padrões especiais de String.replace ($$, $&, $n) — vindos do WFCD
+  // título com padrões especiais de String.replace ($$, $&, $n) - vindos do WFCD
   const out = seo.injectHead(tpl, { title: 'Preço $$ e $& e $1', titleI18n: 'title.faq', canonical: '/x' });
   assert.ok(out.includes('data-i18n="title.faq"'), 'com titleI18n o hook de i18n é mantido no title');
   // escapeHtml só troca o & de "$&" por "&amp;"; os $ seguem literais (função de replace)
@@ -138,14 +138,14 @@ function seed() {
     JSON.stringify({ name: 'Entrati Lanthorn' }));
   ins.run('/Lotus/Test/TwinB', 'Entrati Lanthorn', null, 'Resources', 'Resource', null, null, null, null, 0,
     JSON.stringify({ name: 'Entrati Lanthorn' }));
-  // item hostil (nome vindo de dado externo) — SSR precisa escapar
+  // item hostil (nome vindo de dado externo) - SSR precisa escapar
   ins.run('/Lotus/Test/Evil', EVIL_NAME, null, 'Mods', 'Mod', null, null, null, null, 0,
     JSON.stringify({ name: EVIL_NAME, description: 'x < y & "z"' }));
   db.prepare('INSERT OR REPLACE INTO relics(name, tier, code, vaulted, drops, rewards) VALUES (?,?,?,?,?,?)')
     .run('Lith K12', 'Lith', 'K12', 0, '[]',
       JSON.stringify({ Intact: [{ name: 'Braton Prime Stock', rarity: 'Common', chance: 25.33 }] }));
   db.prepare(`INSERT OR REPLACE INTO articles(slug, kind, title, keywords, match_json, html, body_md, sort)
-    VALUES ('reliquias-teste', 'faq', 'Relíquias — como funcionam?', 'reliquia', NULL,
+    VALUES ('reliquias-teste', 'faq', 'Relíquias - como funcionam?', 'reliquia', NULL,
       '<p>Texto completo do artigo sobre relíquias.</p>', 'x', 10)`).run();
   setMeta(db, 'last_ingest', '2026-07-18T00:00:00.000Z');
 }
@@ -163,7 +163,7 @@ test('rebuild + itemUrl/itemForSlug: URL bonita e lookup de ida e volta', () => 
 
 test('renderItemPage: title/canonical/data-item-u/SSR h1 presentes', () => {
   const html = seo.renderItemPage('braton-prime');
-  assert.ok(html.includes('<title>Onde farmar Braton Prime — Warframe Farm Helper</title>'));
+  assert.ok(html.includes('<title>Onde farmar Braton Prime · Warframe Farm Helper</title>'));
   assert.ok(html.includes('rel="canonical" href="https://warframe.bobagi.space/item/braton-prime"'));
   assert.ok(html.includes('data-item-u="/Lotus/Test/BratonPrime"'));
   assert.ok(html.includes('<h1>Braton Prime</h1>'));
@@ -228,7 +228,7 @@ test('sitemap: páginas fixas + item + relíquia + artigo, com lastmod da ingest
 
 test('renderRelicPage: h1, recompensas Intact no SSR e slug inválido → null', () => {
   const html = seo.renderRelicPage('lith-k12');
-  assert.ok(html.includes('<title>Relíquia Lith K12 — drops e recompensas | Warframe Farm Helper</title>'));
+  assert.ok(html.includes('<title>Relíquia Lith K12 · drops e recompensas | Warframe Farm Helper</title>'));
   assert.ok(html.includes('<h1>Relíquia Lith K12</h1>'));
   assert.ok(html.includes('Braton Prime Stock'));
   assert.ok(html.includes('data-relic-name="Lith K12"'));
@@ -238,7 +238,7 @@ test('renderRelicPage: h1, recompensas Intact no SSR e slug inválido → null',
 
 test('renderArticlePage: conteúdo COMPLETO no HTML (crawler sem JS lê o artigo)', () => {
   const html = seo.renderArticlePage('faq', 'reliquias-teste');
-  assert.ok(html.includes('<h1>Relíquias — como funcionam?</h1>'));
+  assert.ok(html.includes('<h1>Relíquias - como funcionam?</h1>'));
   assert.ok(html.includes('Texto completo do artigo sobre relíquias.'));
   assert.ok(html.includes('rel="canonical" href="https://warframe.bobagi.space/faq/reliquias-teste"'));
   assert.ok(html.includes('data-art-slug="reliquias-teste"'));
@@ -250,14 +250,14 @@ test('renderFaqIndex: JSON-LD FAQPage com pergunta e resposta', () => {
   const html = seo.renderFaqIndex();
   assert.ok(html.includes('application/ld+json'));
   assert.ok(html.includes('FAQPage'));
-  assert.ok(html.includes('Relíquias — como funcionam?'));
+  assert.ok(html.includes('Relíquias - como funcionam?'));
   assert.ok(html.includes('Texto completo do artigo'));
 });
 
 test('índices (/faq, /nightwave): title mantém data-i18n p/ o cliente relocalizar a aba (en/es/ru)', () => {
   const faq = seo.renderFaqIndex();
   assert.ok(faq.includes('data-i18n="title.faq"'), 'FAQ índice mantém hook i18n no title');
-  assert.ok(faq.includes('FAQ — mecânicas de Warframe explicadas em português'), 'e serve o título rico p/ o crawler');
+  assert.ok(faq.includes('FAQ · mecânicas de Warframe explicadas em português'), 'e serve o título rico p/ o crawler');
   const nw = seo.renderNightwaveIndex();
   assert.ok(nw.includes('data-i18n="title.nightwave"'), 'Nightwave índice mantém hook i18n no title');
 });

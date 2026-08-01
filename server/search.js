@@ -26,7 +26,7 @@ let docCount = 0;
 let lastIngestSeen = null;
 
 // Preposições/artigos PT+EN que o usuário digita numa frase ("Sombras DE Jade")
-// mas que não devem virar filtro obrigatório na busca AND — senão "Sombras de"
+// mas que não devem virar filtro obrigatório na busca AND - senão "Sombras de"
 // exige o termo "de" e elimina "Sombras DA Jade" (que tem "da", não "de").
 // Ignoradas na indexação E na query (o processTerm roda nos dois lados).
 const STOPWORDS = new Set([
@@ -64,10 +64,10 @@ function buildDocs() {
     'SELECT unique_name, name, name_pt, category, type, image_name, raw FROM items ORDER BY name, unique_name'
   ).all();
   // nomes que já são itens próprios (recursos: Morphics, Orokin Cell, plantas…)
-  // — não devem virar "componente" de outro item na busca
+  // - não devem virar "componente" de outro item na busca
   const itemNames = new Set(items.map((i) => i.name));
   // o dataset do WFCD tem o MESMO item com uniqueNames diferentes (ex.: "Entrati
-  // Lanthorn" em EntratiLab e Zariman; mods/peixes repetidos) — mostra 1 só na
+  // Lanthorn" em EntratiLab e Zariman; mods/peixes repetidos) - mostra 1 só na
   // busca, deduplicando por (tipo + nome). O 1º ganha (páginas idênticas).
   const seenItemKey = new Set();
   for (const it of items) {
@@ -89,7 +89,7 @@ function buildDocs() {
     const comps = raw && Array.isArray(raw.components) ? raw.components : [];
     for (const c of comps) {
       // pula o blueprint principal e ingredientes que já são itens próprios
-      // (Morphics, Orokin Cell, plantas…) — só peças de fato (Stock, Barrel,
+      // (Morphics, Orokin Cell, plantas…) - só peças de fato (Stock, Barrel,
       // Neuroptics…) viram documento de componente
       if (!c.name || c.name === 'Blueprint' || itemNames.has(c.name) || COMMON_RESOURCES.has(c.name)) continue;
       const full = c.name.includes(it.name) ? c.name : `${it.name} ${c.name}`;
@@ -169,7 +169,7 @@ function toResult(r) {
 
 /**
  * Corta a cauda de matches fracos (OR) que só bateram num termo comum e
- * poluem o resultado — mantém quem tem score dentro de uma fração do topo.
+ * poluem o resultado - mantém quem tem score dentro de uma fração do topo.
  */
 function trimTail(res) {
   if (res.length <= 1) return res;

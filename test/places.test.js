@@ -36,9 +36,9 @@ test('placePt: nome próprio sem termo traduzível fica intacto', () => {
   assert.equal(placePt(null), '');
 });
 
-test('tradução de local CLONA — não muta arrays de cache compartilhado (PT não vaza p/ EN)', () => {
+test('tradução de local CLONA - não muta arrays de cache compartilhado (PT não vaza p/ EN)', () => {
   // getResourceDrops retorna um array cacheado em memória; o itemview traduz uma
-  // CÓPIA (map+spread), nunca o original — senão o cache fica em PT e o EN quebra
+  // CÓPIA (map+spread), nunca o original - senão o cache fica em PT e o EN quebra
   const cached = [{ location: 'Venus/Orb Vallis (Survival)', chance: 30, rarity: 'Common' }];
   const snap = JSON.stringify(cached);
   const translated = cached.map((s) => (s && s.location ? { ...s, location: placePt(s.location) } : s));

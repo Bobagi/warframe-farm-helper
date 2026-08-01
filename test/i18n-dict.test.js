@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-// public/js/i18n.js roda no browser (localStorage/navigator) — aqui só lemos o
+// public/js/i18n.js roda no browser (localStorage/navigator) - aqui só lemos o
 // texto e comparamos os conjuntos de chaves de STRINGS.pt/en/es/ru, para
 // garantir que nenhuma string fica sem tradução (some/aparece só num idioma).
 const SRC = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'i18n.js'), 'utf8');

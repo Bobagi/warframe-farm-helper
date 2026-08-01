@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 
 // public/js/latest.js é UMD → carrega em Node. É o coração do fix do autocomplete:
 // garante que apenas a resposta da busca MAIS RECENTE seja usada e que a anterior
-// em voo seja abortada — o bug era o dropdown mostrar resultado de um texto antigo.
+// em voo seja abortada - o bug era o dropdown mostrar resultado de um texto antigo.
 const { createLatestRunner } = require('../public/js/latest');
 
 const delay = (ms, v) => new Promise((r) => setTimeout(() => r(v), ms));
@@ -45,7 +45,7 @@ test('cancel(): invalida a resposta pendente (ex.: input esvaziou)', async () =>
 
 test('sequência longa (digita/apaga/digita): vence sempre a última', async () => {
   const runner = createLatestRunner();
-  // tempos embaralhados de propósito — a ordem de chegada NÃO é a de disparo
+  // tempos embaralhados de propósito - a ordem de chegada NÃO é a de disparo
   const times = { a: 40, ab: 5, abc: 60, x: 20, xy: 8 };
   const order = ['a', 'ab', 'abc', 'x', 'xy'];
   const results = await Promise.all(order.map((q) => runner.run(() => delay(times[q], q))));

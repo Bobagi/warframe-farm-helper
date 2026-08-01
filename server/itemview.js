@@ -13,7 +13,8 @@ const { getQuestInfo } = require('./questwiki');
 const { getTopOrders } = require('./market');
 const { placePt } = require('../public/js/places');
 const { COMMON_RESOURCES } = require('./util');
-const { itemUrl } = require('./seo');
+const { itemUrl, safeHttpUrl } = require('./seo');
+const { getVarzia } = require('./varzia');
 
 // sufixo EN de cosmético/coisa → rótulo PT (mostrado ANTES do nome, com ":")
 const REWARD_SUFFIX = {
@@ -44,7 +45,7 @@ const REWARD_SUFFIX_RE = /\s+(Blueprint|Scene|Portrait|Glyph|Sigil|Emblem|Segmen
 
 /**
  * Enriquece as recompensas de quest (string[]) em [{label, image, wiki}]: acha a
- * arte no dataset (itens) E no mapa de cosméticos (assets — retratos/cenas/glifos),
+ * arte no dataset (itens) E no mapa de cosméticos (assets - retratos/cenas/glifos),
  * casando o nome cru E sem o sufixo de tipo ("Blueprint"/"Portrait"…). label =
  * traduzido em PT, cru em EN; wiki = link da página do nome canônico que casou.
  */
@@ -88,7 +89,7 @@ function wikiUrlFor(name) {
 
 const WIKI_SEARCH = 'https://wiki.warframe.com/index.php?search=';
 /**
- * URL de BUSCA na wiki — usada quando o alvo não tem página própria (peças de
+ * URL de BUSCA na wiki - usada quando o alvo não tem página própria (peças de
  * prime tipo "Braton Prime Barrel" e cosméticos tipo "Alone Portrait" caem em
  * 404 no /w/, mas vivem dentro da página do set/quest). A busca sempre resolve.
  */
@@ -241,9 +242,21 @@ function buildSteps(raw, comps, itemSources, lang) {
         `${c.fullName}: farme a relíquia ${best.relic} (${rar}${chances ? `, ${chances}` : ''}).${where}`,
         `${c.fullName}: farm the ${best.relic} relic (${rar}${chances ? `, ${chances}` : ''}).${where}`));
     } else {
-      steps.push(L(
-        `${c.fullName}: todas as relíquias estão vaulted — compre a peça de outro jogador (warframe.market) ou aguarde ela voltar na Prime Resurgence (Varzia, Bazar da Maroo).`,
-        `${c.fullName}: every relic is vaulted — buy the part from another player (warframe.market) or wait for it to return via Prime Resurgence (Varzia, Maroo's Bazaar).`));
+      // relíquia vaulted que a Varzia vende AGORA tem caminho de farm hoje: sem
+      // isto o passo a passo mandava "aguarde voltar" contradizendo a tabela de
+      // relíquias logo abaixo, que já mostra "Na Varzia"
+      const onSale = c.relics.filter((r) => r.varzia);
+      if (onSale.length) {
+        const list = onSale.slice(0, 3).map((r) => r.relic).join(', ');
+        const more = onSale.length > 3 ? L(` (+${onSale.length - 3})`, ` (+${onSale.length - 3})`) : '';
+        steps.push(L(
+          `${c.fullName}: as relíquias estão vaulted, MAS voltaram na Prime Resurgence - compre ${list}${more} com Aya na Varzia (Bazar da Maroo, Marte) e abra em fissura.`,
+          `${c.fullName}: the relics are vaulted, BUT they are back via Prime Resurgence - buy ${list}${more} with Aya at Varzia (Maroo's Bazaar, Mars) and crack them in a fissure.`));
+      } else {
+        steps.push(L(
+          `${c.fullName}: todas as relíquias estão vaulted - compre a peça de outro jogador (warframe.market) ou aguarde ela voltar na Prime Resurgence (Varzia, Bazar da Maroo).`,
+          `${c.fullName}: every relic is vaulted - buy the part from another player (warframe.market) or wait for it to return via Prime Resurgence (Varzia, Maroo's Bazaar).`));
+      }
     }
   }
   if (relicComps.length) {
@@ -260,16 +273,16 @@ function buildSteps(raw, comps, itemSources, lang) {
   }
   for (const c of orphanComps) {
     steps.push(L(
-      `${c.fullName}: sem fonte de drop listada — normalmente vem de quest, pesquisa de clã (Dojo) ou loja; confira a wiki.`,
-      `${c.fullName}: no listed drop source — usually from a quest, clan research (Dojo) or a shop; check the wiki.`));
+      `${c.fullName}: sem fonte de drop listada - normalmente vem de quest, pesquisa de clã (Dojo) ou loja; confira a wiki.`,
+      `${c.fullName}: no listed drop source - usually from a quest, clan research (Dojo) or a shop; check the wiki.`));
   }
 
   if (comps.length && Number.isFinite(raw.buildPrice)) {
     const time = fmtBuildTime(raw.buildTime, lang);
     const credits = Number(raw.buildPrice).toLocaleString(en ? 'en-US' : 'pt-BR');
     steps.push(L(
-      `Na Foundry: construa cada componente e depois o blueprint principal — ${credits} créditos${time ? `, ${time} de forja` : ''}${raw.skipBuildTimePrice ? ` (apressar: ${raw.skipBuildTimePrice} platina)` : ''}.`,
-      `In the Foundry: build each component, then the main blueprint — ${credits} credits${time ? `, ${time} to build` : ''}${raw.skipBuildTimePrice ? ` (rush: ${raw.skipBuildTimePrice} platinum)` : ''}.`));
+      `Na Foundry: construa cada componente e depois o blueprint principal - ${credits} créditos${time ? `, ${time} de forja` : ''}${raw.skipBuildTimePrice ? ` (apressar: ${raw.skipBuildTimePrice} platina)` : ''}.`,
+      `In the Foundry: build each component, then the main blueprint - ${credits} credits${time ? `, ${time} to build` : ''}${raw.skipBuildTimePrice ? ` (rush: ${raw.skipBuildTimePrice} platinum)` : ''}.`));
   }
 
   if (!comps.length) {
@@ -278,8 +291,8 @@ function buildSteps(raw, comps, itemSources, lang) {
       if (top) steps.push(L(`Melhor fonte: ${top.location} (${pct(top.chance)}).`, `Best source: ${top.location} (${pct(top.chance)}).`));
     } else {
       steps.push(L(
-        'Este item não tem fonte de drop listada nas tabelas oficiais — normalmente vem de quest, pesquisa de clã (Dojo), loja de sindicato ou do Mercado (créditos). Confira a página da wiki para o caminho exato.',
-        'This item has no drop source in the official tables — usually from a quest, clan research (Dojo), a syndicate shop or the Market (credits). Check the wiki page for the exact path.'));
+        'Este item não tem fonte de drop listada nas tabelas oficiais - normalmente vem de quest, pesquisa de clã (Dojo), loja de sindicato ou do Mercado (créditos). Confira a página da wiki para o caminho exato.',
+        'This item has no drop source in the official tables - usually from a quest, clan research (Dojo), a syndicate shop or the Market (credits). Check the wiki page for the exact path.'));
     }
   }
   return steps;
@@ -310,7 +323,7 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
   }
 
   // um componente cujo nome é um item avulso (Morphics, Orokin Cell, plantas…)
-  // é ingrediente — mantém o nome dele; peças de fato ganham o prefixo do item
+  // é ingrediente - mantém o nome dele; peças de fato ganham o prefixo do item
   const isStandalone = db.prepare('SELECT 1 FROM items WHERE name = ? LIMIT 1');
   const standaloneCache = new Map();
   const isIngredient = (name) => {
@@ -327,7 +340,7 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
       ? c.name
       : `${raw.name} ${c.name}`;
     const relics = decorateRelics(db, cls.relics, fullName, fissuresByTier, relicCache);
-    // recurso bruto (Orokin Cell, Morphics…) nunca é "vaulted" — sempre farmável
+    // recurso bruto (Orokin Cell, Morphics…) nunca é "vaulted" - sempre farmável
     const available = isIngredient(c.name) || relics.some((r) => r.vaulted === false) || cls.other.length > 0;
     const marketSlug = (relics.find((r) => r.marketSlug) || {}).marketSlug
       || (c.tradable ? marketSlugFor(fullName) : null);
@@ -352,7 +365,7 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
 
   // componentes-recurso sem fonte no nosso dataset (Orokin Cell, Morphics…):
   // busca "onde dropa" na API de drops e gera o link da wiki, em vez de só
-  // dizer "sem fonte". Em paralelo (1–2 por item), com cache no módulo de drops.
+  // dizer "sem fonte". Em paralelo (1-2 por item), com cache no módulo de drops.
   const needDrops = comps.filter((c) => !c.relics.length && !c.otherSources.length);
   await Promise.all(needDrops.map(async (c) => {
     try { c.resourceDrops = await getResourceDrops(c.name); } catch { c.resourceDrops = []; }
@@ -377,7 +390,7 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
 
   let itemSources = classifyDrops(raw.drops);
   // Recurso próprio (Plastids, Neurodes, Orokin Cell…): "onde farmar" é o que o
-  // usuário quer. Se não há drop no dataset, busca na API de drops — mesmo que o
+  // usuário quer. Se não há drop no dataset, busca na API de drops - mesmo que o
   // recurso seja CRAFTÁVEL (o Orokin Cell tem receita: Alloy Plate/Nano Spores/
   // Salvage), pois farmar é a forma comum de obtê-lo; por isso NÃO condiciona a
   // `!comps.length`.
@@ -394,7 +407,7 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
       if (d.length) itemSources = { relics: [], other: d };
     } catch { /* mantém vazio */ }
   }
-  // recurso FARMÁVEL não mostra a receita de craft (raramente usada) — foca no
+  // recurso FARMÁVEL não mostra a receita de craft (raramente usada) - foca no
   // drop; recurso só-craftável (ex.: Fieldron, sem drop) MANTÉM a receita.
   const farmable = itemSources.other.length > 0 || itemSources.relics.length > 0;
   const outComps = (isResourceItem && farmable) ? [] : comps;
@@ -409,16 +422,16 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
 
   const isPrime = / Prime( |$)/.test(raw.name);
   const isQuest = row.category === 'Quests';
-  // requisitos/recompensas da quest (wiki, cacheado no banco) — o dataset da DE
+  // requisitos/recompensas da quest (wiki, cacheado no banco) - o dataset da DE
   // não traz esses campos de forma estruturada
   let questInfo = null;
   if (isQuest) { try { questInfo = await getQuestInfo(db, row.unique_name, raw.name); } catch { questInfo = null; } }
 
-  // PT: traduz os locais de drop (planeta/tipo/rotação) em tudo que os embute —
+  // PT: traduz os locais de drop (planeta/tipo/rotação) em tudo que os embute -
   // sources, relíquias, drops de recurso e o passo a passo. Feito ANTES de
   // buildSteps para o passo a passo sair traduzido também. CLONA os objetos
   // (map+spread) em vez de mutar: alguns arrays vêm de cache compartilhado
-  // (getResourceDrops) — mutar corromperia o cache e vazaria PT para o EN.
+  // (getResourceDrops) - mutar corromperia o cache e vazaria PT para o EN.
   if (lang === 'pt') {
     const trLoc = (arr) => (Array.isArray(arr)
       ? arr.map((s) => (s && s.location ? { ...s, location: placePt(s.location) } : s))
@@ -436,6 +449,14 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
     questInfo = { ...questInfo, reward: enrichRewards(questInfo.reward, db, lang) };
   }
 
+  // Varzia ANTES do buildSteps: a marcação alimenta tanto a tabela de relíquias
+  // quanto o passo a passo, para os dois nunca se contradizerem.
+  const varzia = await getVarzia().catch(() => null);
+  if (varzia) {
+    const onSale = new Set(varzia.relics);
+    for (const c of outComps) for (const r of c.relics) r.varzia = onSale.has(r.relic);
+  }
+
   return {
     uniqueName: row.unique_name,
     name: raw.name,
@@ -447,8 +468,11 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
     description: (lang === 'pt' ? (raw.descriptionPt || raw.description) : raw.description) || '',
     vaulted: row.vaulted === 1 ? true : row.vaulted === 0 ? false : null,
     image: raw.imageName ? CDN_IMG + raw.imageName : null,
-    // dataset traz wiki só p/ alguns; gera do nome quando falta (quests, etc.)
-    wikiUrl: row.wiki_url || wikiUrlFor(raw.name),
+    // dataset traz wiki só p/ alguns; gera do nome quando falta (quests, etc.).
+    // `wiki_url` é dado EXTERNO (WFCD) e vira href no cliente: passa pelo mesmo
+    // safeHttpUrl que o SSR já usava, senão só o caminho JSON ficava sem filtro
+    // de esquema (`javascript:`).
+    wikiUrl: safeHttpUrl(row.wiki_url) || wikiUrlFor(raw.name),
     masteryReq: Number.isFinite(raw.masteryReq) ? raw.masteryReq : null,
     tradable: !!row.tradable,
     crafting: outComps.length ? {
@@ -463,6 +487,7 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
     steps: buildSteps(raw, outComps, itemSources, lang),
     setMarketSlug: row.tradable && isPrime ? marketSlugFor(`${raw.name} set`) : null,
     fissures: relevantFissures,
+    varzia: varzia ? { expiry: varzia.expiry, primes: varzia.primes.map((p) => p.name) } : null,
   };
 }
 
@@ -515,7 +540,7 @@ function activePrimeTiers(fissures) {
   return PRIME_TIERS.filter((t) => active.has(t));
 }
 
-// preço do set no warframe.market, em lotes (respeita o rate-limit) — o
+// preço do set no warframe.market, em lotes (respeita o rate-limit) - o
 // getTopOrders já cacheia por slug no SQLite; aqui só orquestra a busca.
 async function addSetPrices(items) {
   const CONC = 6;
@@ -526,12 +551,12 @@ async function addSetPrices(items) {
       try {
         const d = await getTopOrders(it.marketSlug);
         if (d && !d.error && !d.notFound && Number.isFinite(d.minSell)) it.platinum = d.minSell;
-      } catch { /* item sem mercado — fica sem preço */ }
+      } catch { /* item sem mercado - fica sem preço */ }
     }));
   }
 }
 
-// cache do resultado inteiro (com preços) por tiers ativos — evita re-buscar os
+// cache do resultado inteiro (com preços) por tiers ativos - evita re-buscar os
 // ~36 preços a cada request da home/página de fissuras
 const FARMABLE_TTL_MS = 15 * 60 * 1000;
 let farmableCache = null; // { key, data, at }
@@ -559,7 +584,7 @@ async function buildFarmable(fissuresArg, { prices = true } = {}) {
   ).all(...tiers);
 
   // recompensa → item pai. Um blueprint principal ("Afentis Prime Blueprint")
-  // limpa para "Afentis Prime", que É o próprio item (match EXATO) — sem o exato,
+  // limpa para "Afentis Prime", que É o próprio item (match EXATO) - sem o exato,
   // o prefixo mais longo casaria o item BASE "Afentis" (bug). Uma peça
   // ("Afentis Prime Barrel") não é item exato → cai no prefixo mais longo.
   const cols = 'unique_name, name, name_pt, category, image_name';
