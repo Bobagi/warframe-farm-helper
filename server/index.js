@@ -33,7 +33,7 @@ app.use((req, res, next) => {
     "script-src 'self'",
     "connect-src 'self'",
     "font-src 'self'",
-    // anúncios A-ads (mesma rede/units do Coin Hub): iframe puro - o código do
+    // anúncios A-ads (mesma rede/units do Porkfolio): iframe puro - o código do
     // anunciante roda na ORIGEM DELES, nunca na nossa página; script-src segue
     // 'self'. É a única exceção de frame permitida.
     'frame-src https://acceptable.a-ads.com',

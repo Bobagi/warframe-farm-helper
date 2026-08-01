@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Publicidade - A-ads (aads.com), a MESMA rede/units do Coin Hub.
+ * Publicidade - A-ads (aads.com), a MESMA rede/units do Porkfolio.
  *
  * Por que A-ads: o ad unit é um <iframe> puro - nenhum JavaScript de terceiro
  * roda na NOSSA página (o código do anunciante fica isolado na origem do
@@ -10,7 +10,7 @@
  * cookies nem rastreia usuários), por isso não exige banner de consentimento
  * LGPD - diferente de AdSense e afins.
  *
- * Placements (espelham o AdRails do Coin Hub):
+ * Placements (espelham o AdRails do Porkfolio):
  *  - Desktop (≥1420px): dois skyscrapers 160x600 fixos nas calhas laterais
  *    vazias (o .wrap tem 1060px → sobra ≥180px de calha em cada lado).
  *  - Mobile/estreito (<1420px): um 300x250 em fluxo, imediatamente antes do

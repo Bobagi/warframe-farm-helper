@@ -79,7 +79,7 @@ test/          node --test (ingestão, busca, quota CSE, sanitização, SEO/slug
 data/          SQLite + WAL (git-ignored, recriado pela ingestão)
 ```
 
-**Anúncios:** rails A-ads (iframe isolado, mesma rede/units do Coin Hub) nas calhas laterais em telas
+**Anúncios:** rails A-ads (iframe isolado, mesma rede/units do Porkfolio) nas calhas laterais em telas
 largas (≥1420px) + um bloco em fluxo no mobile - `public/js/ads.js`. A-ads é cookieless (sem banner de
 consentimento); o `<iframe>` roda o código do anunciante na origem DELES, então a CSP mantém
 `script-src 'self'` e só abre `frame-src acceptable.a-ads.com`.
