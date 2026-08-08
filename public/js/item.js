@@ -71,8 +71,14 @@
     return out;
   }
 
+  // fonte que é um inimigo/NPC vem com `wiki` do servidor → o nome vira link
+  // (abre a página dele na wiki); locais de missão seguem texto puro
   const sourceRow = (s) => el('li', { class: 'row' }, [
-    el('span', { class: 'grow name small', text: s.location }),
+    el('span', { class: 'grow small' }, [
+      s.wiki
+        ? el('a', { class: 'name src-wiki', href: safeHref(s.wiki), target: '_blank', rel: 'noopener', text: s.location })
+        : el('span', { class: 'name', text: s.location }),
+    ]),
     s.rarity ? rarityChip(s.rarity) : null,
     el('span', { class: 'num small', text: fmtPct(s.chance) }),
   ]);

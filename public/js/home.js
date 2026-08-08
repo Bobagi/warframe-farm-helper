@@ -87,9 +87,14 @@
 
   // ---- baro ----
   const baro = document.getElementById('baro-body');
+  // fallback EN cobre a janela de cache do CF (este arquivo novo + i18n.js velho)
+  const guideLabel = t('baro.guide') === 'baro.guide' ? 'Ducats guide' : t('baro.guide');
+  const baroGuide = () => el('p', { class: 'panel-cta', style: 'margin-top:10px' }, [
+    el('a', { class: 'btn-line', href: '/faq/22-ducats-baro', text: guideLabel }),
+  ]);
   baro.textContent = t('baro.loading');
   api('/api/baro').then(({ baro: b }) => {
-    if (!b) { baro.textContent = t('baro.none'); return; }
+    if (!b) { baro.replaceChildren(el('span', { text: t('baro.none') }), baroGuide()); return; }
     baro.replaceChildren(
       b.active
         ? el('span', {}, [
@@ -100,7 +105,8 @@
           t('baro.coming'),
           el('span', { class: 'num', dataset: { expiry: b.activation } }),
           t('baro.comingTail', { loc: b.location || '-' }),
-        ])
+        ]),
+      baroGuide()
     );
     startTimers();
   }).catch(() => { baro.textContent = t('baro.down'); });
@@ -112,7 +118,9 @@
   const varziaBody = document.getElementById('varzia-body');
   api('/api/varzia').then(({ varzia: v }) => {
     if (!v || !v.primes.length) return;
-    varziaBody.replaceChildren(
+    // replaceChildren NÃO ignora null (vira o TEXTO "null" na página - ao
+    // contrário do el(), que filtra) → monta a lista e filtra antes
+    varziaBody.replaceChildren(...[
       el('p', { class: 'muted small' }, [
         t('varzia.until'),
         el('span', { class: 'num', dataset: { expiry: v.expiry } }),
@@ -132,8 +140,8 @@
         : null,
       el('p', { class: 'panel-cta' }, [
         el('a', { class: 'btn-line', href: '/faq/24-primes-vaulted', text: t('varzia.how') }),
-      ])
-    );
+      ]),
+    ].filter(Boolean));
     varziaPanel.hidden = false;
     startTimers();
   }).catch(() => { /* rotação é extra: falha em silêncio, sem painel vazio */ });

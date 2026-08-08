@@ -78,3 +78,34 @@ test('getCycles(): sem Cetus disponível, some com a Terra junto (sem fonte corr
     delete require.cache[require.resolve('../server/worldstate')];
   }
 });
+
+// A flag `active` do /voidTrader upstream falha (flagrado ao vivo 2026-08-08:
+// `active: null` com o Baro NA relay, activation no passado e expiry no futuro,
+// 37 itens no inventário). normalizeBaro deriva o estado dos TIMESTAMPS - a
+// flag só vale quando algum timestamp vem inválido.
+test('normalizeBaro: timestamps mandam sobre a flag `active` do upstream', () => {
+  const { normalizeBaro } = require('../server/worldstate');
+  const now = Date.parse('2026-08-08T12:00:00.000Z');
+  const visit = {
+    active: null, // upstream mentindo (caso real)
+    activation: '2026-08-07T13:00:00.000Z',
+    expiry: '2026-08-09T13:00:00.000Z',
+    location: 'Kronia Relay (Saturn)',
+    inventory: new Array(37).fill({}),
+  };
+  const b = normalizeBaro(visit, now);
+  assert.equal(b.active, true, 'chegou e não saiu ⇒ está na relay, digam o que digam');
+  assert.equal(b.items, 37);
+
+  // antes de chegar: activation no futuro ⇒ inactive, mesmo com flag true
+  const before = normalizeBaro({ ...visit, active: true, activation: '2026-08-14T13:00:00.000Z', expiry: '2026-08-16T13:00:00.000Z' }, now);
+  assert.equal(before.active, false);
+
+  // depois de sair: expiry no passado ⇒ inactive
+  const after = normalizeBaro({ ...visit, activation: '2026-08-01T13:00:00.000Z', expiry: '2026-08-03T13:00:00.000Z' }, now);
+  assert.equal(after.active, false);
+
+  // timestamp inválido ⇒ cai na flag; payload não-objeto ⇒ null
+  assert.equal(normalizeBaro({ active: true, activation: 'nope', expiry: 'nope' }, now).active, true);
+  assert.equal(normalizeBaro(null, now), null);
+});

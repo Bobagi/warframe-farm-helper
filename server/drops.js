@@ -8,6 +8,7 @@
  */
 
 const { fetchJson } = require('./util');
+const { enemyWikiUrl } = require('./enemywiki');
 
 const TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const MAX_LOCATIONS = 8;
@@ -56,7 +57,10 @@ function summarize(arr, name) {
     const location = baseLocation(raw);
     const chance = Number.isFinite(d.chance) ? d.chance : 0;
     const prev = byPlace.get(location);
-    if (!prev || chance > prev.chance) byPlace.set(location, { location, chance, rarity: d.rarity });
+    if (!prev || chance > prev.chance) {
+      // wiki no nome cru EN (boss/inimigo que dropa o recurso vira link)
+      byPlace.set(location, { location, chance, rarity: d.rarity, wiki: enemyWikiUrl(location) });
+    }
   }
   return [...byPlace.values()]
     .sort((a, b) => (b.chance || 0) - (a.chance || 0))

@@ -49,6 +49,17 @@ test('classifyDrops reconhece relíquias Requiem', () => {
   assert.equal(relics[0].relic, 'Requiem I');
 });
 
+test('classifyDrops anota `wiki` no inimigo e deixa null no nó de missão', () => {
+  const { other } = classifyDrops([
+    { location: 'Tusk Thumper Bull', chance: 5.53, rarity: 'Rare' },
+    { location: 'Uranus/Titania (Assassination)', chance: 22.56, rarity: 'Uncommon' },
+  ]);
+  const thumper = other.find((d) => d.location === 'Tusk Thumper Bull');
+  const node = other.find((d) => d.location.startsWith('Uranus/'));
+  assert.equal(thumper.wiki, 'https://wiki.warframe.com/index.php?search=Tusk%20Thumper%20Bull');
+  assert.equal(node.wiki, null, 'nó de missão não é inimigo');
+});
+
 test('marketSlugFor gera slugs no formato do warframe.market', () => {
   assert.equal(marketSlugFor('Braton Prime Stock'), 'braton_prime_stock');
   assert.equal(marketSlugFor('Kompressa Prime Barrel'), 'kompressa_prime_barrel');

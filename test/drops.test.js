@@ -16,8 +16,9 @@ test('summarize: casa o item exato e a variante "2X", dedup por local (maior cha
   ];
   const out = summarize(arr, 'Orokin Cell');
   assert.deepEqual(out, [
-    { location: 'Corrupted Vor', chance: 50, rarity: 'Common' },
-    { location: 'Ceres/Gabii', chance: 22, rarity: 'Rare' },
+    // boss/inimigo ganha `wiki`; nó de missão (tem "/") fica sem
+    { location: 'Corrupted Vor', chance: 50, rarity: 'Common', wiki: 'https://wiki.warframe.com/index.php?search=Corrupted%20Vor' },
+    { location: 'Ceres/Gabii', chance: 22, rarity: 'Rare', wiki: null },
   ]);
 });
 
@@ -53,7 +54,8 @@ test('summarize: não casa por substring (só o item inteiro, evita falso positi
     { place: 'A', item: 'Orokin Cell Fragment', chance: 30 },
     { place: 'B', item: 'Orokin Cell', chance: 10 },
   ];
-  assert.deepEqual(summarize(arr, 'Orokin Cell'), [{ location: 'B', chance: 10, rarity: undefined }]);
+  assert.deepEqual(summarize(arr, 'Orokin Cell'),
+    [{ location: 'B', chance: 10, rarity: undefined, wiki: null }]);
 });
 
 test('wikiUrlFor: nome → URL da wiki (espaços viram _)', () => {

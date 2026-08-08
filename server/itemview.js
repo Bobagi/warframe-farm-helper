@@ -15,6 +15,7 @@ const { placePt } = require('../public/js/places');
 const { COMMON_RESOURCES } = require('./util');
 const { itemUrl, safeHttpUrl } = require('./seo');
 const { getVarzia } = require('./varzia');
+const { enemyWikiUrl } = require('./enemywiki');
 
 // sufixo EN de cosmético/coisa → rótulo PT (mostrado ANTES do nome, com ":")
 const REWARD_SUFFIX = {
@@ -150,7 +151,12 @@ function classifyDrops(drops) {
   }
   return {
     relics: [...relicMap.values()],
-    other: [...dedup.values()].sort((a, b) => (b.chance || 0) - (a.chance || 0)).slice(0, 10),
+    // wiki entra AQUI, no nome cru em inglês - a tradução PT (placePt) roda
+    // depois e clona com spread, então o link sobrevive intacto
+    other: [...dedup.values()]
+      .sort((a, b) => (b.chance || 0) - (a.chance || 0))
+      .slice(0, 10)
+      .map((d) => ({ ...d, wiki: enemyWikiUrl(d.location) })),
   };
 }
 

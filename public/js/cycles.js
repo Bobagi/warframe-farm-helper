@@ -3,7 +3,9 @@
 /**
  * Faixa de relógios dos ciclos dos mundos (Cetus dia/noite, Vallis
  * quente/frio, Deimos Fass/Vome, Duviri, Zariman, Terra) - como no topo do
- * hub.warframestat.us. Inserida logo abaixo do cabeçalho em todas as páginas.
+ * hub.warframestat.us - MAIS o timer do Baro Ki'Teer (Void Trader): chegada ou
+ * partida, com o local na dica. Inserida logo abaixo do cabeçalho em todas as
+ * páginas; o chip do Baro linka o guia de ducats.
  *
  * A contagem regressiva roda localmente a cada segundo; quando um ciclo vira,
  * re-busca /api/cycles (o servidor avança o estado pela tabela de durações
@@ -36,6 +38,7 @@
     grineer: SVG('M12 3l7 3.5V13c0 4-3 6.6-7 8-4-1.4-7-4-7-8V6.5z'),
     corpus: SVG('M4 6h16v9h-5.5L12 18.5 9.5 15H4z'),
     mood: SVG('M12 12a1.6 1.6 0 0 0 3.2 0 4.2 4.2 0 0 0-8.4 0 6.8 6.8 0 0 0 13.6 0 9.4 9.4 0 0 0-18.8 0'),
+    ducat: SVG('M12 7.2l3.6 4.8-3.6 4.8-3.6-4.8z', '<circle cx="12" cy="12" r="9"/>'),
   };
   // `state` vem da API: usado SÓ como chave própria de GLYPHS (nunca entra no
   // markup) - hasOwnProperty barra chaves herdadas tipo "constructor"
@@ -49,6 +52,7 @@
   header.insertAdjacentElement('afterend', strip);
 
   let cycles = null; // null = ainda carregando; [] = falhou sem dado
+  let baro = null; // { active, activation, expiry, location } ou null (sem dado)
   let lastLoad = 0;
   let loading = false;
 
@@ -58,12 +62,26 @@
     return label === key ? s : label; // estado desconhecido: mostra cru
   };
 
+  // O Cloudflare cacheia /js por 4h: um deploy que adiciona chave de i18n pode
+  // parear ESTE arquivo novo com um i18n.js velho no navegador de quem visitou
+  // há pouco - aí t() devolve a chave crua. Fallback EN cobre essa janela.
+  const tOr = (key, fallback, vars) => {
+    const s = t(key, vars);
+    if (s !== key) return s;
+    let out = fallback;
+    if (vars) for (const k of Object.keys(vars)) out = out.replaceAll(`{${k}}`, vars[k]);
+    return out;
+  };
+
   // Segundos só aparecem perto da virada (<10 min), quando importam - mantém os
-  // relógios curtos e a faixa numa linha só no desktop (rola no mobile).
+  // relógios curtos e a faixa numa linha só no desktop (rola no mobile). Dias
+  // existem por causa do Baro (ciclo de 2 semanas): "9d 4h" em vez de "220h".
   function fmtLeft(ms) {
     const s = Math.max(0, Math.ceil(ms / 1000));
-    const h = Math.floor(s / 3600);
+    const d = Math.floor(s / 86400);
+    const h = Math.floor((s % 86400) / 3600);
     const m = Math.floor((s % 3600) / 60);
+    if (d > 0) return `${d}d ${h}h`;
     if (h > 0) return `${h}h ${String(m).padStart(2, '0')}m`;
     if (m >= 10) return `${m}m`;
     if (m > 0) return `${m}m ${String(s % 60).padStart(2, '0')}s`;
@@ -99,19 +117,44 @@
     ]);
   }
 
+  // Baro Ki'Teer: chega em Xd/vai embora em Xd. É um <a> (leva ao guia de
+  // ducats) - o local (relay) fica no title/aria, o chip fica curto.
+  function baroChip(b) {
+    const ic = el('span', { class: 'cyc-ic' });
+    ic.innerHTML = GLYPHS.ducat; // constante estática, nunca dado da API
+    return el('a', {
+      class: `cyc cyc-baro${b.active ? ' here' : ''}`,
+      role: 'listitem',
+      href: '/faq/22-ducats-baro',
+      dataset: { baro: '1' },
+    }, [
+      ic,
+      // "Baro" curto: o nome completo vive no title/aria (o chip precisa caber
+      // na linha única do desktop); nome próprio, igual nos 4 idiomas
+      el('span', { class: 'cyc-w', text: 'Baro' }),
+      el('span', {
+        class: 'cyc-state',
+        text: b.active ? tOr('cyc.s.baroHere', 'At relay') : tOr('cyc.s.baroComing', 'Arrives'),
+      }),
+      el('span', { class: 'cyc-t', text: '' }),
+    ]);
+  }
+
   function render() {
-    if (!cycles || !cycles.length) return;
-    const sorted = [...cycles].sort((a, b) => ORDER.indexOf(a.id) - ORDER.indexOf(b.id));
-    inner.replaceChildren(...sorted.map(chip));
+    if ((!cycles || !cycles.length) && !baro) return;
+    const sorted = [...(cycles || [])].sort((a, b) => ORDER.indexOf(a.id) - ORDER.indexOf(b.id));
+    const chips = sorted.map(chip);
+    if (baro) chips.push(baroChip(baro));
+    inner.replaceChildren(...chips);
     tick();
   }
 
   function tick() {
-    if (!cycles) return;
+    if (!cycles && !baro) return;
     const now = Date.now();
     let expired = false;
     for (const node of inner.querySelectorAll('[data-cyc]')) {
-      const c = cycles.find((x) => x.id === node.dataset.cyc);
+      const c = (cycles || []).find((x) => x.id === node.dataset.cyc);
       if (!c) continue;
       const ms = Date.parse(c.expiry) - now;
       if (ms <= 0) expired = true;
@@ -123,7 +166,19 @@
         node.setAttribute('aria-label', node.title);
       }
     }
-    // ciclo virou: re-busca (com folga de 5s p/ não martelar se o servidor demorar)
+    const bNode = inner.querySelector('[data-baro]');
+    if (bNode && baro) {
+      // ativo → conta até ir embora (expiry); fora → conta até chegar (activation)
+      const ms = Date.parse(baro.active ? baro.expiry : baro.activation) - now;
+      if (ms <= 0) expired = true;
+      bNode.querySelector('.cyc-t').textContent = fmtLeft(ms);
+      const tip = baro.active
+        ? tOr('cyc.baroTipHere', "Baro Ki'Teer is at {loc} · leaves in {t}.", { t: fmtLeft(ms), loc: baro.location || '?' })
+        : tOr('cyc.baroTipComing', "Baro Ki'Teer arrives in {t} · {loc}.", { t: fmtLeft(ms), loc: baro.location || '?' });
+      bNode.title = tip;
+      bNode.setAttribute('aria-label', tip);
+    }
+    // ciclo virou (ou o Baro chegou/partiu): re-busca (folga de 5s p/ não martelar)
     if (expired && !loading && now - lastLoad > 5000) load();
   }
 
@@ -131,25 +186,40 @@
     if (loading) return;
     loading = true;
     try {
-      const data = await api('/api/cycles');
-      cycles = Array.isArray(data.cycles) ? data.cycles : [];
+      // um não derruba o outro: ciclos sem Baro (ou vice-versa) ainda renderizam
+      const [cyc, bar] = await Promise.allSettled([api('/api/cycles'), api('/api/baro')]);
+      if (cyc.status === 'fulfilled') {
+        cycles = Array.isArray(cyc.value.cycles) ? cyc.value.cycles : [];
+      }
+      if (bar.status === 'fulfilled') {
+        const b = bar.value.baro;
+        // alvo do countdown precisa estar no FUTURO: entre o Baro partir e o
+        // upstream publicar a próxima data, o dado fica velho - aí o chip some
+        // em vez de mostrar "0s" e re-buscar em loop (o re-sync de 5min traz de volta)
+        const target = b ? Date.parse(b.active ? b.expiry : b.activation) : NaN;
+        baro = Number.isFinite(target) && target > Date.now() ? b : null;
+      }
+      if (cyc.status !== 'fulfilled' && bar.status !== 'fulfilled') throw new Error('worldstate fora');
       lastLoad = Date.now();
-      strip.hidden = cycles.length === 0;
+      strip.hidden = (!cycles || !cycles.length) && !baro;
       render();
     } catch {
-      if (!cycles || !cycles.length) strip.hidden = true; // sem dado nenhum: some quieto
+      if ((!cycles || !cycles.length) && !baro) strip.hidden = true; // sem dado nenhum: some quieto
     } finally {
       loading = false;
     }
   }
 
-  // skeleton imediato (nomes dos mundos) enquanto a primeira resposta não chega.
-  // O rótulo do Cetus já inclui a Terra para casar com o dado real (evita o chip
-  // crescer "Cetus"→"Cetus / Terra" quando a resposta chega).
+  // skeleton imediato (nomes dos mundos + Baro) enquanto a primeira resposta não
+  // chega. O rótulo do Cetus já inclui a Terra para casar com o dado real (evita
+  // o chip crescer "Cetus"→"Cetus / Terra" quando a resposta chega).
   const SKELETON_WORLDS = { cetus: ['cetus', 'earth'] };
-  inner.replaceChildren(...ORDER.map((id) =>
+  inner.replaceChildren(...[...ORDER, 'baro'].map((id) =>
     el('span', { class: 'cyc cyc-skel', role: 'listitem' }, [
-      el('span', { class: 'cyc-w', text: (SKELETON_WORLDS[id] || [id]).map((w) => t(`cyc.${w}`)).join('/') }),
+      el('span', {
+        class: 'cyc-w',
+        text: id === 'baro' ? 'Baro' : (SKELETON_WORLDS[id] || [id]).map((w) => t(`cyc.${w}`)).join('/'),
+      }),
       el('span', { class: 'cyc-t', text: '…' }),
     ])));
 

@@ -159,11 +159,22 @@ async function getCycles() {
   return cycles;
 }
 
-async function getBaro() {
-  const b = await cached('baro', `${BASE}/voidTrader`);
+/**
+ * Normaliza o /voidTrader. A flag `active` do upstream NÃO é confiável (visto
+ * ao vivo em 2026-08-08: `active: null` com o Baro na relay e 37 itens no
+ * inventário) - os timestamps são a verdade: chegou (activation ≤ agora) e
+ * ainda não saiu (agora < expiry) ⇒ está na relay. A flag só decide quando
+ * algum timestamp vier inválido. Pura para teste.
+ */
+function normalizeBaro(b, nowMs) {
   if (!b || typeof b !== 'object') return null;
+  const act = Date.parse(b.activation);
+  const exp = Date.parse(b.expiry);
+  const active = Number.isFinite(act) && Number.isFinite(exp)
+    ? act <= nowMs && nowMs < exp
+    : !!b.active;
   return {
-    active: !!b.active,
+    active,
     activation: b.activation,
     expiry: b.expiry,
     location: b.location,
@@ -171,8 +182,12 @@ async function getBaro() {
   };
 }
 
+async function getBaro() {
+  return normalizeBaro(await cached('baro', `${BASE}/voidTrader`), Date.now());
+}
+
 module.exports = {
   getFissures, getNightwaveRaw, getVaultTraderRaw, getBaro, getCycles, MISSION_PT,
   // exportados para testes
-  CYCLE_DEFS, advanceCycle, normalizeCycle,
+  CYCLE_DEFS, advanceCycle, normalizeCycle, normalizeBaro,
 };
