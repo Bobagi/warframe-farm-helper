@@ -12,6 +12,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { marked } = require('marked');
 const { fetchJson, escapeHtml, COMMON_RESOURCES } = require('./util');
+const { fetchAcquisitionIndex } = require('./wikiacq');
 const { getDb, setMeta } = require('./db');
 
 // Sanitização na origem: HTML cru dentro do markdown vira texto escapado e
@@ -317,6 +318,19 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
   const craftingUses = buildCraftingUses(itemRows);
   log(`[ingest] índice "usado para construir": ${craftingUses.length} relações`);
 
+  // "como conseguir" que não é drop (pesquisa no Dojo, vendedores, Mercado):
+  // módulos de dados da wiki. Se a wiki cair, o que já está no banco FICA -
+  // por isso a tabela só é reescrita quando veio índice novo.
+  let acquisition = null;
+  try {
+    const res = await fetchAcquisitionIndex({ log });
+    if (res.index.size) acquisition = res.index;
+    log(`[ingest] aquisição (dojo/vendedor/mercado): ${res.index.size} itens`
+      + (res.failed.length ? ` (falharam: ${res.failed.join(', ')})` : ''));
+  } catch (err) {
+    log(`[ingest] aquisição falhou (mantendo a anterior): ${err.message}`);
+  }
+
   const tx = db.transaction(() => {
     db.prepare('DELETE FROM items').run();
     db.prepare('DELETE FROM assets').run();
@@ -356,6 +370,12 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
       VALUES (@component_unique, @product_unique, @product_name, @item_count)`);
     for (const u of craftingUses) insUse.run(u);
 
+    if (acquisition) {
+      db.prepare('DELETE FROM acquisition').run();
+      const insAcq = db.prepare('INSERT OR REPLACE INTO acquisition(name, data) VALUES (?, ?)');
+      for (const [nm, data] of acquisition) insAcq.run(nm, JSON.stringify(data));
+    }
+
     setMeta(db, 'last_ingest', new Date().toISOString());
   });
   tx();
@@ -366,6 +386,7 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
     relics: db.prepare('SELECT COUNT(*) c FROM relics').get().c,
     articles: db.prepare('SELECT COUNT(*) c FROM articles').get().c,
     craftingUses: db.prepare('SELECT COUNT(*) c FROM crafting_uses').get().c,
+    acquisition: db.prepare('SELECT COUNT(*) c FROM acquisition').get().c,
   };
   setMeta(db, 'counts', JSON.stringify(counts));
   log(`[ingest] concluído: ${counts.items} itens, ${counts.relics} relíquias, ${counts.articles} artigos.`);

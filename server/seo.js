@@ -231,8 +231,14 @@ function ensureFresh() {
   if (slugByUnique.size === 0 || (current && current !== lastIngestSeen)) rebuild();
 }
 
-/** URL bonita de um item; cai na URL legada se o mapa não conhecer o unique. */
+/**
+ * URL bonita de um item; cai na URL legada se o mapa não conhecer o unique.
+ * Garante o índice montado: quem chama daqui (materiais de pesquisa, "usado
+ * para construir") pode ser o PRIMEIRO acesso do processo, e sem isto todo
+ * link sairia na forma legada `/item.html?u=` até alguém abrir uma página SSR.
+ */
 function itemUrl(uniqueName) {
+  ensureFresh();
   const slug = slugByUnique.get(uniqueName);
   return slug ? `/item/${slug}` : `/item.html?u=${encodeURIComponent(uniqueName)}`;
 }
@@ -325,6 +331,52 @@ function itemSsrBlock(row, meta) {
   if (meta.descriptionEn) parts.push(`<p class="desc">${escapeHtml(meta.descriptionEn)}</p>`);
   const wiki = safeHttpUrl(row.wiki_url);
   if (wiki) parts.push(`<p class="small"><a href="${escapeHtml(wiki)}" rel="noopener">Página na wiki</a></p>`);
+  parts.push('</section>');
+  const acq = acquisitionSsr(row.name);
+  if (acq) parts.push(acq);
+  return parts.join('\n      ');
+}
+
+/**
+ * "Como conseguir" no HTML SSR: pesquisa no Dojo e vendedores. É a informação
+ * que o crawler (e a IA que lê a página sem JS) mais precisa e que não está em
+ * lugar nenhum do dataset de drop. Só texto, sem link externo montado a partir
+ * de dado do banco.
+ */
+function acquisitionSsr(name) {
+  // require preguiçoso de propósito: acquisition.js importa `itemUrl` DAQUI, e
+  // um require no topo fecharia um ciclo (um dos dois receberia `{}`)
+  const { getAcquisition } = require('./acquisition');
+  const map = getAcquisition(getDb(), [name]);
+  const a = map.get(name);
+  if (!a) return null;
+  const parts = ['<section class="panel panel-acq"><h2 class="eyebrow">Como conseguir</h2>'];
+  if (a.research) {
+    const r = a.research;
+    const mats = r.resources.map((m) => `${m.count}x ${m.name}`).join(', ');
+    const bits = [
+      r.lab ? `Pesquisa no ${r.lab} do Dojo do clã` : 'Pesquisa no Dojo do clã',
+      r.credits != null ? `${r.credits.toLocaleString('pt-BR')} créditos` : null,
+      mats || null,
+      r.prereq ? `exige ${r.prereq} pesquisado antes` : null,
+    ].filter(Boolean);
+    parts.push(`<p>${escapeHtml(bits.join(' · '))}.</p>`);
+  }
+  if (a.vendors.length) {
+    parts.push('<h3>Onde comprar</h3><ul>');
+    for (const v of a.vendors.slice(0, 8)) {
+      parts.push(`<li>${escapeHtml(`${v.vendor}: ${v.cost.toLocaleString('pt-BR')} ${v.currency || ''}`.trim())}</li>`);
+    }
+    parts.push('</ul>');
+  }
+  if (a.market) {
+    const bits = [
+      a.market.platinum != null ? `${a.market.platinum} platina pelo item pronto` : null,
+      a.market.blueprintCredits != null
+        ? `${a.market.blueprintCredits.toLocaleString('pt-BR')} créditos pelo projeto` : null,
+    ].filter(Boolean);
+    if (bits.length) parts.push(`<p>Mercado do jogo: ${escapeHtml(bits.join(', '))}.</p>`);
+  }
   parts.push('</section>');
   return parts.join('\n      ');
 }

@@ -52,6 +52,15 @@ CREATE TABLE IF NOT EXISTS crafting_uses (
 );
 CREATE INDEX IF NOT EXISTS idx_crafting_uses_comp ON crafting_uses(component_unique);
 
+-- "como conseguir" que NÃO cai de inimigo: pesquisa no Dojo do clã, vendedores
+-- (sindicatos, Cetus/Fortuna, Acrithis, Simaris…) e preço no Mercado. Vem dos
+-- módulos Lua de dados da wiki oficial, invertido por nome de item na ingestão.
+-- Ver server/wikiacq.js.
+CREATE TABLE IF NOT EXISTS acquisition (
+  name TEXT PRIMARY KEY,
+  data TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS articles (
   slug       TEXT PRIMARY KEY,
   kind       TEXT NOT NULL,

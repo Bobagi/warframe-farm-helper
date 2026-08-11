@@ -131,6 +131,151 @@
     return panel;
   }
 
+  // ------------------------------------------------------------------
+  // "Como conseguir": as vias que NÃO são drop - pesquisa no Dojo do clã,
+  // vendedores/sindicatos e Mercado. Vem dos módulos de dados da wiki (ver
+  // server/wikiacq.js); tudo aqui é dado externo, então nome vai por
+  // textContent e href passa por safeHref.
+  // ------------------------------------------------------------------
+
+  /**
+   * Forma plural de "dia". PT/EN/ES separam só 1 do resto; o RUSSO usa três
+   * formas (1 день / 2-4 дня / 5+ дней) e uma string única daria "3 дней".
+   */
+  function dayWord(n) {
+    if (lang() !== 'ru') return t(n === 1 ? 'unit.day.one' : 'unit.day.few');
+    const d10 = n % 10; const d100 = n % 100;
+    if (d10 === 1 && d100 !== 11) return t('unit.day.one');
+    if (d10 >= 2 && d10 <= 4 && (d100 < 12 || d100 > 14)) return t('unit.day.few');
+    return t('unit.day.many');
+  }
+
+  /** "3 dias" / "12 h" a partir dos segundos que o servidor manda. */
+  function fmtDuration(sec) {
+    if (!Number.isFinite(sec) || sec <= 0) return null;
+    const h = sec / 3600;
+    if (h >= 48) { const d = Math.round(h / 24); return `${d} ${dayWord(d)}`; }
+    if (h >= 1) return `${Math.round(h)} h`;
+    return `${Math.round(sec / 60)} min`;
+  }
+
+  // moeda de jogo: as 3 universais têm tradução; o resto é nome próprio de item
+  // (Vitus Essence, Pathos Clamp…) e fica em inglês, como o resto dos nomes.
+  const currencyLabel = (c) => (c ? (I18n.has(`cur.${c}`) ? t(`cur.${c}`) : c) : '');
+
+  const statCell = (k, v) => (v == null ? null : el('div', { class: 'stat' }, [
+    el('div', { class: 'k', text: k }),
+    el('div', { class: 'v num' }, [].concat(v)),
+  ]));
+
+  /** material da pesquisa: arte + quantidade + link para a página dele */
+  const materialRow = (m) => el('li', { class: 'row' }, [
+    m.url
+      ? el('a', { class: 'row-link result-item grow', href: safeHref(m.url) }, [
+        m.image ? el('img', { src: m.image, alt: '', loading: 'lazy' }) : null,
+        el('span', { class: 'name', text: nameFor(m) }),
+      ])
+      : el('span', { class: 'grow name', text: m.name }),
+    el('span', { class: 'count num', text: `×${fmtInt(m.count)}` }),
+  ]);
+
+  const vendorRow = (v) => el('li', { class: 'row' }, [
+    el('span', { class: 'grow' }, [
+      v.wiki
+        ? el('a', { class: 'name src-wiki', href: safeHref(v.wiki), target: '_blank', rel: 'noopener', text: v.vendor })
+        : el('span', { class: 'name', text: v.vendor }),
+      v.rank ? el('span', { class: 'sub', text: t('acq.rank', { n: v.rank }) }) : null,
+    ]),
+    v.qty > 1 ? el('span', { class: 'badge', text: t('acq.perBuy', { n: fmtInt(v.qty) }) }) : null,
+    el('span', { class: 'num price', text: `${fmtInt(v.cost)} ${currencyLabel(v.currency)}`.trim() }),
+  ]);
+
+  function researchBlock(r) {
+    const cost = fmtDuration(r.timeSec);
+    return el('div', { class: 'acq-block' }, [
+      el('h3', {}, [
+        t('acq.dojo'),
+        r.lab
+          ? el('a', {
+            class: 'badge badge-lab', href: safeHref(r.labWiki),
+            target: '_blank', rel: 'noopener', text: r.lab,
+          })
+          : null,
+      ]),
+      el('div', { class: 'stat-grid' }, [
+        statCell(t('acq.researchCost'), r.credits != null ? fmtInt(r.credits) : null),
+        statCell(t('acq.researchTime'), cost),
+        statCell(t('acq.affinity'), r.affinity != null ? fmtInt(r.affinity) : null),
+      ]),
+      r.resources.length ? el('p', { class: 'eyebrow eyebrow-sm', text: t('acq.materials') }) : null,
+      r.resources.length ? el('ul', { class: 'rowlist' }, r.resources.map(materialRow)) : null,
+      r.prereq ? el('p', { class: 'small muted' }, [
+        `${t('acq.prereq')}: `,
+        r.prereqUrl ? el('a', { href: safeHref(r.prereqUrl), text: r.prereq }) : el('span', { text: r.prereq }),
+      ]) : null,
+      el('p', { class: 'small muted', text: t('acq.dojoNote') }),
+    ]);
+  }
+
+  function acquisitionPanel(item) {
+    const a = item.acquisition;
+    if (!a) return null;
+    const body = [];
+    if (a.research) body.push(researchBlock(a.research));
+    if (a.vendors.length) body.push(el('div', { class: 'acq-block' }, [
+      el('h3', { text: t('acq.buy') }),
+      el('ul', { class: 'rowlist' }, a.vendors.map(vendorRow)),
+    ]));
+    if (a.market) body.push(el('div', { class: 'acq-block' }, [
+      el('h3', { text: t('acq.market') }),
+      el('div', { class: 'stat-grid' }, [
+        a.market.platinum != null ? statCell(t('acq.marketItem'), [
+          `${fmtInt(a.market.platinum)} `, el('small', { text: t('item.platina') }),
+        ]) : null,
+        a.market.blueprintCredits != null
+          ? statCell(t('acq.marketBp'), [
+            `${fmtInt(a.market.blueprintCredits)} `, el('small', { text: t('cur.Credits') }),
+          ]) : null,
+      ]),
+    ]));
+    if (!body.length) return null;
+    body.push(el('p', { class: 'small dim', text: t('acq.source') }));
+    return el('section', { class: 'panel panel-acq' }, [
+      el('p', { class: 'eyebrow' }, [`${t('acq.title')} `, el('span', { class: 'hint', text: t('acq.hint') })]),
+      ...body,
+    ]);
+  }
+
+  /**
+   * Resumo de UMA linha para o componente (o card cheio é do item). O
+   * componente "Blueprint" é o projeto do próprio item: aponta para a via de
+   * cima em vez de repetir a tabela inteira.
+   */
+  function compAcquisition(c) {
+    const a = c.acquisition;
+    if (!a) return null;
+    const parts = [];
+    // sem o custo da pesquisa aqui de propósito: ele é do CLÃ e uma vez só, e
+    // numa coluna de preço passaria a impressão de ser o preço do projeto
+    if (a.research) {
+      parts.push(el('li', { class: 'row' }, [
+        el('span', { class: 'grow small', text: t('acq.compDojo', { lab: a.research.lab }) }),
+      ]));
+    }
+    for (const v of a.vendors.slice(0, 4)) parts.push(vendorRow(v));
+    if (a.market && a.market.blueprintCredits != null) {
+      parts.push(el('li', { class: 'row' }, [
+        el('span', { class: 'grow small', text: t('acq.marketBp') }),
+        el('span', { class: 'num small', text: `${fmtInt(a.market.blueprintCredits)} ${t('cur.Credits')}` }),
+      ]));
+    }
+    if (!parts.length) return null;
+    return el('div', { class: 'comp-acq' }, [
+      c.isBlueprint ? el('p', { class: 'small muted', style: 'margin:0 0 4px', text: t('acq.bpFrom') }) : null,
+      el('ul', { class: 'rowlist' }, parts),
+    ]);
+  }
+
   function render(item) {
     document.title = `${nameFor(item)} - Warframe Farm Helper`;
     const frag = [];
@@ -204,6 +349,9 @@
       frag.push(el('section', { class: 'panel' }, [el('p', { class: 'eyebrow', text: t('quest.title') }), ...body]));
     }
 
+    const acqPanel = acquisitionPanel(item);
+    if (acqPanel) frag.push(acqPanel);
+
     if (item.usedToBuild && item.usedToBuild.length) {
       frag.push(el('section', { class: 'panel' }, [
         el('p', { class: 'eyebrow' }, [`${t('item.usedIn')} `, el('span', { class: 'hint', text: t('item.usedInHint') })]),
@@ -268,7 +416,9 @@
         if (c.relics.length) for (const node of relicsBlock(c)) block.append(node);
         const others = sourcesList(c.otherSources, c.relics.length ? t('item.otherSources') : null);
         if (others) block.append(others);
-        if (!c.relics.length && !c.otherSources.length) {
+        const compAcq = compAcquisition(c);
+        if (compAcq) block.append(compAcq);
+        if (!c.relics.length && !c.otherSources.length && !compAcq) {
           if (c.resourceDrops && c.resourceDrops.length) {
             // recurso sem tabela no dataset, mas com drops via API de drops
             // (sourcesList já colapsa o excedente)

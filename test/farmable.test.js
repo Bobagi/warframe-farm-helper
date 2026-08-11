@@ -55,7 +55,9 @@ test('buildFarmable: agrupa por SET prime, do TIER ativo, sem vaulted nem Forma'
   const braton = items.find((i) => i.name === 'Braton Prime');
   assert.deepEqual(braton.tiers, ['Lith']);
   assert.equal(braton.category, 'Primary');
-  assert.match(braton.url, /bratonPrime/);
+  // URL bonita: o `itemUrl` monta o índice de slug sozinho, então nem o
+  // primeiro acesso do processo cai na forma legada `/item.html?u=`
+  assert.equal(braton.url, '/item/braton-prime');
 });
 
 test('buildFarmable: sem tier de prime ativo → lista vazia', async () => {

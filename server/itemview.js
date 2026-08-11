@@ -16,6 +16,7 @@ const { COMMON_RESOURCES } = require('./util');
 const { itemUrl, safeHttpUrl } = require('./seo');
 const { getVarzia } = require('./varzia');
 const { enemyWikiUrl } = require('./enemywiki');
+const { getAcquisition } = require('./acquisition');
 
 // sufixo EN de cosmético/coisa → rótulo PT (mostrado ANTES do nome, com ":")
 const REWARD_SUFFIX = {
@@ -217,19 +218,60 @@ function decorateRelics(db, relicRefs, fullName, fissuresByTier, relicCache) {
 }
 
 /** Passo a passo bilíngue (pt/en). `lang==='pt'` → PT; qualquer outro → EN. */
-function buildSteps(raw, comps, itemSources, lang) {
+function buildSteps(raw, comps, itemSources, lang, acq = null) {
   const en = lang !== 'pt';
   const L = (pt, enStr) => (en ? enStr : pt);
   const pct = (n) => fmtPct(n, lang);
+  const int = (n) => Number(n).toLocaleString(en ? 'en-US' : 'pt-BR');
   const steps = [];
+
+  // Pesquisa no Dojo vem PRIMEIRO: quando o item tem essa via, ela é o
+  // caminho principal (o projeto nasce lá) e sem ela o passo a passo pulava
+  // direto para a forja, mandando construir algo que o jogador nem tem.
+  if (acq && acq.research) {
+    const r = acq.research;
+    const mats = r.resources.map((m) => `${int(m.count)}x ${m.name}`).join(', ');
+    const cost = [
+      r.credits != null ? `${int(r.credits)} ${L('créditos', 'credits')}` : null,
+      mats || null,
+    ].filter(Boolean).join(' + ');
+    const time = fmtBuildTime(r.timeSec, lang);
+    steps.push(L(
+      `Projeto: pesquise no ${r.lab} do Dojo do clã${cost ? ` - a pesquisa custa ${cost}` : ''}${time ? `, ${time}` : ''}. Depois compre o projeto no console do laboratório.`,
+      `Blueprint: research it in the ${r.lab} at your clan Dojo${cost ? ` - the research costs ${cost}` : ''}${time ? `, ${time}` : ''}. Then buy the blueprint at the lab console.`));
+    if (r.prereq) {
+      steps.push(L(`A pesquisa exige ${r.prereq} pesquisado antes.`,
+        `That research requires ${r.prereq} to be researched first.`));
+    }
+  }
+  if (acq && acq.vendors.length) {
+    const v = acq.vendors[0];
+    steps.push(L(
+      `Também dá para comprar com ${v.vendor}: ${int(v.cost)} ${v.currency || ''}${v.qty > 1 ? ` (vem ${v.qty})` : ''}.`.replace(/ +/g, ' '),
+      `You can also buy it from ${v.vendor}: ${int(v.cost)} ${v.currency || ''}${v.qty > 1 ? ` (${v.qty} per purchase)` : ''}.`.replace(/ +/g, ' ')));
+  }
 
   if (Number.isFinite(raw.masteryReq) && raw.masteryReq > 0) {
     steps.push(L(`Requisito: Maestria (MR) ${raw.masteryReq}.`, `Requirement: Mastery Rank (MR) ${raw.masteryReq}.`));
   }
 
+  const compSources = (c) => (c.otherSources.length ? c.otherSources : (c.resourceDrops || []));
+  // o drop do próprio item é via de aquisição DELE: fica junto do Dojo/vendedor,
+  // antes da lista de componentes
+  if (comps.length && itemSources.other.length) {
+    const top = itemSources.other[0];
+    steps.push(L(`Também dropa em ${top.location} (${pct(top.chance)}).`,
+      `It also drops at ${top.location} (${pct(top.chance)}).`));
+  }
+
   const relicComps = comps.filter((c) => c.relics.length);
-  const farmComps = comps.filter((c) => !c.relics.length && c.otherSources.length);
-  const orphanComps = comps.filter((c) => !c.relics.length && !c.otherSources.length
+  const farmComps = comps.filter((c) => !c.relics.length && compSources(c).length);
+  // órfão = sem relíquia, sem drop de lugar nenhum E sem via de compra/pesquisa
+  // própria. O `resourceDrops` (achado na API depois) não era considerado aqui,
+  // então componentes que a página JÁ mostrava com locais de farm apareciam no
+  // passo a passo como "sem fonte listada" - a página se contradizia.
+  const orphanComps = comps.filter((c) => !c.relics.length && !compSources(c).length
+    && !c.acquisition && !c.isBlueprint
     && !/^(Orokin Cell|Neurodes?|Neural Sensors?|Morphics|Gallium|Control Module|Argon Crystal|Tellurium|Plastids|Rubedo|Salvage|Ferrite|Alloy Plate|Circuits|Polymer Bundle|Cryotic|Oxium|Kuva|Forma|Nano Spores)$/i.test(c.name));
 
   for (const c of relicComps) {
@@ -271,11 +313,22 @@ function buildSteps(raw, comps, itemSources, lang) {
       'Crack the relics in Void Fissures of the matching tier (active fissures listed on this page). Tip: refine to Radiant with 100 Void Traces and open in a group (radshare) to improve the odds on rare parts.'));
   }
   for (const c of farmComps) {
-    const top = c.otherSources[0];
+    const top = compSources(c)[0];
     const rar = top.rarity ? `, ${rarityLabel(top.rarity, lang)}` : '';
     steps.push(L(
       `${c.fullName}: dropa em ${top.location} (${pct(top.chance)}${rar}).`,
       `${c.fullName}: drops at ${top.location} (${pct(top.chance)}${rar}).`));
+  }
+  for (const c of comps.filter((x) => x.acquisition && !x.isBlueprint)) {
+    const a = c.acquisition;
+    if (a.research) {
+      steps.push(L(`${c.fullName}: pesquise no ${a.research.lab} do Dojo do clã.`,
+        `${c.fullName}: research it in the ${a.research.lab} at your clan Dojo.`));
+    } else if (a.vendors.length) {
+      const v = a.vendors[0];
+      steps.push(L(`${c.fullName}: compre com ${v.vendor} por ${int(v.cost)} ${v.currency || ''}.`.replace(/ +/g, ' '),
+        `${c.fullName}: buy it from ${v.vendor} for ${int(v.cost)} ${v.currency || ''}.`.replace(/ +/g, ' ')));
+    }
   }
   for (const c of orphanComps) {
     steps.push(L(
@@ -295,7 +348,7 @@ function buildSteps(raw, comps, itemSources, lang) {
     if (itemSources.relics.length || itemSources.other.length) {
       const top = itemSources.other[0] || null;
       if (top) steps.push(L(`Melhor fonte: ${top.location} (${pct(top.chance)}).`, `Best source: ${top.location} (${pct(top.chance)}).`));
-    } else {
+    } else if (!acq) {
       steps.push(L(
         'Este item não tem fonte de drop listada nas tabelas oficiais - normalmente vem de quest, pesquisa de clã (Dojo), loja de sindicato ou do Mercado (créditos). Confira a página da wiki para o caminho exato.',
         'This item has no drop source in the official tables - usually from a quest, clan research (Dojo), a syndicate shop or the Market (credits). Check the wiki page for the exact path.'));
@@ -353,6 +406,7 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
     comps.push({
       name: c.name,
       fullName,
+      isBlueprint: c.name === 'Blueprint',
       itemCount: c.itemCount || 1,
       image: c.imageName ? CDN_IMG + c.imageName : null,
       ducats: c.ducats || null,
@@ -372,7 +426,11 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
   // componentes-recurso sem fonte no nosso dataset (Orokin Cell, Morphics…):
   // busca "onde dropa" na API de drops e gera o link da wiki, em vez de só
   // dizer "sem fonte". Em paralelo (1-2 por item), com cache no módulo de drops.
-  const needDrops = comps.filter((c) => !c.relics.length && !c.otherSources.length);
+  // ★ o componente genérico "Blueprint" é o projeto DO PRÓPRIO item - a fonte
+  // dele é a pesquisa/loja/quest, nunca um drop de recurso. Buscá-lo na API de
+  // drops casava o item literal "Blueprint" de TODA missão de Resgate e enchia
+  // a página com 8 locais errados.
+  const needDrops = comps.filter((c) => !c.isBlueprint && !c.relics.length && !c.otherSources.length);
   await Promise.all(needDrops.map(async (c) => {
     try { c.resourceDrops = await getResourceDrops(c.name); } catch { c.resourceDrops = []; }
   }));
@@ -413,10 +471,12 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
       if (d.length) itemSources = { relics: [], other: d };
     } catch { /* mantém vazio */ }
   }
-  // recurso FARMÁVEL não mostra a receita de craft (raramente usada) - foca no
-  // drop; recurso só-craftável (ex.: Fieldron, sem drop) MANTÉM a receita.
-  const farmable = itemSources.other.length > 0 || itemSources.relics.length > 0;
-  const outComps = (isResourceItem && farmable) ? [] : comps;
+  // ★ A receita SEMPRE aparece. Até 2026-08-11 um recurso com qualquer drop
+  // listado tinha os componentes zerados aqui ("a receita é raramente usada"),
+  // e com isso a Massa Mutagênica - que na prática se OBTÉM forjando - perdia a
+  // receita inteira, o custo em créditos e o tempo de forja. Esconder caminho de
+  // aquisição é justamente o que o site não pode fazer.
+  const outComps = comps;
 
   // fissuras só dos tiers que interessam para este item
   const neededTiers = new Set();
@@ -463,6 +523,32 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
     for (const c of outComps) for (const r of c.relics) r.varzia = onSale.has(r.relic);
   }
 
+  // "como conseguir" que não é drop: pesquisa no Dojo, vendedor, Mercado. Vale
+  // para o ITEM e para cada COMPONENTE (peça de arma modular costuma ser compra
+  // de sindicato, e antes disso a página só dizia "sem fonte de drop listada").
+  // Também ANTES do buildSteps, pela mesma razão da Varzia: a prosa gerada tem
+  // que citar a mesma via que os cards mostram, senão a página se contradiz.
+  const acqMap = getAcquisition(db, [
+    raw.name,
+    ...outComps.flatMap((c) => [c.name, c.fullName]),
+  ]);
+  const acquisition = acqMap.get(raw.name) || null;
+  for (const c of outComps) {
+    // peça própria (ex.: "Velocitus Receiver", que o Steel Meridian vende) tem
+    // aquisição PRÓPRIA; o componente "Blueprint" é o projeto do item, então
+    // herda a do item. Peça comum não herda nada, senão toda peça de uma arma
+    // pesquisada no Dojo repetiria o card da pesquisa da arma inteira.
+    const own = acqMap.get(c.fullName) || (c.fullName !== c.name ? acqMap.get(c.name) : null);
+    c.acquisition = (own && own !== acquisition) ? own : (c.isBlueprint ? acquisition : null);
+    // ★ o selo só pode dizer "vaulted" quando NÃO há caminho nenhum. O
+    // `available` era calculado lá em cima, antes de existirem `resourceDrops`
+    // e `acquisition`, então o componente "Blueprint" - que vem da pesquisa do
+    // Dojo - saía carimbado de VAULTED, o oposto da verdade.
+    c.available = c.available
+      || (c.resourceDrops && c.resourceDrops.length > 0)
+      || !!c.acquisition;
+  }
+
   return {
     uniqueName: row.unique_name,
     name: raw.name,
@@ -490,7 +576,8 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
     components: outComps,
     usedToBuild,
     sources: itemSources,
-    steps: buildSteps(raw, outComps, itemSources, lang),
+    acquisition,
+    steps: buildSteps(raw, outComps, itemSources, lang, acquisition),
     setMarketSlug: row.tradable && isPrime ? marketSlugFor(`${raw.name} set`) : null,
     fissures: relevantFissures,
     varzia: varzia ? { expiry: varzia.expiry, primes: varzia.primes.map((p) => p.name) } : null,

@@ -8,7 +8,8 @@ os chatos: destruir Crewship com Artilharia Frontal, enigmas do Duviri, etc.).
 🔗 **No ar:** https://warframe.bobagi.space
 
 > Site não-oficial, feito por fã. Sem afiliação com a Digital Extremes. Dados de itens/drops: **WFCD**
-> (drop tables oficiais da DE). Estado do jogo: **warframestat.us**. Preços: **warframe.market**.
+> (drop tables oficiais da DE) e os módulos de dados da **wiki oficial** (pesquisa de clã, vendedores,
+> Mercado). Estado do jogo: **warframestat.us**. Preços: **warframe.market**.
 
 ## O que ele faz
 
@@ -54,6 +55,14 @@ os chatos: destruir Crewship com Artilharia Frontal, enigmas do Duviri, etc.).
   erro de digitação e PT/EN misturado). Ignora preposições/artigos (de, da, of, the…) para não travar em
   frases ("Sombras de" acha "Sombras da Jade"). Sem resultado local relevante → **fallback de busca web**
   restrita aos sites confiáveis (ver "Chaves do Google").
+- **Como conseguir (fora do drop)** - toda página de item mostra as vias que a drop table NÃO cobre:
+  **pesquisa no Dojo do clã** (laboratório, custo em créditos, materiais com quantidade, tempo, afinidade
+  e pré-requisito), **vendedores** (sindicatos, Cetus/Fortuna, Acrithis, Simaris, Kahl… com moeda, preço,
+  quantidade e rank exigido) e o **preço no Mercado do jogo** (platina pelo item, créditos pelo projeto).
+  Sai dos módulos de dados da wiki oficial (`Module:Research/data`, `Module:Vendors/data`,
+  `Module:Blueprints/data`), lidos na ingestão por um parser de tabela Lua próprio (`server/lua.js`) e
+  gravados já invertidos por item na tabela `acquisition` - a página não faz request nenhum para a wiki.
+  **1.195 itens** do catálogo ganharam informação que antes não existia em lugar nenhum do site.
 - **Recursos e quests** - recurso de craft sem tabela no dataset (ex.: Orokin Cell) mostra "onde dropa"
   buscado na API de drops do warframestat.us (+ link da wiki). Quests mostram sinopse + link da wiki (o
   dataset oficial não traz requisitos/recompensas estruturados de quest).
@@ -73,6 +82,7 @@ público com HTTPS. Sem serviços pagos.
 
 ```
 server/        ingest.js (WFCD→SQLite) · search · seo (URLs limpas/meta SSR/sitemap) · worldstate · nightwave · itemview · websearch · market · routes/api.js
+               lua.js (parser de tabela Lua) + wikiacq.js (módulos de dados da wiki → índice) + acquisition.js (leitura p/ a página)
 content/       faq/*.md  nightwave/*.md   (fonte dos artigos; frontmatter + markdown)
 public/        *.html + js/ (uma pág. por rota, + ads.js) + css/ + og-banner.png + fontes Exo 2 self-hosted
 test/          node --test (ingestão, busca, quota CSE, sanitização, SEO/slug/escape)
@@ -107,11 +117,17 @@ docker exec warframe-helper node server/ingest.js
 A ingestão é **idempotente** (DELETE+INSERT numa transação) - rodar de novo não duplica nada. O índice de
 busca detecta a nova ingestão e se reindexa em até 5 min (ou no próximo boot).
 
+A parte que vem da wiki **falha para o lado seguro**: se os módulos não baixarem ou vierem lixo, o índice
+sai vazio e a tabela `acquisition` **não é reescrita** (dado velho é melhor que página sem "como
+conseguir"). Como qualquer pessoa edita esses módulos, o indexador aplica tetos de tamanho e quantidade
+(nome ≤ 80 chars, 12 vendedores por item, 16 materiais por pesquisa) - sem eles, uma edição vandalizada
+viraria uma linha de megabytes no banco. Ver `server/wikiacq.js`.
+
 **Duas velocidades de atualização, não confundir:**
 
 | Camada | Fonte | Frequência | O que cobre |
 |---|---|---|---|
-| **Catálogo** (SQLite) | JSONs do WFCD/warframe-items | **1×/dia**, ~07:43 UTC | itens, relíquias, flag vaulted, drop tables, nomes PT, artigos do FAQ |
+| **Catálogo** (SQLite) | JSONs do WFCD/warframe-items + módulos de dados da wiki | **1×/dia**, ~07:43 UTC | itens, relíquias, flag vaulted, drop tables, nomes PT, artigos do FAQ, **pesquisa no Dojo / vendedores / preço no Mercado** |
 | **Estado do jogo** (memória) | api.warframestat.us | **a cada request**, cache de 90s | fissuras, Nightwave, Baro, ciclos dos mundos, rotação da Varzia (cache 6h) |
 
 Consequência prática: **conteúdo derivado do markdown vive no banco**. Editar `content/**/*.md` só aparece

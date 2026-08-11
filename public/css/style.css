@@ -836,3 +836,47 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
   border: 0;
   background: transparent;
 }
+
+/* ---------- "como conseguir" (pesquisa no Dojo / vendedores / Mercado) ----------
+   Painel de aquisição que não é drop. Usa a energia (ciano) na borda de cima em
+   vez do dourado dos painéis comuns: é a via ACIONÁVEL do item (dá pra ir lá
+   hoje), e assim ela se separa visualmente do bloco de drop logo abaixo. */
+
+.panel-acq { border-top-color: var(--energy-dim); }
+.acq-block { margin: 0 0 18px; }
+.acq-block:last-of-type { margin-bottom: 8px; }
+.acq-block > h3 {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.acq-block .stat-grid { margin-bottom: 12px; }
+.eyebrow-sm {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--text-faint);
+  margin: 0 0 8px;
+}
+.eyebrow-sm::after { display: none; }
+.badge-lab { color: var(--energy); border-color: var(--energy-dim); }
+a.badge-lab:hover { color: var(--text); border-color: var(--energy); text-decoration: none; }
+.row .price { color: var(--orokin-bright); font-weight: 700; white-space: nowrap; }
+/* o rank do sindicato fica embaixo do nome do vendedor (escopado: o `.sub` das
+   fissuras é inline e quebra com <br>, não pode virar bloco no site todo) */
+.panel-acq .row .sub, .comp-acq .row .sub { display: block; }
+
+/* Alvo de toque >= 24px sem mexer no layout: o padding vertical é compensado
+   por margem negativa, então a linha de base não anda. O nome do laboratório e
+   o do vendedor são links de 22px de altura (só o line-height do texto). */
+.panel-acq a.badge-lab { padding-top: 7px; padding-bottom: 7px; margin-top: -7px; margin-bottom: -7px; }
+.panel-acq .row a.name,
+.comp-acq .row a.name { display: inline-block; padding: 6px 0; margin: -6px 0; }
+
+/* resumo compacto dentro do bloco de um componente */
+.comp-acq { margin-top: 10px; }
+.comp-acq .row { background: transparent; }

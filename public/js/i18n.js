@@ -106,6 +106,21 @@ const I18n = (() => {
       'item.credits': 'Créditos', 'item.time': 'Tempo', 'item.rush': 'Apressar', 'item.platina': 'platina',
       'item.mrMin': 'Maestria mínima', 'item.steps': 'Como conseguir - passo a passo',
       'item.usedIn': 'Usado para construir', 'item.usedInHint': 'este item é matéria-prima destas armas',
+      // "como conseguir" que não é drop (pesquisa no Dojo, vendedor, Mercado)
+      'unit.day.one': 'dia', 'unit.day.few': 'dias', 'unit.day.many': 'dias',
+      'acq.title': 'Como conseguir', 'acq.hint': 'fora do drop: pesquisa de clã, vendedores e Mercado',
+      'acq.dojo': 'Pesquisa no Dojo do clã',
+      'acq.dojoNote': 'Pesquisado o item, o projeto fica à venda no console do próprio laboratório.',
+      'acq.lab': 'Laboratório', 'acq.researchCost': 'Custo da pesquisa', 'acq.researchTime': 'Tempo de pesquisa',
+      'acq.affinity': 'Afinidade do clã', 'acq.prereq': 'Exige pesquisado antes',
+      'acq.materials': 'Materiais da pesquisa',
+      'acq.buy': 'Onde comprar', 'acq.rank': 'rank {n}', 'acq.perBuy': 'leva {n}',
+      'acq.market': 'Mercado do jogo', 'acq.marketItem': 'Item pronto', 'acq.marketBp': 'Projeto avulso',
+      'acq.compDojo': 'Pesquisa no {lab} do Dojo do clã',
+      'acq.compBuy': 'À venda com {vendor}',
+      'acq.bpFrom': 'O projeto vem daqui:',
+      'acq.source': 'Fonte: módulos de dados da wiki oficial.',
+      'cur.Standing': 'de reputação', 'cur.Credits': 'créditos', 'cur.Platinum': 'platina',
       'item.allVaulted': 'Nenhuma relíquia disponível agora - todas estão vaulted.',
       'item.varziaNote': '{n} relíquia(s) vaulted estão à venda na Varzia agora (compre com Aya):',
       'item.showVaulted': 'Ver {n} relíquias vaulted',
@@ -235,6 +250,20 @@ const I18n = (() => {
       'item.credits': 'Credits', 'item.time': 'Time', 'item.rush': 'Rush', 'item.platina': 'platinum',
       'item.mrMin': 'Mastery required', 'item.steps': 'How to get it - step by step',
       'item.usedIn': 'Used to build', 'item.usedInHint': 'this item is a crafting ingredient for these',
+      'unit.day.one': 'day', 'unit.day.few': 'days', 'unit.day.many': 'days',
+      'acq.title': 'How to get it', 'acq.hint': 'beyond drops: clan research, vendors and the in-game Market',
+      'acq.dojo': 'Clan Dojo research',
+      'acq.dojoNote': 'Once researched, the blueprint is on sale at that lab\u2019s console.',
+      'acq.lab': 'Lab', 'acq.researchCost': 'Research cost', 'acq.researchTime': 'Research time',
+      'acq.affinity': 'Clan affinity', 'acq.prereq': 'Requires researched first',
+      'acq.materials': 'Research materials',
+      'acq.buy': 'Where to buy', 'acq.rank': 'rank {n}', 'acq.perBuy': 'gives {n}',
+      'acq.market': 'In-game Market', 'acq.marketItem': 'Finished item', 'acq.marketBp': 'Blueprint only',
+      'acq.compDojo': 'Researched in the {lab} at the clan Dojo',
+      'acq.compBuy': 'Sold by {vendor}',
+      'acq.bpFrom': 'The blueprint comes from:',
+      'acq.source': 'Source: official wiki data modules.',
+      'cur.Standing': 'standing', 'cur.Credits': 'credits', 'cur.Platinum': 'platinum',
       'item.allVaulted': 'No relic available right now - all are vaulted.',
       'item.varziaNote': '{n} vaulted relic(s) are on sale at Varzia right now (buy with Aya):',
       'item.showVaulted': 'Show {n} vaulted relics',
@@ -364,6 +393,20 @@ const I18n = (() => {
       'item.credits': 'Créditos', 'item.time': 'Tiempo', 'item.rush': 'Acelerar', 'item.platina': 'platino',
       'item.mrMin': 'Maestría mínima', 'item.steps': 'Cómo conseguirlo - paso a paso',
       'item.usedIn': 'Se usa para construir', 'item.usedInHint': 'este objeto es ingrediente de estos',
+      'unit.day.one': 'día', 'unit.day.few': 'días', 'unit.day.many': 'días',
+      'acq.title': 'Cómo conseguirlo', 'acq.hint': 'más allá del drop: investigación de clan, vendedores y Mercado',
+      'acq.dojo': 'Investigación en el Dojo del clan',
+      'acq.dojoNote': 'Una vez investigado, el plano se vende en la consola de ese laboratorio.',
+      'acq.lab': 'Laboratorio', 'acq.researchCost': 'Coste de investigación', 'acq.researchTime': 'Tiempo de investigación',
+      'acq.affinity': 'Afinidad de clan', 'acq.prereq': 'Requiere investigado antes',
+      'acq.materials': 'Materiales de investigación',
+      'acq.buy': 'Dónde comprarlo', 'acq.rank': 'rango {n}', 'acq.perBuy': 'da {n}',
+      'acq.market': 'Mercado del juego', 'acq.marketItem': 'Objeto terminado', 'acq.marketBp': 'Solo el plano',
+      'acq.compDojo': 'Se investiga en el {lab} del Dojo del clan',
+      'acq.compBuy': 'Lo vende {vendor}',
+      'acq.bpFrom': 'El plano viene de aquí:',
+      'acq.source': 'Fuente: módulos de datos de la wiki oficial.',
+      'cur.Standing': 'de reputación', 'cur.Credits': 'créditos', 'cur.Platinum': 'platino',
       'item.allVaulted': 'Ninguna reliquia disponible ahora - todas están vaulted.',
       'item.varziaNote': '{n} reliquia(s) vaulted están a la venta en Varzia ahora (cómpralas con Aya):',
       'item.showVaulted': 'Ver {n} reliquias vaulted',
@@ -493,6 +536,20 @@ const I18n = (() => {
       'item.credits': 'Кредиты', 'item.time': 'Время', 'item.rush': 'Ускорить', 'item.platina': 'платина',
       'item.mrMin': 'Мин. ранг мастерства', 'item.steps': 'Как получить - пошагово',
       'item.usedIn': 'Используется для сборки', 'item.usedInHint': 'этот предмет - ингредиент для следующих',
+      'unit.day.one': 'день', 'unit.day.few': 'дня', 'unit.day.many': 'дней',
+      'acq.title': 'Как получить', 'acq.hint': 'помимо дропа: исследование в клане, торговцы и Рынок',
+      'acq.dojo': 'Исследование в додзё клана',
+      'acq.dojoNote': 'После исследования чертёж продаётся в консоли этой лаборатории.',
+      'acq.lab': 'Лаборатория', 'acq.researchCost': 'Стоимость исследования', 'acq.researchTime': 'Время исследования',
+      'acq.affinity': 'Опыт клана', 'acq.prereq': 'Требует исследовать раньше',
+      'acq.materials': 'Материалы исследования',
+      'acq.buy': 'Где купить', 'acq.rank': 'ранг {n}', 'acq.perBuy': 'даёт {n}',
+      'acq.market': 'Рынок в игре', 'acq.marketItem': 'Готовый предмет', 'acq.marketBp': 'Только чертёж',
+      'acq.compDojo': 'Исследуется в {lab} в додзё клана',
+      'acq.compBuy': 'Продаёт {vendor}',
+      'acq.bpFrom': 'Чертёж берётся отсюда:',
+      'acq.source': 'Источник: модули данных официальной вики.',
+      'cur.Standing': 'репутации', 'cur.Credits': 'кредитов', 'cur.Platinum': 'платины',
       'item.allVaulted': 'Сейчас нет доступных реликвий - все в хранилище.',
       'item.varziaNote': 'Реликвий в хранилище, продающихся у Varzia сейчас: {n} (покупка за Ая):',
       'item.showVaulted': 'Показать реликвии в хранилище: {n}',
@@ -624,6 +681,14 @@ const I18n = (() => {
     }
   }
 
+  /**
+   * Existe tradução para esta chave? Usado em rótulo montado em tempo de
+   * execução (moeda de vendedor: `cur.Standing` tem tradução, `cur.Vitus
+   * Essence` não e fica com o nome próprio em inglês).
+   */
+  const has = (key) => Object.prototype.hasOwnProperty.call(STRINGS[current] || {}, key)
+    || Object.prototype.hasOwnProperty.call(STRINGS.en, key);
+
   document.documentElement.lang = current;
-  return { t, lang, locale, setLang, nameFor, missionName, enemyName, subLabel, applyStatic, SUPPORTED };
+  return { t, lang, locale, setLang, nameFor, missionName, enemyName, subLabel, applyStatic, has, SUPPORTED };
 })();
