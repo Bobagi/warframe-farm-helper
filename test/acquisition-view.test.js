@@ -198,3 +198,19 @@ test('getAcquisition: nome com barra/aspas não escapa da URL da wiki', () => {
   assert.equal(a.vendors[0].wiki, 'https://wiki.warframe.com/w/a%2F..%2F..%2Fetc_%22x%22');
   assert.ok(a.vendors[0].wiki.startsWith('https://wiki.warframe.com/w/'), 'prefixo fixo, sem esquema controlável');
 });
+
+test('recurso com type genérico "Misc" do WFCD é rotulado como Resource na página', () => {
+  // Ferrite, Neurodes e Espinobre vêm como type "Misc" do dataset; o rótulo
+  // "Misc" na página de um recurso não diz nada ao jogador
+  const db = getDb();
+  db.prepare(`INSERT OR REPLACE INTO items
+    (unique_name, name, name_pt, category, type, mastery_req, vaulted, image_name, wiki_url, tradable, raw)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?)`)
+    .run('/u/vainthorn', 'Vainthorn', 'Espinobre', 'Resources', 'Misc', null, null, 'v.png', null, 0,
+      JSON.stringify({ name: 'Vainthorn', type: 'Misc', imageName: 'v.png', drops: [{ location: 'Abyssal Beacon', chance: 33.4, rarity: 'Common' }] }));
+  return buildItemDetail('/u/vainthorn', 'pt').then((d) => {
+    assert.equal(d.type, 'Resource');
+    assert.equal(d.category, 'Resources');
+    assert.equal(d.sources.other[0].location, 'Abyssal Beacon');
+  });
+});

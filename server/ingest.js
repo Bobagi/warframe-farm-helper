@@ -55,6 +55,53 @@ const SEARCHABLE_MISC_TYPES = new Set([
   'Ship Segment',
 ]);
 
+/**
+ * Uma entrada de `Misc.json` vira item buscável? E em que categoria?
+ *
+ * Três critérios, nesta ordem:
+ *  1. `type: "Resource"` - o WFCD já diz que é recurso.
+ *  2. tem `parents` - é ingrediente de alguma receita (Neurodes/Ferrite são
+ *     `type: "Misc"` mas têm 115/160 usos, e é o `parents` que os pega).
+ *  3. `SEARCHABLE_MISC_TYPES` - gear de Misc que o jogador procura (Amp, Focus
+ *     Lens, escultura Ayatan…).
+ *  4. ★ **tem local de drop** (2026-08-11). Os três primeiros exigiam que a
+ *     coisa fosse INGREDIENTE, e por isso o site inteiro não conhecia as MOEDAS
+ *     e TOKENS do jogo: Vainthorn (Espinobre), Vosfor, Corrupted Holokey,
+ *     Archon Shard, o Stock do Kahl. Nenhum é ingrediente de receita nenhuma
+ *     (gasta-se com um vendedor), então `parents` vem vazio e o WFCD os deixa
+ *     como `type: "Misc"`. Eram 117 coisas farmáveis invisíveis na busca. Se o
+ *     jogo DROPA, o site sabe responder "onde consigo" - que é a pergunta do site.
+ *
+ * `viaDrops` marca as do critério 4: elas passam por um guard de nome numa 2ª
+ * passada, para nunca criarem uma 2ª página de algo que o site já tem.
+ */
+function classifyMisc(it) {
+  if (!it || typeof it.name !== 'string' || typeof it.uniqueName !== 'string') return { take: false };
+  const isIngredient = Array.isArray(it.parents) && it.parents.length > 0;
+  const isResource = it.type === 'Resource' || isIngredient;
+  if (isResource) return { take: true, viaDrops: false, category: 'Resources' };
+  if (SEARCHABLE_MISC_TYPES.has(it.type)) return { take: true, viaDrops: false, category: 'Misc' };
+  if (Array.isArray(it.drops) && it.drops.length > 0) {
+    // moeda/token/fragmento (o balde genérico "Misc") é recurso, com página de
+    // "onde farmar"; o resto (cena de Captura, medalhão de sindicato, adaptador
+    // de arcana, arena de Simulacrum) fica em Misc e o rótulo mostra o tipo real
+    return { take: true, viaDrops: true, category: it.type === 'Misc' ? 'Resources' : 'Misc' };
+  }
+  return { take: false };
+}
+
+/** Linha da tabela `items` a partir de uma entrada de Misc.json já classificada. */
+function miscRow(it, category) {
+  return {
+    unique_name: it.uniqueName, name: it.name, name_pt: null,
+    category,
+    type: it.type, mastery_req: Number.isFinite(it.masteryReq) ? it.masteryReq : null,
+    vaulted: null,
+    image_name: it.imageName || null, wiki_url: it.wikiaUrl || null,
+    tradable: it.tradable === true ? 1 : 0, slim: slimItem(it),
+  };
+}
+
 const CONTENT_DIR = process.env.CONTENT_DIR || path.join(__dirname, '..', 'content');
 const REFINEMENT_RE = / (Intact|Exceptional|Flawless|Radiant)$/;
 
@@ -256,6 +303,12 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
   // recompensas de quest, sem jogar 9k cosméticos na busca.
   const assetMap = new Map(); // nome -> image_name (1º vence)
   const addAsset = (nm, img) => { if (nm && img && !assetMap.has(nm)) assetMap.set(nm, img); };
+  // Candidatos do critério NOVO (só drop). Ficam de molho e são resolvidos DEPOIS
+  // de todo o resto entrar, porque o guard de nome não pode depender da ordem do
+  // arquivo: o WFCD tem duas Formas em Misc.json (a canônica com 71 `parents` e a
+  // `/Lotus/StoreItems/...` só com drops) e, se a de loja vier primeiro, um guard
+  // feito em uma passada só deixa AS DUAS entrarem.
+  const dropOnly = [];
   for (const file of ['Misc.json', 'Skins.json', 'Glyphs.json', 'Sigils.json']) {
     let arr;
     try { arr = await fetchJson(`${RAW_BASE}/${file}`, { timeoutMs: 120000 }); }
@@ -265,29 +318,31 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
     for (const it of arr) {
       if (!it || typeof it.name !== 'string') continue;
       addAsset(it.name, it.imageName);
-      // recurso de craft = type "Resource" OU usado como ingrediente em alguma
-      // receita (`parents`). O WFCD tagueia inconsistente: Neurodes/Ferrite são
-      // type "Misc" mas têm parents (115/160 usos) - o `parents>0` os pega; lixo
-      // Misc (Archon Shards, itens de evento) tem parents 0 e fica de fora.
-      const isCraftRes = it.type === 'Resource'
-        || (Array.isArray(it.parents) && it.parents.length > 0);
-      const isSearchableMisc = isCraftRes || SEARCHABLE_MISC_TYPES.has(it.type);
-      if (file === 'Misc.json' && isSearchableMisc && typeof it.uniqueName === 'string') {
-        itemRows.push({
-          unique_name: it.uniqueName, name: it.name, name_pt: null,
-          // recurso/ingrediente → categoria Resources (kind=resource, página de
-          // "onde farmar"); gear de Misc (Amp, Focus Lens…) fica como Misc.
-          category: isCraftRes ? 'Resources' : 'Misc',
-          type: it.type, mastery_req: Number.isFinite(it.masteryReq) ? it.masteryReq : null,
-          vaulted: null,
-          image_name: it.imageName || null, wiki_url: it.wikiaUrl || null,
-          tradable: it.tradable === true ? 1 : 0, slim: slimItem(it),
-        });
-        res++;
-      }
+      if (file !== 'Misc.json') continue;
+      const cls = classifyMisc(it);
+      if (!cls.take) continue;
+      if (cls.viaDrops) { dropOnly.push(it); continue; } // resolvido na 2ª passada
+      itemRows.push(miscRow(it, cls.category));
+      res++;
     }
     log(`[ingest] ${file}: ${arr.length} entradas${res ? ` (+${res} recursos buscáveis)` : ''}`);
   }
+  // 2ª passada: as coisas que só entram pelo critério NOVO (tem local de drop).
+  // Roda depois de todo o resto para o guard de nome ser estável, e a canônica
+  // `/Lotus/Types/...` ganha da mirror `/Lotus/StoreItems/...` quando as duas
+  // existem (ordena por uniqueName mais curto, que é sempre a canônica).
+  {
+    const taken = new Set(itemRows.map((r) => r.name));
+    let added = 0;
+    for (const it of dropOnly.sort((a, b) => a.uniqueName.length - b.uniqueName.length)) {
+      if (taken.has(it.name)) continue; // o site já responde por esse nome
+      taken.add(it.name);
+      itemRows.push(miscRow(it, classifyMisc(it).category));
+      added++;
+    }
+    log(`[ingest] Misc com local de drop (moedas, tokens, cenas, medalhões): +${added}`);
+  }
+
   log(`[ingest] mapa de arte (assets): ${assetMap.size} nomes`);
 
   const relicEntries = await fetchJson(`${RAW_BASE}/Relics.json`, { timeoutMs: 180000 });
@@ -395,6 +450,7 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
 
 module.exports = {
   runIngest, groupRelics, parseFrontmatter, slimItem, loadArticles, buildCraftingUses, CATEGORIES,
+  classifyMisc, miscRow,
 };
 
 if (require.main === module) {

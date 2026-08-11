@@ -63,6 +63,11 @@ os chatos: destruir Crewship com Artilharia Frontal, enigmas do Duviri, etc.).
   `Module:Blueprints/data`), lidos na ingestão por um parser de tabela Lua próprio (`server/lua.js`) e
   gravados já invertidos por item na tabela `acquisition` - a página não faz request nenhum para a wiki.
   **1.195 itens** do catálogo ganharam informação que antes não existia em lugar nenhum do site.
+- **Moedas e tokens do jogo** - Espinobre (Vainthorn), Vosfor, Corrupted Holokey, Archon Shard, o Stock
+  do Kahl e companhia. O dataset do WFCD marca tudo isso como `type: "Misc"` **sem `parents`** (não são
+  ingrediente de receita nenhuma: gastam-se com um vendedor), e a regra antiga de ingestão exigia ser
+  ingrediente - então **117 coisas farmáveis eram invisíveis na busca**. Hoje o critério é ter **local de
+  drop**: se o jogo dropa, o site responde "onde consigo". Ver `classifyMisc()` em `server/ingest.js`.
 - **Recursos e quests** - recurso de craft sem tabela no dataset (ex.: Orokin Cell) mostra "onde dropa"
   buscado na API de drops do warframestat.us (+ link da wiki). Quests mostram sinopse + link da wiki (o
   dataset oficial não traz requisitos/recompensas estruturados de quest).

@@ -554,7 +554,10 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
     name: raw.name,
     namePt: row.name_pt,
     category: row.category,
-    type: raw.type || row.category,
+    // o WFCD marca vários recursos com o type genérico "Misc" (Ferrite, Neurodes,
+    // Espinobre…), que não diz nada ao jogador; numa página de recurso o rótulo
+    // honesto é "Resource"
+    type: (raw.type === 'Misc' && row.category === 'Resources') ? 'Resource' : (raw.type || row.category),
     isQuest,
     questInfo,
     description: (lang === 'pt' ? (raw.descriptionPt || raw.description) : raw.description) || '',

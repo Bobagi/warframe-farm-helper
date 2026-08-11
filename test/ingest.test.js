@@ -83,3 +83,64 @@ test('markdown: link javascript: é neutralizado; https é mantido', () => {
   const good = marked.parse('[wiki](https://wiki.warframe.com/x)');
   assert.match(good, /<a href="https:\/\/wiki\.warframe\.com\/x">wiki<\/a>/);
 });
+
+// ---------------------------------------------------------------------------
+// classifyMisc: quem de Misc.json vira item buscável
+// ---------------------------------------------------------------------------
+
+const { classifyMisc } = require('../server/ingest');
+
+test('classifyMisc: moeda/token que só DROPA entra como recurso (era invisível no site)', () => {
+  // Vainthorn/Espinobre: gasta-se com vendedor, não é ingrediente de receita
+  // nenhuma, então `parents` vem vazio e o WFCD o deixa como type "Misc".
+  const vainthorn = {
+    name: 'Vainthorn', uniqueName: '/Lotus/Types/Items/MiscItems/DagathAbyssItem',
+    type: 'Misc', parents: [], drops: [{ location: 'Abyssal Beacon, Rotation C', chance: 33.3 }],
+  };
+  const c = classifyMisc(vainthorn);
+  assert.equal(c.take, true, 'o jogo dropa isso: o site tem que saber responder onde');
+  assert.equal(c.category, 'Resources', 'é recurso, tem página de "onde farmar"');
+  assert.equal(c.viaDrops, true, 'entrou pelo critério novo → passa pelo guard de nome');
+});
+
+test('classifyMisc: os irmãos do mesmo bug também entram', () => {
+  for (const name of ['Archon Shard', 'Vosfor', 'Corrupted Holokey', 'Stock']) {
+    const c = classifyMisc({ name, uniqueName: `/u/${name}`, type: 'Misc', parents: [], drops: [{ location: 'X', chance: 1 }] });
+    assert.equal(c.take, true, `${name} tem que ser buscável`);
+    assert.equal(c.category, 'Resources');
+  }
+});
+
+test('classifyMisc: coisa de Misc SEM drop e sem uso continua fora (não polui a busca)', () => {
+  // Nightwave Challenge, adaptador não-dropável, cosmético solto: 210+ entradas
+  assert.equal(classifyMisc({ name: 'Desafio X', uniqueName: '/u/x', type: 'Nightwave Challenge', parents: [], drops: [] }).take, false);
+  assert.equal(classifyMisc({ name: 'Coisa', uniqueName: '/u/y', type: 'Misc' }).take, false);
+  assert.equal(classifyMisc({ name: 'Coisa', uniqueName: '/u/z', type: 'Misc', drops: [] }).take, false);
+});
+
+test('classifyMisc: drop de coisa que NÃO é recurso fica em Misc, não em Resources', () => {
+  const cena = classifyMisc({ name: 'Fortuna Scene', uniqueName: '/u/cena', type: 'Captura', drops: [{ location: 'X', chance: 1 }] });
+  assert.equal(cena.category, 'Misc', 'cena de Captura não é recurso de farm');
+  assert.equal(cena.viaDrops, true);
+  const med = classifyMisc({ name: 'Datum', uniqueName: '/u/med', type: 'Medallion', drops: [{ location: 'X', chance: 1 }] });
+  assert.equal(med.category, 'Misc');
+});
+
+test('classifyMisc: os critérios ANTIGOS continuam valendo (sem regressão)', () => {
+  assert.deepEqual(classifyMisc({ name: 'Plastids', uniqueName: '/u/p', type: 'Resource' }),
+    { take: true, viaDrops: false, category: 'Resources' });
+  // Neurodes: type "Misc" mas com 115 usos em receitas
+  assert.deepEqual(classifyMisc({ name: 'Neurodes', uniqueName: '/u/n', type: 'Misc', parents: ['Excalibur'] }),
+    { take: true, viaDrops: false, category: 'Resources' });
+  assert.deepEqual(classifyMisc({ name: 'Raplak Prism', uniqueName: '/u/a', type: 'Amp' }),
+    { take: true, viaDrops: false, category: 'Misc' });
+  // ingrediente vence o drop: NÃO pode virar viaDrops (senão o guard de nome
+  // poderia descartar um recurso de craft de verdade)
+  assert.equal(classifyMisc({ name: 'X', uniqueName: '/u/x', type: 'Misc', parents: ['Y'], drops: [{ location: 'Z', chance: 1 }] }).viaDrops, false);
+});
+
+test('classifyMisc: entrada malformada não vira linha no banco', () => {
+  assert.equal(classifyMisc(null).take, false);
+  assert.equal(classifyMisc({ name: 'Sem unique', type: 'Resource' }).take, false);
+  assert.equal(classifyMisc({ uniqueName: '/u/sem-nome', type: 'Resource' }).take, false);
+});
