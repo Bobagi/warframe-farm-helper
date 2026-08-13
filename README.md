@@ -138,6 +138,19 @@ viraria uma linha de megabytes no banco. Ver `server/wikiacq.js`.
 Consequência prática: **conteúdo derivado do markdown vive no banco**. Editar `content/**/*.md` só aparece
 no site depois de rodar a ingestão - o mesmo vale para qualquer varredura de texto.
 
+## Analytics (Umami)
+
+O site é medido pelo **Umami** próprio do box (`analytics.bobagi.space`), mas o script **não** é
+carregado de lá: o nginx serve `/st.js` e `/st/` a partir da NOSSA origem, apontando para o Umami
+local. Duas razões: a CSP daqui é `script-src 'self'` + `connect-src 'self'` e apontar para outro
+host obrigaria a afrouxar as duas; e um bloqueador de anúncio que filtra host de analytics pelo nome
+não come a medição. Umami é cookieless, então não há banner de consentimento.
+
+Para conferir se está coletando: `docker exec umami-db psql -U umami -d umami -c "SELECT url_path,
+created_at FROM website_event WHERE website_id='<id>' ORDER BY created_at DESC LIMIT 5;"`.
+**Cuidado ao testar com navegador headless:** o Umami filtra bot pelo user-agent, então
+`HeadlessChrome` devolve **200 e não grava** - use um UA de navegador real na sonda.
+
 ## Ver logs
 
 ```bash
