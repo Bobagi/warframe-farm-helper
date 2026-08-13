@@ -64,3 +64,51 @@ test('query sem correspondência continua fraca (aciona web) mesmo com trimTail'
   assert.equal(results.length, 0);
   assert.equal(strong, false);
 });
+
+// ---------------------------------------------------------------------------
+// Invariante: adicionar item nunca pode remover peça da busca
+// ---------------------------------------------------------------------------
+
+test('nome que já é NOME DE PEÇA não pode virar item (some com as peças da busca)', () => {
+  // O índice pula o componente cujo nome já é item próprio (para não gerar
+  // "Braton Prime Orokin Cell"). Então um item novo chamado "Stock" apaga o doc
+  // de busca de TODA peça "<Arma> Stock" - foi o que a moeda do Kahl fez com 62
+  // armas, entre elas "Braton Prime Stock", que é chip de exemplo da home.
+  const { pickDropOnlyRows } = require('../server/ingest');
+  const jaNoSite = [
+    { name: 'Braton Prime', slim: { components: [{ name: 'Stock' }, { name: 'Barrel' }] } },
+    { name: 'Boltor Prime', slim: { components: [{ name: 'Stock' }] } },
+    { name: 'Vainthorn', slim: {} },
+  ];
+  const candidatos = [
+    { name: 'Stock', uniqueName: '/Lotus/Types/Items/MiscItems/KahlCreds', type: 'Misc', drops: [{ location: 'X' }] },
+    { name: 'Vainthorn', uniqueName: '/Lotus/Types/Items/MiscItems/DagathAbyssItem', type: 'Misc', drops: [{ location: 'Y' }] },
+    { name: 'Vosfor', uniqueName: '/Lotus/Types/Items/MiscItems/DistillPoints', type: 'Misc', drops: [{ location: 'Z' }] },
+  ];
+  const { rows, blocked } = pickDropOnlyRows(candidatos, jaNoSite);
+  const nomes = rows.map((r) => r.name);
+  assert.ok(!nomes.includes('Stock'), '"Stock" é nome de peça: não pode virar item');
+  assert.ok(!nomes.includes('Vainthorn'), 'nome que o site já tem não entra de novo');
+  assert.deepEqual(nomes, ['Vosfor'], 'só o que é realmente novo entra');
+  assert.equal(blocked, 2);
+});
+
+test('a entrada canônica ganha da mirror de loja quando as duas só têm drop', () => {
+  const { pickDropOnlyRows } = require('../server/ingest');
+  const candidatos = [
+    { name: 'Forma', uniqueName: '/Lotus/StoreItems/Types/Items/MiscItems/Forma', type: 'Equipment Adapter', drops: [{ location: 'X' }] },
+    { name: 'Forma', uniqueName: '/Lotus/Types/Items/MiscItems/Forma', type: 'Equipment Adapter', drops: [{ location: 'Y' }] },
+  ];
+  const { rows } = pickDropOnlyRows(candidatos, []);
+  assert.equal(rows.length, 1, 'não pode duplicar a página');
+  assert.equal(rows[0].unique_name, '/Lotus/Types/Items/MiscItems/Forma', 'a canônica, não a de loja');
+});
+
+test('pickDropOnlyRows limpa o token de ícone antes de comparar o nome', () => {
+  const { pickDropOnlyRows } = require('../server/ingest');
+  const { rows } = pickDropOnlyRows(
+    [{ name: '<ICON_x> Vosfor', uniqueName: '/u/v', type: 'Misc', drops: [{ location: 'X' }] }],
+    [{ name: 'Vosfor', slim: {} }]
+  );
+  assert.deepEqual(rows, [], 'sem limpar o token o guard de nome não casaria e duplicaria a página');
+});

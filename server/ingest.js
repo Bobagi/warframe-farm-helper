@@ -11,7 +11,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { marked } = require('marked');
-const { fetchJson, escapeHtml, COMMON_RESOURCES } = require('./util');
+const { fetchJson, escapeHtml, COMMON_RESOURCES, cleanName } = require('./util');
 const { fetchAcquisitionIndex } = require('./wikiacq');
 const { getDb, setMeta } = require('./db');
 
@@ -81,6 +81,14 @@ function classifyMisc(it) {
   const isResource = it.type === 'Resource' || isIngredient;
   if (isResource) return { take: true, viaDrops: false, category: 'Resources' };
   if (SEARCHABLE_MISC_TYPES.has(it.type)) return { take: true, viaDrops: false, category: 'Misc' };
+  // ★ o CAMINHO do item no jogo vale mais que a etiqueta `type`: as peças de
+  // Kitgun infestado (Vermisplicer, Sporelacer, Arcroid, Thymoid, Palmaris,
+  // Ulnaris) vêm tipadas como "Pistol" em vez de "Kitgun Component", e assim
+  // escapavam de SEARCHABLE_MISC_TYPES. Quem mora sob /Lotus/Weapons/ é peça de
+  // arma, ponto - e o caminho não depende de a DE etiquetar direito.
+  if (String(it.uniqueName).startsWith('/Lotus/Weapons/')) {
+    return { take: true, viaDrops: false, category: 'Misc' };
+  }
   if (Array.isArray(it.drops) && it.drops.length > 0) {
     // moeda/token/fragmento (o balde genérico "Misc") é recurso, com página de
     // "onde farmar"; o resto (cena de Captura, medalhão de sindicato, adaptador
@@ -93,13 +101,48 @@ function classifyMisc(it) {
 /** Linha da tabela `items` a partir de uma entrada de Misc.json já classificada. */
 function miscRow(it, category) {
   return {
-    unique_name: it.uniqueName, name: it.name, name_pt: null,
+    unique_name: it.uniqueName, name: cleanName(it.name), name_pt: null,
     category,
     type: it.type, mastery_req: Number.isFinite(it.masteryReq) ? it.masteryReq : null,
     vaulted: null,
     image_name: it.imageName || null, wiki_url: it.wikiaUrl || null,
     tradable: it.tradable === true ? 1 : 0, slim: slimItem(it),
   };
+}
+
+/**
+ * Resolve as entradas que só entram pelo critério NOVO (têm local de drop).
+ * Roda DEPOIS de todo o resto para não depender da ordem do arquivo, e aplica
+ * dois guards, ambos aprendidos na marra:
+ *
+ *  1. **nome já é item** → o site já responde por ele; entrar de novo criaria
+ *     uma 2ª página e um 2º resultado (o WFCD repete a Forma em Misc.json como
+ *     `/Lotus/StoreItems/...`, só com drops).
+ *  2. **★ nome já é NOME DE PEÇA de alguma receita** → o índice de busca pula o
+ *     componente cujo nome já é item próprio (para não gerar "Braton Prime
+ *     Orokin Cell"), então promover esse nome a item **apaga da busca todas as
+ *     peças com esse nome de uma vez**. A moeda "Stock" do Kahl fez exatamente
+ *     isso com 62 armas, entre elas "Braton Prime Stock", que é chip de exemplo
+ *     da home. Nome de peça vence nome de moeda.
+ *
+ * Ordena por `uniqueName` mais curto para a entrada canônica (`/Lotus/Types/…`)
+ * ganhar da mirror de loja (`/Lotus/StoreItems/…`) quando as duas existem.
+ */
+function pickDropOnlyRows(dropOnly, itemRows) {
+  const taken = new Set(itemRows.map((r) => r.name));
+  const componentNames = new Set();
+  for (const r of itemRows) {
+    for (const c of (r.slim && r.slim.components) || []) if (c.name) componentNames.add(c.name);
+  }
+  const rows = [];
+  let blocked = 0;
+  for (const it of [...dropOnly].sort((a, b) => a.uniqueName.length - b.uniqueName.length)) {
+    const name = cleanName(it.name);
+    if (taken.has(name) || componentNames.has(name)) { blocked++; continue; }
+    taken.add(name);
+    rows.push(miscRow(it, classifyMisc(it).category));
+  }
+  return { rows, blocked };
 }
 
 const CONTENT_DIR = process.env.CONTENT_DIR || path.join(__dirname, '..', 'content');
@@ -282,7 +325,7 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
       if (!it || typeof it.uniqueName !== 'string' || typeof it.name !== 'string') continue;
       itemRows.push({
         unique_name: it.uniqueName,
-        name: it.name,
+        name: cleanName(it.name),
         name_pt: null,
         category: cat,
         type: it.type || null,
@@ -327,20 +370,11 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
     }
     log(`[ingest] ${file}: ${arr.length} entradas${res ? ` (+${res} recursos buscáveis)` : ''}`);
   }
-  // 2ª passada: as coisas que só entram pelo critério NOVO (tem local de drop).
-  // Roda depois de todo o resto para o guard de nome ser estável, e a canônica
-  // `/Lotus/Types/...` ganha da mirror `/Lotus/StoreItems/...` quando as duas
-  // existem (ordena por uniqueName mais curto, que é sempre a canônica).
   {
-    const taken = new Set(itemRows.map((r) => r.name));
-    let added = 0;
-    for (const it of dropOnly.sort((a, b) => a.uniqueName.length - b.uniqueName.length)) {
-      if (taken.has(it.name)) continue; // o site já responde por esse nome
-      taken.add(it.name);
-      itemRows.push(miscRow(it, classifyMisc(it).category));
-      added++;
-    }
-    log(`[ingest] Misc com local de drop (moedas, tokens, cenas, medalhões): +${added}`);
+    const { rows, blocked } = pickDropOnlyRows(dropOnly, itemRows);
+    itemRows.push(...rows);
+    log(`[ingest] Misc com local de drop (moedas, tokens, cenas, medalhões): +${rows.length}`
+      + (blocked ? ` (${blocked} recusados: nome já usado por item ou por peça)` : ''));
   }
 
   log(`[ingest] mapa de arte (assets): ${assetMap.size} nomes`);
@@ -357,7 +391,8 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
       for (const row of itemRows) {
         const tr = i18n[row.unique_name];
         if (tr && tr.pt) {
-          if (tr.pt.name && tr.pt.name !== row.name) { row.name_pt = tr.pt.name; hits++; }
+          const pt = cleanName(tr.pt.name);
+          if (pt && pt !== row.name) { row.name_pt = pt; hits++; }
           if (tr.pt.description) row.slim.descriptionPt = tr.pt.description;
         }
       }
@@ -450,7 +485,7 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
 
 module.exports = {
   runIngest, groupRelics, parseFrontmatter, slimItem, loadArticles, buildCraftingUses, CATEGORIES,
-  classifyMisc, miscRow,
+  classifyMisc, miscRow, pickDropOnlyRows,
 };
 
 if (require.main === module) {

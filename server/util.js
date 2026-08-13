@@ -42,6 +42,22 @@ async function fetchJson(url, { timeoutMs = 20000, retries = 2, headers = {} } =
 }
 
 /**
+ * Remove o token de ÍCONE do jogo que o dataset deixa dentro do nome:
+ * `<ARCHWING> Itzal`, `<Shard_blue_simple> Azure Archon Shard`,
+ * `File-A-Style<Retro_tm> Binder`. No jogo isso vira um glifo; em texto puro
+ * vaza para o `<h1>`, para o `<title>` e para a busca.
+ *
+ * O padrão é estreito de propósito (`<` + letras/dígitos/_ + `>`, sem espaço):
+ * assim não morde um nome legítimo que tenha `<` no meio.
+ */
+const ICON_TOKEN_RE = /<[A-Za-z0-9_]+>/g;
+function cleanName(name) {
+  if (typeof name !== 'string') return name;
+  const out = name.replace(ICON_TOKEN_RE, ' ').replace(/\s{2,}/g, ' ').trim();
+  return out || name; // nome que era SÓ token: melhor o original que vazio
+}
+
+/**
  * Recursos de crafting comuns que o WFCD lista como componente mas NÃO tem
  * como item próprio no Resources.json (ficam em Misc). Tratados como
  * ingredientes: não ganham prefixo do item nem viram doc de componente.
@@ -67,6 +83,6 @@ const CATEGORY_KIND = {
 };
 
 module.exports = {
-  fetchJson, sleep, nowSec, stripDiacritics, escapeHtml, USER_AGENT,
+  fetchJson, sleep, nowSec, stripDiacritics, escapeHtml, USER_AGENT, cleanName,
   COMMON_RESOURCES, CATEGORY_KIND,
 };

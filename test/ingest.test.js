@@ -144,3 +144,48 @@ test('classifyMisc: entrada malformada não vira linha no banco', () => {
   assert.equal(classifyMisc({ name: 'Sem unique', type: 'Resource' }).take, false);
   assert.equal(classifyMisc({ uniqueName: '/u/sem-nome', type: 'Resource' }).take, false);
 });
+
+// ---------------------------------------------------------------------------
+// cleanName: token de ícone do jogo dentro do nome
+// ---------------------------------------------------------------------------
+
+const { cleanName } = require('../server/util');
+
+test('cleanName tira o token de ícone que vazava para o <h1> e o <title>', () => {
+  // estava NO AR: 13 páginas exibiam "<ARCHWING> Itzal" como nome em PT
+  assert.equal(cleanName('<ARCHWING> Itzal'), 'Itzal');
+  assert.equal(cleanName('<Shard_blue_simple> Tauforged Azure Archon Shard'), 'Tauforged Azure Archon Shard');
+  assert.equal(cleanName('File-A-Style<Retro_tm> Binder'), 'File-A-Style Binder', 'token no MEIO da palavra');
+  assert.equal(cleanName('Emissary <Reputation_small> Standing'), 'Emissary Standing');
+});
+
+test('cleanName não morde nome legítimo', () => {
+  for (const n of ['Braton Prime', 'Argo & Vel', "Ruk's Claw", 'Ekwana Ii Jai', 'Sun & Moon']) {
+    assert.equal(cleanName(n), n);
+  }
+  // o padrão exige <letras/dígitos/_> colado: "a < b > c" não é token
+  assert.equal(cleanName('a < b > c'), 'a < b > c');
+});
+
+test('cleanName é defensivo com entrada estranha', () => {
+  assert.equal(cleanName('<>'), '<>', 'não vira string vazia');
+  assert.equal(cleanName('<ICON>'), '<ICON>', 'nome que era só token mantém o original');
+  assert.equal(cleanName(null), null);
+  assert.equal(cleanName(42), 42);
+});
+
+test('classifyMisc: peça de arma é reconhecida pelo CAMINHO, não pela etiqueta type', () => {
+  // as peças de Kitgun infestado vêm com type "Pistol" (não "Kitgun Component")
+  const verm = {
+    name: 'Vermisplicer', type: 'Pistol', parents: [], drops: [],
+    uniqueName: '/Lotus/Weapons/Infested/Pistols/InfKitGun/Barrels/InfBarrelBeam/InfBarrelBeamPart',
+  };
+  assert.equal(classifyMisc(verm).take, true, 'mora sob /Lotus/Weapons/: é peça de arma');
+  assert.equal(classifyMisc(verm).category, 'Misc');
+  // e o caminho NÃO pode abraçar desafio de Nightwave, que também vem type "Pistol"
+  const desafio = {
+    name: 'Smaller Is Bigger', type: 'Pistol', parents: [], drops: [],
+    uniqueName: '/Lotus/Types/Challenges/Seasons/Daily/SeasonDailyKillEnemiesWithPistol',
+  };
+  assert.equal(classifyMisc(desafio).take, false);
+});
