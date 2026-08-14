@@ -3,7 +3,7 @@
 const path = require('node:path');
 const express = require('express');
 const { getDb } = require('./db');
-const { runIngest } = require('./ingest');
+const { runIngest, loadArticles } = require('./ingest');
 const search = require('./search');
 const seo = require('./seo');
 const api = require('./routes/api');
@@ -167,6 +167,21 @@ function scheduleDailyIngest() {
 
 async function boot() {
   const db = getDb();
+  // A migração de `articles` (que ganhou a coluna `lang`) DERRUBA a tabela, e
+  // ela é 100% derivada dos markdown do repo. Repopula na hora, sem rede: sem
+  // isto o FAQ ficaria vazio até a próxima ingestão diária.
+  if (db.prepare('SELECT COUNT(*) c FROM articles').get().c === 0) {
+    try {
+      const arts = loadArticles();
+      const ins = db.prepare(`INSERT OR REPLACE INTO articles
+        (slug, lang, kind, title, keywords, match_json, html, body_md, sort)
+        VALUES (@slug, @lang, @kind, @title, @keywords, @match_json, @html, @body_md, @sort)`);
+      db.transaction(() => { for (const a of arts) ins.run(a); })();
+      console.log(`[boot] artigos repopulados do markdown: ${arts.length}`);
+    } catch (err) {
+      console.error('[boot] falha ao repopular artigos:', err.message);
+    }
+  }
   const count = db.prepare('SELECT COUNT(*) c FROM items').get().c;
   if (count === 0) {
     console.log('[boot] banco vazio - rodando a primeira ingestão (pode levar alguns minutos)...');

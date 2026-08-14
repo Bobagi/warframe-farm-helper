@@ -158,12 +158,22 @@ function buildDocs() {
     });
   }
 
-  const arts = db.prepare('SELECT slug, kind, title, keywords FROM articles').all();
+  // artigos: o doc é do PT (canônico) e as traduções entram como texto extra
+  // buscável no mesmo doc - assim quem procura em chinês acha o artigo, e não
+  // aparecem 2 resultados para a mesma página
+  const arts = db.prepare(
+    `SELECT a.slug, a.kind, a.title, a.keywords,
+            (SELECT GROUP_CONCAT(t.title, ' ') FROM articles t
+              WHERE t.slug = a.slug AND t.lang <> 'pt') AS titlesTr,
+            (SELECT z.title FROM articles z WHERE z.slug = a.slug AND z.lang = 'zh') AS titleZh
+     FROM articles a WHERE a.lang = 'pt'`
+  ).all();
   for (const a of arts) {
     // artigos são conteúdo escrito em PT (mesmo título nos dois idiomas)
     push({
       id: `a:${a.slug}`, kind: a.kind,
-      name: a.title, namePt: a.title, alt: a.keywords || '',
+      name: a.title, namePt: a.title, nameZh: a.titleZh || '',
+      alt: `${a.keywords || ''} ${a.titlesTr || ''}`.trim(),
       sub: a.kind === 'faq' ? 'faq' : 'nightwave',
       image: null,
       url: seo.articleUrl(a.kind, a.slug),

@@ -2,11 +2,11 @@
 
 (() => {
   const { el, api, qs } = App;
-  const { t } = I18n;
+  const { t, lang } = I18n;
   const root = document.getElementById('content');
 
   async function showArticle(slug) {
-    const art = await api(`/api/article/${encodeURIComponent(slug)}`);
+    const art = await api(`/api/article/${encodeURIComponent(slug)}?lang=${lang()}`);
     document.title = `${art.title} - Warframe Farm Helper`;
     const body = el('div', { class: 'art-body' });
     // conteúdo local confiável (markdown do repositório, sanitizado na ingestão)
@@ -23,7 +23,7 @@
   }
 
   async function showList() {
-    const data = await api('/api/faq');
+    const data = await api(`/api/faq?lang=${lang()}`);
     root.replaceChildren(
       el('section', { class: 'hero', style: 'padding-top:8px' }, [
         el('h1', { text: t('faq.title') }),

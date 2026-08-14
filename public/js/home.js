@@ -65,7 +65,7 @@
   // ---- nightwave (mini) ----
   const nwList = document.getElementById('nw-list');
   nwList.replaceChildren(el('li', { class: 'spin', text: t('nw.loading') }));
-  api('/api/nightwave').then((data) => {
+  api(`/api/nightwave?lang=${I18n.lang()}`).then((data) => {
     const acts = (data.acts || []).slice(0, 5);
     if (!acts.length) {
       nwList.replaceChildren(el('li', { class: 'empty', text: t('nw.none') }));
@@ -162,7 +162,7 @@
 
   // ---- faq teaser ----
   const cards = document.getElementById('faq-cards');
-  api('/api/faq').then((data) => {
+  api(`/api/faq?lang=${I18n.lang()}`).then((data) => {
     cards.replaceChildren(...(data.articles || []).slice(0, 6).map((a) =>
       el('a', { class: 'card', href: `/faq/${encodeURIComponent(a.slug)}` }, [
         el('span', { class: 't', text: a.title }),

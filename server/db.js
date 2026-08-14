@@ -65,15 +65,31 @@ CREATE TABLE IF NOT EXISTS acquisition (
   data TEXT NOT NULL
 );
 
+-- Artigo por IDIOMA. A chave é (slug, lang): o mesmo artigo existe uma vez por
+-- tradução, e quem lê cai no 'pt' quando o idioma pedido não foi traduzido.
 CREATE TABLE IF NOT EXISTS articles (
-  slug       TEXT PRIMARY KEY,
+  slug       TEXT NOT NULL,
+  lang       TEXT NOT NULL DEFAULT 'pt',
   kind       TEXT NOT NULL,
   title      TEXT NOT NULL,
   keywords   TEXT,
   match_json TEXT,
   html       TEXT NOT NULL,
   body_md    TEXT NOT NULL,
-  sort       INTEGER NOT NULL DEFAULT 100
+  sort       INTEGER NOT NULL DEFAULT 100,
+  PRIMARY KEY (slug, lang)
+);
+
+-- Título e descrição dos atos do Nightwave, por idioma. A API do worldstate só
+-- devolve INGLÊS, mas o dataset da DE traduz os desafios - ver server/ingest.js.
+-- A coluna "key" e o último segmento do uniqueName em minúsculas, que é o que
+-- sobra no "id" do ato depois de tirar o timestamp.
+CREATE TABLE IF NOT EXISTS challenges (
+  key   TEXT NOT NULL,
+  lang  TEXT NOT NULL,
+  title TEXT,
+  descr TEXT,
+  PRIMARY KEY (key, lang)
 );
 
 CREATE TABLE IF NOT EXISTS web_cache (
@@ -116,6 +132,20 @@ const MIGRATIONS = [
   ['items', 'name_zh', 'ALTER TABLE items ADD COLUMN name_zh TEXT'],
 ];
 
+/**
+ * `articles` ganhou a coluna `lang` E uma PRIMARY KEY composta. SQLite não
+ * altera PK, então a tabela é DERRUBADA e recriada pelo SCHEMA. Isso é seguro
+ * (e só aqui) porque `articles` é 100% derivada dos markdown do repo: quem
+ * repopula é o `loadArticles()`, que lê disco e não depende de rede - o
+ * `server/index.js` chama isso no boot quando a tabela está vazia.
+ */
+function migrateArticles(d) {
+  const cols = d.prepare("PRAGMA table_info(articles)").all();
+  if (!cols.length || cols.some((c) => c.name === 'lang')) return;
+  d.exec('DROP TABLE articles');
+  console.log('[db] migração: articles recriada com (slug, lang) - será repopulada do markdown');
+}
+
 function migrate(d) {
   for (const [table, column, sql] of MIGRATIONS) {
     const cols = d.prepare(`PRAGMA table_info(${table})`).all();
@@ -132,6 +162,7 @@ function getDb() {
   db = new Database(DB_PATH);
   db.pragma('journal_mode = WAL');
   db.pragma('synchronous = NORMAL');
+  migrateArticles(db); // ANTES do SCHEMA: ele recria a tabela derrubada
   db.exec(SCHEMA);
   migrate(db);
   return db;

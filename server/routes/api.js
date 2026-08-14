@@ -2,6 +2,7 @@
 
 const express = require('express');
 const { getDb, getMeta } = require('../db');
+const { listArticles, getArticle } = require('../articles');
 const { searchLocal, suggest, stats } = require('../search');
 const { webSearch } = require('../websearch');
 const { getTopOrders } = require('../market');
@@ -105,6 +106,15 @@ router.get('/suggest', rateLimit, (req, res) => {
 // inglês porque market/wiki/trade da comunidade usam inglês. O servidor chinês
 // do jogo é um ecossistema separado, com nomenclatura oficial própria, e o
 // jogador de lá procura por ela - por isso zh tem nome, descrição e prosa.
+// Idioma para CONTEÚDO que existe nos 5 (artigos traduzidos, desafios do
+// Nightwave vindos do dataset). Diferente do `pickLang`, que é para a PROSA
+// gerada pelo servidor e só existe em pt/en/zh.
+const SUPPORTED = new Set(['pt', 'en', 'es', 'ru', 'zh']);
+const uiLang = (v) => {
+  const s2 = String(v || '').toLowerCase();
+  return SUPPORTED.has(s2) ? s2 : 'pt';
+};
+
 const pickLang = (v) => {
   const s = String(v || '').toLowerCase();
   if (s === '' || s === 'pt') return 'pt';
@@ -162,7 +172,7 @@ router.get('/farmable', asyncRoute(async (req, res) => {
 }));
 
 router.get('/nightwave', asyncRoute(async (req, res) => {
-  res.json(await getActs());
+  res.json(await getActs(uiLang(req.query.lang)));
 }));
 
 router.get('/baro', asyncRoute(async (req, res) => {
@@ -178,10 +188,7 @@ router.get('/cycles', asyncRoute(async (req, res) => {
 }));
 
 router.get('/faq', (req, res) => {
-  const rows = getDb().prepare(
-    "SELECT slug, title, keywords FROM articles WHERE kind = 'faq' ORDER BY sort, title"
-  ).all();
-  res.json({ articles: rows });
+  res.json({ articles: listArticles('faq', uiLang(req.query.lang)) });
 });
 
 router.get('/article/:slug', (req, res) => {
@@ -190,9 +197,7 @@ router.get('/article/:slug', (req, res) => {
     res.status(400).json({ error: 'slug inválido' });
     return;
   }
-  const row = getDb().prepare(
-    'SELECT slug, kind, title, html FROM articles WHERE slug = ?'
-  ).get(slug);
+  const row = getArticle(slug, uiLang(req.query.lang));
   if (!row) {
     res.status(404).json({ error: 'artigo não encontrado' });
     return;

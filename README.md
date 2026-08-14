@@ -195,9 +195,22 @@ Foi isso que achou, DEPOIS de a página já parecer traduzida: o selo de tipo (`
 `Steel Path`/`Railjack` concatenados na linha da fissura e o `pl` de platina. O que sobra depois
 disso é só nome próprio (Prime, Corpus, Grineer, nó de missão), marca e URL.
 
-**Limite honesto:** os artigos de FAQ/Nightwave seguem em português - é conteúdo escrito à mão, e
-por isso a busca por MECÂNICA em chinês cai neles em português. Nomes de inimigo/boss (Corrupted
-Vor) também: eles vêm como texto solto da tabela de drops, sem id que dê para cruzar com o i18n.
+**Artigos por idioma.** `content/<kind>/*.md` é o português (origem do conteúdo) e
+`content/<kind>/<lang>/*.md` é a tradução, com o MESMO nome de arquivo. A tabela `articles` tem
+chave (slug, lang) e **quem lê cai no `pt` quando aquele artigo não foi traduzido** - tradução
+parcial nunca esconde conteúdo. O `match` dos guias de Nightwave vive só no artigo pt; a tradução
+contribui apenas com o título. Os 39 artigos estão traduzidos para zh.
+
+**Atos do Nightwave traduzidos.** A API do worldstate só devolve inglês, mas **o dataset da DE
+traduz os desafios**: o ingest guarda nome e descrição por idioma na tabela `challenges`, e o
+casamento é pelo `id` do ato sem o timestamp da semana
+("1786752000000seasondailycompletemission" → "seasondailycompletemission"), que é o último segmento
+do uniqueName. O `|COUNT|` do texto traduzido é preenchido com o número extraído do texto inglês.
+Isso vale para **pt/es/ru/zh** - antes todo mundo via os atos em inglês.
+
+**Limite honesto:** ato de Nightwave novo demais para estar no dataset fica em inglês (é o
+comportamento certo: melhor inglês completo que meio traduzido). Nomes de inimigo/boss (Corrupted
+Vor) também: vêm como texto solto da tabela de drops, sem id para cruzar com o i18n.
 
 ## Analytics (Umami)
 

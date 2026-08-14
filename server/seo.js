@@ -267,7 +267,7 @@ function articleForSlug(kind, slug) {
   const s = String(slug || '').slice(0, 120);
   if (!/^[a-z0-9-]+$/.test(s)) return null;
   return getDb().prepare(
-    'SELECT slug, kind, title, html FROM articles WHERE slug = ? AND kind = ?'
+    "SELECT slug, kind, title, html FROM articles WHERE slug = ? AND kind = ? AND lang = 'pt'"
   ).get(s, kind);
 }
 
@@ -452,7 +452,7 @@ function renderArticlePage(kind, slug) {
 /** Lista do FAQ com JSON-LD FAQPage (perguntas+respostas completas do banco). */
 function renderFaqIndex() {
   const rows = getDb().prepare(
-    "SELECT slug, title, html FROM articles WHERE kind = 'faq' ORDER BY sort, title"
+    "SELECT slug, title, html FROM articles WHERE kind = 'faq' AND lang = 'pt' ORDER BY sort, title"
   ).all();
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -516,7 +516,7 @@ function sitemapXml() {
   for (const r of db.prepare('SELECT name FROM relics ORDER BY name').all()) {
     entries.push({ loc: relicUrl(r.name), lastmod, changefreq: 'weekly', priority: '0.5' });
   }
-  for (const a of db.prepare('SELECT slug, kind FROM articles ORDER BY kind, slug').all()) {
+  for (const a of db.prepare("SELECT slug, kind FROM articles WHERE lang = 'pt' ORDER BY kind, slug").all()) {
     entries.push({ loc: articleUrl(a.kind, a.slug), lastmod, changefreq: 'monthly', priority: '0.7' });
   }
   cachedSitemap = buildSitemapXml(entries);

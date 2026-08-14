@@ -2,11 +2,11 @@
 
 (() => {
   const { el, api, qs, startTimers } = App;
-  const { t } = I18n;
+  const { t, lang } = I18n;
   const root = document.getElementById('content');
 
   async function showGuide(slug) {
-    const art = await api(`/api/article/${encodeURIComponent(slug)}`);
+    const art = await api(`/api/article/${encodeURIComponent(slug)}?lang=${lang()}`);
     document.title = `${art.title} - Warframe Farm Helper`;
     const body = el('div', { class: 'art-body' });
     // conteúdo local confiável (markdown do repositório, sanitizado na ingestão)
@@ -37,7 +37,7 @@
   }
 
   async function showBoard() {
-    const data = await api('/api/nightwave');
+    const data = await api(`/api/nightwave?lang=${lang()}`);
     const daily = data.acts.filter((a) => a.isDaily);
     const weekly = data.acts.filter((a) => !a.isDaily && !a.isElite);
     const elite = data.acts.filter((a) => a.isElite);

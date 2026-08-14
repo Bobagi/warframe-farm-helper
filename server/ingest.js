@@ -288,25 +288,48 @@ function parseFrontmatter(src) {
   return { attrs, body: src.slice(m[0].length) };
 }
 
+/**
+ * Artigos do disco, por idioma.
+ *
+ * `content/<kind>/*.md` é o português (idioma-base do conteúdo) e
+ * `content/<kind>/<lang>/*.md` é a tradução, com o MESMO nome de arquivo - é o
+ * nome que amarra os dois, então renomear um .md renomeia a tradução junto.
+ * Tradução sem original é ignorada (seria um artigo órfão, sem URL canônica).
+ */
 function loadArticles() {
   const out = [];
+  const ler = (kind, dir, file, lang) => {
+    const src = fs.readFileSync(path.join(dir, file), 'utf8');
+    const { attrs, body } = parseFrontmatter(src);
+    if (!attrs.title) throw new Error(`Artigo sem "title" no frontmatter: ${kind}/${lang}/${file}`);
+    return {
+      slug: String(attrs.slug || file.replace(/\.md$/, '')),
+      lang,
+      kind,
+      title: String(attrs.title),
+      keywords: String(attrs.keywords || ''),
+      match_json: attrs.match ? JSON.stringify(attrs.match) : null,
+      sort: Number(attrs.order) || 100,
+      body_md: body,
+      html: marked.parse(body),
+    };
+  };
   for (const kind of ['faq', 'nightwave']) {
     const dir = path.join(CONTENT_DIR, kind);
     if (!fs.existsSync(dir)) continue;
+    const base = new Set();
     for (const file of fs.readdirSync(dir).filter((f) => f.endsWith('.md')).sort()) {
-      const src = fs.readFileSync(path.join(dir, file), 'utf8');
-      const { attrs, body } = parseFrontmatter(src);
-      if (!attrs.title) throw new Error(`Artigo sem "title" no frontmatter: ${kind}/${file}`);
-      out.push({
-        slug: String(attrs.slug || file.replace(/\.md$/, '')),
-        kind,
-        title: String(attrs.title),
-        keywords: String(attrs.keywords || ''),
-        match_json: attrs.match ? JSON.stringify(attrs.match) : null,
-        sort: Number(attrs.order) || 100,
-        body_md: body,
-        html: marked.parse(body),
-      });
+      base.add(file);
+      out.push(ler(kind, dir, file, 'pt'));
+    }
+    // subpastas de idioma
+    for (const lang of fs.readdirSync(dir, { withFileTypes: true })
+      .filter((e) => e.isDirectory() && /^[a-z]{2}$/.test(e.name)).map((e) => e.name)) {
+      const sub = path.join(dir, lang);
+      for (const file of fs.readdirSync(sub).filter((f) => f.endsWith('.md')).sort()) {
+        if (!base.has(file)) continue; // tradução órfã: sem original, sem página
+        out.push(ler(kind, sub, file, lang));
+      }
     }
   }
   return out;
@@ -345,6 +368,9 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
   // Glyphs.json - fora das CATEGORIES. Puxa os RECURSOS como itens buscáveis
   // (página com "onde farmar") e monta um mapa nome→imagem p/ a arte das
   // recompensas de quest, sem jogar 9k cosméticos na busca.
+  // desafios do Nightwave: a API do worldstate só manda inglês, mas o dataset
+  // tem nome e descrição traduzidos. Chave = último segmento do uniqueName.
+  const challengeRows = [];
   const assetMap = new Map(); // nome -> image_name (1º vence)
   const addAsset = (nm, img) => { if (nm && img && !assetMap.has(nm)) assetMap.set(nm, img); };
   // Candidatos do critério NOVO (só drop). Ficam de molho e são resolvidos DEPOIS
@@ -363,6 +389,9 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
       if (!it || typeof it.name !== 'string') continue;
       addAsset(it.name, it.imageName);
       if (file !== 'Misc.json') continue;
+      if (it.type === 'Nightwave Challenge' && typeof it.uniqueName === 'string') {
+        challengeRows.push({ key: it.uniqueName.split('/').pop().toLowerCase(), en: it.name, u: it.uniqueName });
+      }
       const cls = classifyMisc(it);
       if (!cls.take) continue;
       if (cls.viaDrops) { dropOnly.push(it); continue; } // resolvido na 2ª passada
@@ -407,7 +436,18 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
           if (tr.zh.description) row.slim.descriptionZh = tr.zh.description;
         }
       }
-      log(`[ingest] i18n aplicado: ${hits} nomes pt, ${zhHits} nomes zh`);
+      // mesma passada do i18n: traduz os desafios do Nightwave
+      for (const c of challengeRows) {
+        const tr = i18n[c.u];
+        if (!tr) continue;
+        c.langs = {};
+        for (const l of ['pt', 'en', 'es', 'ru', 'zh']) {
+          const v = tr[l];
+          if (v && (v.name || v.description)) c.langs[l] = { title: v.name || null, descr: v.description || null };
+        }
+      }
+      const cTraduzidos = challengeRows.filter((c) => c.langs && Object.keys(c.langs).length).length;
+      log(`[ingest] i18n aplicado: ${hits} nomes pt, ${zhHits} nomes zh, ${cTraduzidos} desafios do Nightwave`);
     } catch (err) {
       log(`[ingest] i18n falhou (seguindo só com EN): ${err.message}`);
     }
@@ -461,9 +501,15 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
       insRelic.run(r.name, r.tier, r.code, r.vaulted ? 1 : 0, JSON.stringify(r.drops), JSON.stringify(r.rewards));
     }
 
+    db.prepare('DELETE FROM challenges').run();
+    const insCh = db.prepare('INSERT OR REPLACE INTO challenges(key, lang, title, descr) VALUES (?, ?, ?, ?)');
+    for (const c of challengeRows) {
+      for (const [l, v] of Object.entries(c.langs || {})) insCh.run(c.key, l, v.title, v.descr);
+    }
+
     const insArt = db.prepare(`INSERT OR REPLACE INTO articles
-      (slug, kind, title, keywords, match_json, html, body_md, sort)
-      VALUES (@slug, @kind, @title, @keywords, @match_json, @html, @body_md, @sort)`);
+      (slug, lang, kind, title, keywords, match_json, html, body_md, sort)
+      VALUES (@slug, @lang, @kind, @title, @keywords, @match_json, @html, @body_md, @sort)`);
     for (const a of articles) insArt.run(a);
 
     const insUse = db.prepare(`INSERT OR REPLACE INTO crafting_uses

@@ -176,3 +176,42 @@ test('termos do jogo em zh batem com a nomenclatura OFICIAL do cliente CN', () =
     assert.ok(!/[一-鿿]/.test(bloco(l, fim)), `ideograma vazou para o bloco ${l}`);
   }
 });
+
+// ------------------------------------------------- artigos e Nightwave em zh
+
+test('fillCount: número do inglês entra no placeholder |COUNT| do traduzido', () => {
+  const { fillCount } = require('../server/nightwave');
+  assert.equal(fillCount('击杀 |COUNT| 名敌人。', 'Kill 500 Enemies'), '击杀 500 名敌人。');
+  assert.equal(fillCount('Conclua |COUNT| Missões', 'Complete any 15 missions'), 'Conclua 15 Missões');
+  assert.equal(fillCount('sem placeholder', 'Kill 30'), 'sem placeholder');
+  // sem número no inglês NÃO pode sobrar "|COUNT|" na tela: devolve null e o
+  // chamador fica com o texto inglês, que ao menos está completo
+  assert.equal(fillCount('击杀 |COUNT| 名', 'Kill enemies'), null);
+  assert.equal(fillCount(null, 'x'), null);
+});
+
+test('artigos: idioma pedido, com fallback para pt quando não há tradução', () => {
+  // usa o banco do próprio teste (DB_PATH está setado no topo do arquivo): o
+  // módulo captura `getDb` no require, então trocar o export depois não pega
+  const { getDb } = require('../server/db');
+  const { listArticles, getArticle } = require('../server/articles');
+  const db = getDb();
+  db.prepare('DELETE FROM articles').run();
+  const ins = db.prepare(`INSERT INTO articles
+    (slug, lang, kind, title, keywords, html, body_md, sort) VALUES (?,?,?,?,?,?,?,?)`);
+  ins.run('a', 'pt', 'faq', 'Título PT', '', '<p>pt</p>', 'pt', 1);
+  ins.run('a', 'zh', 'faq', '标题', '', '<p>zh</p>', 'zh', 1);
+  ins.run('b', 'pt', 'faq', 'Só em PT', '', '<p>pt</p>', 'pt', 2);
+
+  assert.deepEqual(listArticles('faq', 'zh').map((a) => [a.slug, a.lang, a.title]),
+    [['a', 'zh', '标题'], ['b', 'pt', 'Só em PT']],
+    'traduzido sai em zh; sem tradução cai em pt, e NUNCA some da lista');
+  assert.deepEqual(listArticles('faq', 'pt').map((a) => [a.slug, a.lang]),
+    [['a', 'pt'], ['b', 'pt']], 'pt continua vendo só o pt');
+  assert.equal(getArticle('a', 'zh').title, '标题');
+  assert.equal(getArticle('a', 'pt').title, 'Título PT');
+  assert.equal(getArticle('b', 'zh').lang, 'pt', 'artigo sem tradução ainda abre');
+  assert.equal(getArticle('inexistente', 'zh'), null);
+  // idioma que não existe na tabela também cai no pt (es/ru hoje)
+  assert.equal(listArticles('faq', 'es').every((a) => a.lang === 'pt'), true);
+});
