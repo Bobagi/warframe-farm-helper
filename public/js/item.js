@@ -2,7 +2,7 @@
 
 (() => {
   const { el, api, qs, fmtInt, fmtPct, tierBadge, rarityChip, statusBadge, startTimers, safeHref } = App;
-  const { t, lang, nameFor, missionName, enemyName } = I18n;
+  const { t, lang, nameFor, missionName, enemyName, typeName, relicName } = I18n;
   // nome do componente: ingrediente que é item próprio tem versão traduzida
   // (o servidor manda em fullNameZh); peça de arma segue no nome canônico
   const compName = (c) => ((lang() === 'zh' && c.fullNameZh) ? c.fullNameZh : c.fullName);
@@ -14,7 +14,7 @@
     Gear: 'kind.gear', Quests: 'kind.quest', Arcanes: 'kind.arcane',
   };
   const typeLabel = (item) => (CATEGORY_LABEL[item.category]
-    ? t(CATEGORY_LABEL[item.category]) : (item.type || item.category));
+    ? t(CATEGORY_LABEL[item.category]) : typeName(item.type || item.category));
   // locais de drop nas tabelas já vêm traduzidos do servidor; as fissuras ativas
   // vêm do worldstate (cache compartilhado) - traduz o node aqui, sem mutar o cache
   const placeName = (n) => (lang() === 'pt' || lang() === 'zh' ? Places.placeIn(n, lang()) : n);
@@ -25,7 +25,7 @@
       el('thead', {}, [el('tr', {}, [
         el('th', { text: t('th.relic') }),
         el('th', { text: t('th.rarity') }),
-        el('th', { text: 'Intact' }),
+        el('th', { text: t('ref.Intact') }),
         el('th', { text: t('ref.Radiant') }),
         el('th', { text: t('th.status') }),
       ])]),
@@ -34,7 +34,7 @@
     for (const r of comp.relics) {
       tbody.append(el('tr', { class: r.vaulted ? 'is-vaulted' : '' }, [
         el('td', {}, [
-          el('a', { href: App.relicUrl(r.relic) }, [tierBadge(r.tier), ` ${r.relic}`]),
+          el('a', { href: App.relicUrl(r.relic) }, [tierBadge(r.tier), ` ${relicName(r.relic)}`]),
           r.vaulted === false && r.relicDrops[0]
             ? el('div', { class: 'dim small', text: `${t('item.dropsAt')}: ${r.relicDrops[0].location} (${fmtPct(r.relicDrops[0].chance)})` })
             : null,
@@ -48,7 +48,7 @@
             ? el('div', { class: 'badge badge-varzia', style: 'margin-top:4px', text: t('status.varzia') })
             : null,
           r.vaulted === false && r.activeFissures
-            ? el('div', { class: 'small', style: 'color:var(--energy);margin-top:4px', text: `${r.activeFissures} ${t('item.fissNowShort', { t: r.tier })}` })
+            ? el('div', { class: 'small', style: 'color:var(--energy);margin-top:4px', text: `${r.activeFissures} ${t('item.fissNowShort', { t: I18n.tierName(r.tier) })}` })
             : null,
         ]),
       ]));
@@ -117,7 +117,7 @@
     const slugs = [];
     if (item.setMarketSlug) slugs.push({ slug: item.setMarketSlug, label: t('item.fullSet') });
     for (const c of item.components) {
-      if (c.marketSlug && c.relics.length) slugs.push({ slug: c.marketSlug, label: c.fullName });
+      if (c.marketSlug && c.relics.length) slugs.push({ slug: c.marketSlug, label: compName(c) });
     }
     if (!slugs.length) return null;
     const body = el('div', { class: 'muted small', text: t('item.marketLoading') });
@@ -137,7 +137,7 @@
       body.replaceChildren(el('ul', { class: 'rowlist' }, ok.map(({ label, d }) => el('li', { class: 'row' }, [
         el('span', { class: 'grow name small', text: label }),
         el('a', { class: 'small', href: safeHref(d.url), target: '_blank', rel: 'noopener', text: t('item.marketOrders') }),
-        el('span', { class: 'num', style: 'color:var(--orokin-bright);font-weight:700', text: `~${d.minSell} pl` }),
+        el('span', { class: 'num', style: 'color:var(--orokin-bright);font-weight:700', text: `~${d.minSell} ${lang() === 'zh' ? t('cur.Platinum') : 'pl'}` }),
       ]))));
     });
     return panel;
@@ -399,7 +399,7 @@
           ]) : null,
           item.masteryReq != null ? el('div', { class: 'stat' }, [
             el('div', { class: 'k', text: t('item.mrMin') }),
-            el('div', { class: 'v num', text: `MR ${item.masteryReq}` }),
+            el('div', { class: 'v num', text: t('tag.mrShort', { n: item.masteryReq }) }),
           ]) : null,
         ]),
       ]));
@@ -468,7 +468,7 @@
           el('span', { class: 'grow' }, [
             el('span', { class: 'name', text: missionName(f.missionType) }),
             el('br'),
-            el('span', { class: 'sub', text: `${placeName(f.node)} · ${enemyName(f.enemy)}${f.isHard ? ' · Steel Path' : ''}${f.isStorm ? ' · Railjack' : ''}` }),
+            el('span', { class: 'sub', text: `${placeName(f.node)} · ${enemyName(f.enemy)}${f.isHard ? ` · ${t('fissures.hard')}` : ''}${f.isStorm ? ` · ${t('fissures.storm')}` : ''}` }),
           ]),
           el('span', { class: 'time num', dataset: { expiry: f.expiry } }),
         ])))),

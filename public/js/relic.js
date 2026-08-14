@@ -10,7 +10,7 @@
   const REF_COST = { Intact: '0', Exceptional: '25', Flawless: '50', Radiant: '100' };
 
   function render(relic) {
-    document.title = `${relic.name} Relic · Warframe Farm Helper`;
+    document.title = `${I18n.relicName(relic.name)} ${t('relic.relic')} · Warframe Farm Helper`;
     let current = 'Intact';
 
     const rewardsBody = el('div');
@@ -48,7 +48,7 @@
       el('section', { class: 'panel' }, [
         el('div', { class: 'item-hero' }, [
           el('div', { class: 'meta' }, [
-            el('h1', {}, [tierBadge(relic.tier), ` ${t('relic.relic')} ${relic.name}`]),
+            el('h1', {}, [tierBadge(relic.tier), ` ${t('relic.relic')} ${I18n.relicName(relic.name)}`]),
             el('div', { class: 'badges-line' }, [
               statusBadge(relic.vaulted),
               // vaulted + à venda na Varzia é o caso que mais confunde: não cai

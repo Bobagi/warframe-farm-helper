@@ -34,6 +34,11 @@
     ['Europa', 'Europa', '木卫二'], ['Deimos', 'Deimos', '火卫二'], ['Lua', 'Lua', '月球'],
     ['Zariman', 'Zariman', '扎里曼'], ['Duviri', 'Duviri', '德维里'], ['Cetus', 'Cetus', '希图斯'],
     ['Fortuna', 'Fortuna', '福尔图娜'], ['Necralisk', 'Necralisk', '殁世玄坛'],
+    // relays e locais que aparecem nos painéis do Baro e da Varzia
+    ["Maroo's Bazaar", 'Bazar da Maroo', '玛珑集市'], ['Relay', 'Relay', '中继站'],
+    ['Strata', 'Strata', '斯特拉塔'], ['Kronia', 'Kronia', '克洛尼亚'],
+    ['Larunda', 'Larunda', '拉伦达'], ['Vesper', 'Vesper', '维斯珀'],
+    ['Orcus', 'Orcus', '奥库斯'], ['Cetus', 'Cetus', '希图斯'],
     // tipos de missão de uma palavra
     ['Interception', 'Interceptação', '拦截'], ['Disruption', 'Disrupção', '中断'], ['Survival', 'Sobrevivência', '生存'],
     ['Extermination', 'Extermínio', '歼灭'], ['Exterminate', 'Extermínio', '歼灭'], ['Capture', 'Captura', '捕获'],
@@ -74,8 +79,26 @@
     return out;
   }
 
+  /**
+   * Tier de relíquia por idioma. O cliente chinês tem nome OFICIAL para os
+   * tiers (conferido no i18n do WFCD: "Lith A1" → "古纪 A1 遗物"), e sem isto
+   * a tabela de relíquias de uma página em chinês fica inteira em latim.
+   * O CÓDIGO da relíquia ("A1", "V9") e a URL/slug não mudam.
+   */
+  const RELIC_TIER = {
+    zh: { Lith: '古纪', Meso: '前纪', Neo: '中纪', Axi: '后纪', Requiem: '安魂', Vanguard: '先锋' },
+  };
+  function relicNameIn(name, lang) {
+    const s2 = String(name == null ? '' : name);
+    const map = RELIC_TIER[lang];
+    if (!map) return s2;
+    const m = s2.match(/^(\S+)(\s[\s\S]*)?$/);
+    const tier = m && map[m[1]];
+    return tier ? tier + (m[2] || '') : s2;
+  }
+
   const placePt = (s) => placeIn(s, 'pt');
   const placeZh = (s) => placeIn(s, 'zh');
 
-  return { placePt, placeZh, placeIn };
+  return { placePt, placeZh, placeIn, relicNameIn, RELIC_TIER };
 });

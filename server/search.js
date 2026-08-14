@@ -10,6 +10,7 @@ const MiniSearch = require('minisearch');
 const { stripDiacritics, COMMON_RESOURCES, CATEGORY_KIND } = require('./util');
 const { getDb, getMeta } = require('./db');
 const seo = require('./seo');
+const { relicNameIn } = require('../public/js/places');
 
 const CDN_IMG = 'https://cdn.warframestat.us/img/';
 
@@ -149,7 +150,8 @@ function buildDocs() {
   for (const r of relics) {
     push({
       id: `r:${r.name}`, kind: 'relic',
-      name: `${r.name} Relic`, namePt: `Relíquia ${r.name}`, alt: `Relíquia ${r.name}`,
+      name: `${r.name} Relic`, namePt: `Relíquia ${r.name}`, nameZh: `${relicNameIn(r.name, 'zh')} 遗物`,
+      alt: `Relíquia ${r.name} ${relicNameIn(r.name, 'zh')} 遗物`,
       sub: r.vaulted ? 'vaulted' : 'available',
       image: null,
       url: seo.relicUrl(r.name),

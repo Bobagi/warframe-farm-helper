@@ -682,7 +682,7 @@ const I18n = (() => {
       'fissures.active': '{n} 个进行中',
       'fissures.normal': '普通',
       'fissures.hard': '钢铁之路',
-      'fissures.storm': 'Railjack',
+      'fissures.storm': '航道星舰',
       'fissures.type': '裂缝类型',
       'fissures.loading': '正在查询世界状态…',
       'fissures.none': '当前没有这种类型的裂缝。',
@@ -831,7 +831,7 @@ const I18n = (() => {
       'relic.availMsg': '该遗物在掉落表里是启用状态 - 现在就能刷。',
       'relic.varziaMsg': '任务里已绝版，但通过 Prime 回归又能拿到了：在 {loc} 用 Aya 购买。结束还有 ',
       'relic.rewards': '按精炼等级的奖励',
-      'relic.refinement': '{r} 精炼（{c} 虚空痕迹）',
+      'relic.refinement': '{r} 精炼（{c} 虚空光体）',
       'relic.whereDrops': '遗物在哪里掉落',
       'relic.fissActive': '当前有 {t} 裂缝',
       'th.relic': '遗物',
@@ -916,6 +916,29 @@ const I18n = (() => {
     },
   };
 
+  // Tipo de item exibido no selo da página. Vinha CRU do dataset ("Melee",
+  // "Rifle") em todos os idiomas - o chinês tem nome próprio para todos eles
+  // (近战, 步枪), e o português também. O que não estiver aqui cai no cru.
+  const TYPES = {
+    Melee: { pt: 'Corpo a corpo', en: 'Melee', es: 'Cuerpo a cuerpo', ru: 'Ближний бой', zh: '近战' },
+    Rifle: { pt: 'Rifle', en: 'Rifle', es: 'Rifle', ru: 'Винтовка', zh: '步枪' },
+    Pistol: { pt: 'Pistola', en: 'Pistol', es: 'Pistola', ru: 'Пистолет', zh: '手枪' },
+    Shotgun: { pt: 'Escopeta', en: 'Shotgun', es: 'Escopeta', ru: 'Дробовик', zh: '霰弹枪' },
+    Bow: { pt: 'Arco', en: 'Bow', es: 'Arco', ru: 'Лук', zh: '弓' },
+    Sniper: { pt: 'Sniper', en: 'Sniper', es: 'Francotirador', ru: 'Снайперская', zh: '狙击枪' },
+    Warframe: { pt: 'Warframe', en: 'Warframe', es: 'Warframe', ru: 'Варфрейм', zh: '战甲' },
+    Archwing: { pt: 'Archwing', en: 'Archwing', es: 'Archwing', ru: 'Арчвинг', zh: '空战翼' },
+    Sentinel: { pt: 'Sentinela', en: 'Sentinel', es: 'Centinela', ru: 'Страж', zh: '守护' },
+    Resource: { pt: 'Recurso', en: 'Resource', es: 'Recurso', ru: 'Ресурс', zh: '资源' },
+    Arcane: { pt: 'Arcana', en: 'Arcane', es: 'Arcano', ru: 'Аркана', zh: '赋能' },
+    Amp: { pt: 'Amp', en: 'Amp', es: 'Amp', ru: 'Амп', zh: '增幅器' },
+    'Focus Lens': { pt: 'Lente de Foco', en: 'Focus Lens', es: 'Lente de Enfoque', ru: 'Линза фокуса', zh: '聚焦透镜' },
+    'Eidolon Shard': { pt: 'Fragmento de Eidolon', en: 'Eidolon Shard', es: 'Fragmento de Eidolon', ru: 'Осколок Эйдолона', zh: '夜灵碎片' },
+    'Companion Weapon': { pt: 'Arma de Companheiro', en: 'Companion Weapon', es: 'Arma de Compañero', ru: 'Оружие спутника', zh: '守护武器' },
+    'Arch-Gun': { pt: 'Arch-Gun', en: 'Arch-Gun', es: 'Arch-Gun', ru: 'Арч-пушка', zh: '空战枪' },
+    'Arch-Melee': { pt: 'Arch-Melee', en: 'Arch-Melee', es: 'Arch-Melee', ru: 'Арч-ближний', zh: '空战近战' },
+  };
+
   const MISSIONS = {
     Extermination: { pt: 'Extermínio', en: 'Extermination', es: 'Exterminio', ru: 'Истребление' , zh: '歼灭' }, Capture: { pt: 'Captura', en: 'Capture', es: 'Captura', ru: 'Захват' , zh: '捕获' },
     Survival: { pt: 'Sobrevivência', en: 'Survival', es: 'Supervivencia', ru: 'Выживание' , zh: '生存' }, Defense: { pt: 'Defesa', en: 'Defense', es: 'Defensa', ru: 'Оборона' , zh: '防御' },
@@ -972,6 +995,24 @@ const I18n = (() => {
   // missão/inimigo: idioma atual → inglês (se faltar tradução) → a chave crua.
   const missionName = (m) => (MISSIONS[m] ? (MISSIONS[m][current] || MISSIONS[m].en) : m);
   const enemyName = (e) => (ENEMIES[e] ? (ENEMIES[e][current] || ENEMIES[e].en) : e);
+  const typeName = (t2) => (TYPES[t2] ? (TYPES[t2][current] || TYPES[t2].en) : t2);
+
+  /**
+   * "Neo V9" → "中纪 V9" no chinês. A tabela vive em `places.js` (UMD, usada
+   * também pelo servidor ao montar o índice de busca) para não haver duas
+   * listas divergindo; a chamada é preguiçosa porque places.js carrega depois.
+   */
+  /** Só o tier ("Neo" → "中纪"), para o selo colorido da relíquia. */
+  function tierName(tier) {
+    const P = (typeof globalThis !== 'undefined' && globalThis.Places) || null;
+    const t2 = String(tier == null ? '' : tier);
+    return P ? P.relicNameIn(t2, current) : t2;
+  }
+
+  function relicName(name) {
+    const P = (typeof globalThis !== 'undefined' && globalThis.Places) || null;
+    return P ? P.relicNameIn(name, current) : String(name == null ? '' : name);
+  }
 
   function subLabel(r) {
     switch (r.kind) {
@@ -1012,5 +1053,8 @@ const I18n = (() => {
 
   document.documentElement.lang = current;
   applyCountryLang();
-  return { t, lang, locale, setLang, nameFor, missionName, enemyName, subLabel, applyStatic, has, SUPPORTED };
+  return {
+    t, lang, locale, setLang, nameFor, missionName, enemyName, typeName, relicName, tierName,
+    subLabel, applyStatic, has, SUPPORTED,
+  };
 })();

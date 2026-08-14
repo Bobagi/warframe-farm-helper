@@ -106,3 +106,73 @@ test('placeIn: termo sem tradução chinesa cai no original, não em português'
   const out = placeIn('Kuva Fortress (Rescue)', 'zh');
   assert.ok(!/Fortaleza|Resgate/.test(out), `vazou português: ${out}`);
 });
+
+// ------------------------------------------- relíquia, tipo e peça em chinês
+
+test('relicNameIn: o TIER da relíquia tem nome oficial em chinês', () => {
+  const { relicNameIn } = require('../public/js/places');
+  // conferido no i18n do WFCD: "Lith A1 Intact" -> "古纪 A1 遗物"
+  assert.equal(relicNameIn('Neo V9', 'zh'), '中纪 V9');
+  assert.equal(relicNameIn('Lith K12', 'zh'), '古纪 K12');
+  assert.equal(relicNameIn('Meso B4', 'zh'), '前纪 B4');
+  assert.equal(relicNameIn('Axi S8', 'zh'), '后纪 S8');
+  assert.equal(relicNameIn('Requiem Eterna', 'zh'), '安魂 Eterna');
+  // o CÓDIGO não muda (é o que o jogador digita e o que vira URL)
+  assert.ok(relicNameIn('Neo V9', 'zh').endsWith('V9'));
+});
+
+test('relicNameIn: outros idiomas e tier desconhecido ficam como estão', () => {
+  const { relicNameIn } = require('../public/js/places');
+  assert.equal(relicNameIn('Neo V9', 'pt'), 'Neo V9');
+  assert.equal(relicNameIn('Neo V9', 'en'), 'Neo V9');
+  assert.equal(relicNameIn('Coisa X1', 'zh'), 'Coisa X1', 'tier fora da tabela não vira lixo');
+  assert.equal(relicNameIn(null, 'zh'), '');
+});
+
+test('i18n: TYPES cobre os tipos de arma nos 5 idiomas (o selo dizia MELEE cru)', () => {
+  const fs2 = require('node:fs');
+  const src = fs2.readFileSync(path.join(__dirname, '..', 'public', 'js', 'i18n.js'), 'utf8');
+  const bloco = src.slice(src.indexOf('const TYPES = {'), src.indexOf('const MISSIONS'));
+  for (const tipo of ['Melee', 'Rifle', 'Pistol', 'Shotgun', 'Warframe']) {
+    const re = new RegExp(`\\b${tipo}:\\s*\\{[^}]*\\}`);
+    const m = bloco.match(re);
+    assert.ok(m, `tipo ${tipo} ausente`);
+    for (const l of ['pt', 'en', 'es', 'ru', 'zh']) {
+      assert.ok(m[0].includes(`${l}:`), `tipo ${tipo} sem ${l}`);
+    }
+  }
+  assert.ok(/Melee:[^}]*zh: '近战'/.test(bloco), 'Melee em chinês é 近战');
+});
+
+test('nenhum texto de UI cravado em inglês no lugar de uma chave i18n', () => {
+  // "Intact" estava escrito na mão no cabeçalho da tabela de relíquias, então
+  // aparecia em inglês nos 5 idiomas mesmo existindo a chave `ref.Intact`
+  const fs2 = require('node:fs');
+  const item = fs2.readFileSync(path.join(__dirname, '..', 'public', 'js', 'item.js'), 'utf8');
+  assert.ok(!/text:\s*'Intact'/.test(item), 'cabeçalho Intact tem que vir do dicionário');
+  assert.ok(item.includes("t('ref.Intact')"));
+});
+
+test('termos do jogo em zh batem com a nomenclatura OFICIAL do cliente CN', () => {
+  // Verificado contra o i18n do WFCD (nome oficial da DE) - eu tinha escrito
+  // 虚空痕迹 para Void Traces de cabeça, e o oficial é 虚空光体
+  const fs2 = require('node:fs');
+  const dir = path.join(__dirname, '..');
+  const i18n = fs2.readFileSync(path.join(dir, 'public', 'js', 'i18n.js'), 'utf8');
+  const view = fs2.readFileSync(path.join(dir, 'server', 'itemview.js'), 'utf8');
+  const OFICIAL = [
+    ['虚空光体', '虚空痕迹', 'Void Traces'],
+    ['航道星舰', null, 'Railjack'],
+  ];
+  for (const [certo, errado] of OFICIAL) {
+    if (errado) {
+      assert.ok(!i18n.includes(errado) && !view.includes(errado), `termo errado no código: ${errado}`);
+    }
+    assert.ok(i18n.includes(certo) || view.includes(certo), `termo oficial ausente: ${certo}`);
+  }
+  // e o termo chinês NÃO pode vazar para os outros idiomas
+  const bloco = (l, fim) => i18n.slice(i18n.indexOf(`    ${l}: {`), i18n.indexOf(`    ${fim}: {`));
+  for (const [l, fim] of [['pt', 'en'], ['en', 'es'], ['es', 'ru']]) {
+    assert.ok(!/[一-鿿]/.test(bloco(l, fim)), `ideograma vazou para o bloco ${l}`);
+  }
+});

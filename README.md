@@ -181,7 +181,23 @@ do site, é como o jogo chama as coisas.
 **nome de nó fica em latim de propósito**, pelo motivo acima. Os 8 laboratórios do Dojo têm tabela
 própria em `acquisition.js` (生物实验室, 化学实验室…).
 
-**Limite honesto:** os artigos de FAQ/Nightwave seguem em português - é conteúdo escrito à mão.
+**Auditoria mecânica de tradução (rode isto, não confie no olho).** Carregue a página no idioma novo
+e liste TODO nó de texto que ainda tem palavra do alfabeto de origem:
+
+```js
+const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+for (let n = w.nextNode(); n; n = w.nextNode())
+  if (/[A-Za-z]{2,}/.test(n.textContent)) console.log(n.textContent.trim());
+```
+
+Foi isso que achou, DEPOIS de a página já parecer traduzida: o selo de tipo (`MELEE`), o cabeçalho
+`INTACT` cravado no código, o tier da relíquia (`Neo V9`), as peças (`Venka Prime Blades`),
+`Steel Path`/`Railjack` concatenados na linha da fissura e o `pl` de platina. O que sobra depois
+disso é só nome próprio (Prime, Corpus, Grineer, nó de missão), marca e URL.
+
+**Limite honesto:** os artigos de FAQ/Nightwave seguem em português - é conteúdo escrito à mão, e
+por isso a busca por MECÂNICA em chinês cai neles em português. Nomes de inimigo/boss (Corrupted
+Vor) também: eles vêm como texto solto da tabela de drops, sem id que dê para cruzar com o i18n.
 
 ## Analytics (Umami)
 

@@ -98,13 +98,13 @@
     baro.replaceChildren(
       b.active
         ? el('span', {}, [
-          t('baro.here', { loc: b.location || '-', n: b.items }),
+          t('baro.here', { loc: placeName(b.location || '-'), n: b.items }),
           el('span', { class: 'num', dataset: { expiry: b.expiry } }),
         ])
         : el('span', {}, [
           t('baro.coming'),
           el('span', { class: 'num', dataset: { expiry: b.activation } }),
-          t('baro.comingTail', { loc: b.location || '-' }),
+          t('baro.comingTail', { loc: placeName(b.location || '-') }),
         ]),
       baroGuide()
     );
@@ -124,7 +124,7 @@
       el('p', { class: 'muted small' }, [
         t('varzia.until'),
         el('span', { class: 'num', dataset: { expiry: v.expiry } }),
-        t('varzia.at', { loc: v.location }),
+        t('varzia.at', { loc: placeName(v.location) }),
       ]),
       el('ul', { class: 'rowlist' }, v.primes.map((p) => el('li', { class: 'row' }, [
         el('span', { class: 'grow' }, [
@@ -134,7 +134,7 @@
         ]),
         el('span', { class: 'chip-rar rar-Uncommon', text: t(`varzia.cat.${p.category === 'Warframes' ? 'frame' : 'weapon'}`) }),
       ]))),
-      el('p', { class: 'muted small', text: t('varzia.relics', { n: v.relicCount, tiers: v.tiers.join(', ') }) }),
+      el('p', { class: 'muted small', text: t('varzia.relics', { n: v.relicCount, tiers: v.tiers.map(I18n.tierName).join(', ') }) }),
       v.next
         ? el('p', { class: 'muted small' }, [t('varzia.next', { item: v.next.item })])
         : null,

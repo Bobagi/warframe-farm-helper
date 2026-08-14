@@ -11,7 +11,7 @@ const { getFissures } = require('./worldstate');
 const { getResourceDrops } = require('./drops');
 const { getQuestInfo } = require('./questwiki');
 const { getTopOrders } = require('./market');
-const { placeIn } = require('../public/js/places');
+const { placeIn, relicNameIn } = require('../public/js/places');
 const { COMMON_RESOURCES } = require('./util');
 const { itemUrl, safeHttpUrl } = require('./seo');
 const { getVarzia } = require('./varzia');
@@ -80,6 +80,28 @@ function enrichRewards(rewards, db, lang) {
 
 const CDN_IMG = 'https://cdn.warframestat.us/img/';
 const WIKI_BASE = 'https://wiki.warframe.com/w/';
+
+/**
+ * Nome de PEÇA em chinês ("Venka Prime Blades" → "凯旋之爪 Prime 爪刃").
+ *
+ * Por que uma tabela à mão, e não o dataset: as peças de prime têm uniqueName
+ * próprio (`/Lotus/Types/Recipes/Weapons/WeaponParts/...`) mas o i18n do WFCD
+ * **não traz tradução para elas** (conferido) - só o item inteiro é traduzido.
+ * Como a peça é sempre "<nome do item> <palavra genérica>", basta traduzir a
+ * palavra genérica, que é vocabulário fixo e pequeno.
+ *
+ * Palavra fora da tabela fica em inglês DE PROPÓSITO: meio nome traduzido é
+ * melhor que um chute, e o nome do item (a parte que identifica) já vem certo.
+ */
+const PART_ZH = {
+  Blueprint: '蓝图', Barrel: '枪管', Receiver: '机匣', Stock: '枪托',
+  Blade: '刀刃', Blades: '爪刃', Handle: '手柄', Grip: '握把', Gauntlet: '护手',
+  Hilt: '剑柄', Guard: '护手', Head: '头部', Disc: '圆盘', Pouch: '弹药袋',
+  String: '弓弦', 'Upper Limb': '上弓臂', 'Lower Limb': '下弓臂', Limb: '弓臂',
+  Link: '连接器', Chassis: '机体', Neuroptics: '神经元', Systems: '系统',
+  Harness: '背甲', Wings: '机翼', Engines: '引擎', Fuselage: '机身',
+  Carapace: '甲壳', Cerebrum: '脑', Boot: '靴',
+};
 
 /** URL da página da wiki a partir do nome (título canônico EN, espaços → _). */
 function wikiUrlFor(name) {
@@ -310,20 +332,22 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
             ` 该遗物掉落于：${best.relicDrops[0].location}（${pct(best.relicDrops[0].chance)}）。`)
         : '';
       const chances = [
-        best.chanceIntact != null ? `${pct(best.chanceIntact)} intact` : null,
+        best.chanceIntact != null ? `${pct(best.chanceIntact)} ${L('intacta', 'intact', '完整')}` : null,
         best.chanceRadiant != null ? `${pct(best.chanceRadiant)} ${L('radiante', 'radiant', '光辉')}` : null,
       ].filter(Boolean).join(' / ');
+      // nome do tier da relíquia no idioma do passo ("Neo V9" → "中纪 V9")
+      const relicLabel = relicNameIn(best.relic, lang);
       steps.push(L(
-        `${cn(c)}: farme a relíquia ${best.relic} (${rar}${chances ? `, ${chances}` : ''}).${where}`,
-        `${cn(c)}: farm the ${best.relic} relic (${rar}${chances ? `, ${chances}` : ''}).${where}`,
-        `${cn(c)}：刷 ${best.relic} 遗物（${rar}${chances ? `，${chances}` : ''}）。${where}`));
+        `${cn(c)}: farme a relíquia ${relicLabel} (${rar}${chances ? `, ${chances}` : ''}).${where}`,
+        `${cn(c)}: farm the ${relicLabel} relic (${rar}${chances ? `, ${chances}` : ''}).${where}`,
+        `${cn(c)}：刷 ${relicLabel} 遗物（${rar}${chances ? `，${chances}` : ''}）。${where}`));
     } else {
       // relíquia vaulted que a Varzia vende AGORA tem caminho de farm hoje: sem
       // isto o passo a passo mandava "aguarde voltar" contradizendo a tabela de
       // relíquias logo abaixo, que já mostra "Na Varzia"
       const onSale = c.relics.filter((r) => r.varzia);
       if (onSale.length) {
-        const list = onSale.slice(0, 3).map((r) => r.relic).join(', ');
+        const list = onSale.slice(0, 3).map((r) => relicNameIn(r.relic, lang)).join(', ');
         const more = onSale.length > 3 ? L(` (+${onSale.length - 3})`, ` (+${onSale.length - 3})`) : '';
         steps.push(L(
           `${cn(c)}: as relíquias estão vaulted, MAS voltaram na Prime Resurgence - compre ${list}${more} com Aya na Varzia (Bazar da Maroo, Marte) e abra em fissura.`,
@@ -341,7 +365,7 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
     steps.push(L(
       'Abra as relíquias em fissuras do Void do tier correspondente (lista de fissuras ativas nesta página). Dica: refine para Radiante com 100 Void Traces e abra em grupo (radshare) para melhorar a chance das peças raras.',
       'Crack the relics in Void Fissures of the matching tier (active fissures listed on this page). Tip: refine to Radiant with 100 Void Traces and open in a group (radshare) to improve the odds on rare parts.',
-      '到对应等级的虚空裂缝任务里开启遗物（本页有当前活跃的裂缝列表）。小技巧：用 100 虚空痕迹精炼到光辉，并且组队开启（radshare），可以提高稀有部件的出货率。'));
+      '到对应等级的虚空裂缝任务里开启遗物（本页有当前活跃的裂缝列表）。小技巧：用 100 虚空光体精炼到光辉，并且组队开启（radshare），可以提高稀有部件的出货率。'));
   }
   for (const c of farmComps) {
     const top = compSources(c)[0];
@@ -451,11 +475,11 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
     comps.push({
       name: c.name,
       fullName,
-      // "Mutagen Mass Blueprint" → "突变原聚合物 蓝图": o projeto do próprio item
-      // dá para montar com o nome chinês do item + a palavra "蓝图"
+      // ingrediente que é item próprio tem nome oficial; PEÇA vira
+      // "<nome chinês do item> <palavra da peça>" ("凯旋之爪 Prime 爪刃")
       fullNameZh: isIngredient(c.name)
         ? zhNameOf(c.name)
-        : (c.name === 'Blueprint' && row.name_zh ? `${row.name_zh} 蓝图` : null),
+        : (row.name_zh ? `${row.name_zh} ${PART_ZH[c.name] || c.name}` : null),
       isBlueprint: c.name === 'Blueprint',
       itemCount: c.itemCount || 1,
       image: c.imageName ? CDN_IMG + c.imageName : null,

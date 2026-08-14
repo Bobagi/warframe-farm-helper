@@ -81,8 +81,10 @@ const App = (() => {
     setInterval(tick, 1000);
   }
 
+  // O TEXTO do selo é traduzido (中纪), mas a CLASSE segue o tier cru: é ela que
+  // dá a cor de cada tier no CSS, e traduzir a classe quebraria o tema.
   const tierBadge = (tier) =>
-    el('span', { class: `badge badge-tier tier-${tier}`, text: tier });
+    el('span', { class: `badge badge-tier tier-${tier}`, text: I18n.tierName(tier) });
 
   const rarityChip = (rarity) =>
     el('span', { class: `chip-rar rar-${rarity || 'Common'}`, text: I18n.t(`rar.${rarity}`) });
@@ -116,7 +118,9 @@ const App = (() => {
         ...it.tiers.map((tr) => tierBadge(tr)),
         el('span', {
           class: `farm-plat${it.platinum == null ? ' dim' : ''}`,
-          text: it.platinum == null ? '-' : `${it.platinum} pl`,
+          // "pl" é abreviação latina de platina: em chinês vira 白金
+          text: it.platinum == null ? '-'
+            : `${it.platinum} ${I18n.lang() === 'zh' ? I18n.t('cur.Platinum') : 'pl'}`,
         }),
       ]),
     ]);
