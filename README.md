@@ -168,8 +168,20 @@ bloco `html[lang^="zh"]` no fim do `style.css` ajusta o que a escrita quebra: `l
 vira ideograma solto, entrelinha do latino faz as linhas encostarem, 11px vira borrão e o peso 700
 sintetizado empastela os traços. Ver o relatório em `.claude/frontend-review/20260814-zh/`.
 
-**Limite honesto:** os artigos de FAQ/Nightwave e os nomes de LOCAL (nó de missão, bioma) seguem em
-português/inglês - são conteúdo escrito à mão e nomenclatura de nó que o dataset não traz em CN.
+**O que o cliente chinês NÃO traduz (conferido, não suposto).** Arma, recurso, mod, arcana, gear e
+peixe: ~100% em chinês. **Warframe: 98% fica em latim** (Excalibur, Ash, Valkyr Prime) e **nome de nó
+de missão idem** (Adaro, Akkad, Candiru) - são nomes próprios. Verificado em duas fontes
+independentes: o i18n oficial da DE (via WFCD) e o **warframe.market em `zh-hans`**, que é onde os
+traders chineses negociam e que traduz só a palavra "Set" (`Frost Prime 一套`). Ou seja: não é buraco
+do site, é como o jogo chama as coisas.
+
+**Local de drop em chinês.** `public/js/places.js` é uma tabela de 3 colunas (en, pt, zh), então
+"Venus/Orb Vallis (Level 30 - 50 Orb Vallis Bounty)" sai como
+"金星/奥布山谷 (等级 30 - 50 奥布山谷 赏金)". Planeta, região aberta, tipo de missão e termo entram;
+**nome de nó fica em latim de propósito**, pelo motivo acima. Os 8 laboratórios do Dojo têm tabela
+própria em `acquisition.js` (生物实验室, 化学实验室…).
+
+**Limite honesto:** os artigos de FAQ/Nightwave seguem em português - é conteúdo escrito à mão.
 
 ## Analytics (Umami)
 
