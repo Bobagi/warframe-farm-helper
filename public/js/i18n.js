@@ -26,6 +26,9 @@ const I18n = (() => {
   // e a bandeira no topo continua lá para trocar num clique.
   const ZH_COUNTRIES = ['CN', 'TW', 'HK', 'MO', 'SG'];
 
+  // `zh-CN` importa: em CJK o mesmo ponto Unicode tem glifo diferente por idioma
+  const HTML_LANG = { pt: 'pt-BR', en: 'en', es: 'es', ru: 'ru', zh: 'zh-CN' };
+
   const readLang = (key) => {
     const v = (localStorage.getItem(key) || '').toLowerCase();
     return SUPPORTED.includes(v) ? v : null;
@@ -42,7 +45,10 @@ const I18n = (() => {
       const two = String(p).slice(0, 2).toLowerCase();
       if (SUPPORTED.includes(two)) return two;
     }
-    return 'pt';
+    // ★ Default INGLÊS. O site nasceu PT-first, mas o Search Console mostrou que
+    // 100% das buscas que chegam aqui são em inglês ("where to farm x"), e a
+    // comunidade de Warframe é global. Quem tem pt no navegador segue em pt.
+    return 'en';
   }
   let current = detectLang();
 
@@ -1032,9 +1038,8 @@ const I18n = (() => {
 
   /** Preenche elementos estáticos: [data-i18n]=textContent, [data-i18n-ph]=placeholder. */
   function applyStatic(root) {
-    // reflete o idioma ativo no <html lang> (o estático é pt-BR; o cliente troca)
-    const HTML_LANG = { pt: 'pt-BR', en: 'en', es: 'es', ru: 'ru', zh: 'zh-CN' };
-    document.documentElement.lang = HTML_LANG[current] || 'pt-BR';
+    // reflete o idioma ativo no <html lang> (o estático é en; o cliente troca)
+    document.documentElement.lang = HTML_LANG[current] || 'en';
     for (const el of (root || document).querySelectorAll('[data-i18n]')) {
       el.textContent = t(el.getAttribute('data-i18n'));
     }
@@ -1051,7 +1056,7 @@ const I18n = (() => {
   const has = (key) => Object.prototype.hasOwnProperty.call(STRINGS[current] || {}, key)
     || Object.prototype.hasOwnProperty.call(STRINGS.en, key);
 
-  document.documentElement.lang = current;
+  document.documentElement.lang = HTML_LANG[current] || 'en';
   applyCountryLang();
   return {
     t, lang, locale, setLang, nameFor, missionName, enemyName, typeName, relicName, tierName,

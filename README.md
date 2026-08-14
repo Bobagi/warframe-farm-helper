@@ -2,118 +2,121 @@
 
 # Warframe Farm Helper
 
-### Onde farmar qualquer coisa em Warframe, sem abrir cinco abas.
+### Where to farm anything in Warframe, without opening five tabs.
 
-**[⮞ Abrir o site: warframe.bobagi.space](https://warframe.bobagi.space)**
+**[⮞ Open the site: warframe.bobagi.space](https://warframe.bobagi.space)**
 
-Português · English · Español · Русский · 简体中文
+English · Português · Español · Русский · 简体中文
 
 </div>
 
-![O site aberto na home, com a busca no topo, os ciclos dos mundos e a lista do que dá pra farmar agora](docs/screenshots/home.png)
+![The home page, with the search bar on top, the world cycles and the list of what you can farm right now](docs/screenshots/home.png)
 
-## O problema
+## The problem
 
-Você quer o Braton Prime. Aí começa: uma aba pra descobrir quais relíquias dropam cada peça, outra
-pra saber se essas relíquias ainda dropam ou entraram no vault, outra pra ver se tem fissura do tier
-certo ativa agora, e mais uma pro preço em platina. Quando você junta tudo, já esqueceu o que estava
-fazendo.
+You want the Braton Prime. Here we go: one tab to find which relics drop each part, another to
+check whether those relics still drop or went into the vault, another to see if there is a fissure
+of the right tier open right now, and one more for the platinum price. By the time you put it all
+together you forgot what you were doing.
 
-Este site responde tudo isso em uma busca só.
+This site answers all of that in one search.
 
-## Digite o que você quer
+## Type what you want
 
-Item, peça, relíquia, recurso, mecânica do jogo ou ato do Nightwave. A busca aceita português e
-inglês misturados, perdoa erro de digitação e não liga pra acento.
+An item, a part, a relic, a resource, a game mechanic or a Nightwave act. Search is fuzzy, ignores
+accents, and takes English and Portuguese mixed together.
 
-![A busca sugerindo Braton Prime e as peças dele enquanto você digita](docs/screenshots/busca.png)
+![Search suggesting Braton Prime and its parts while you type](docs/screenshots/busca.png)
 
-## E ele te diz o caminho inteiro
+## And it gives you the whole path
 
-Não é uma tabela de drop crua. É a resposta na ordem em que você vai executar: onde comprar o
-projeto, quanto custa a forja, e o que fazer primeiro.
+Not a raw drop table. The answer in the order you are going to do it: where the blueprint comes
+from, what the foundry costs, and what to farm first.
 
-![Página do Braton Prime mostrando onde conseguir, o custo de forja e a maestria exigida](docs/screenshots/passo-a-passo.png)
+![Braton Prime page showing how to get it, the crafting cost and the mastery requirement](docs/screenshots/passo-a-passo.png)
 
-![Passo a passo numerado dizendo qual relíquia farmar pra cada peça e onde ela dropa](docs/screenshots/steps.png)
+![Numbered step by step telling which relic to farm for each part and where that relic drops](docs/screenshots/steps.png)
 
-## Relíquia disponível ou vaulted, sem adivinhação
+## Available or vaulted, no guessing
 
-A parte que mais dá dor de cabeça. Cada peça mostra as relíquias que **ainda dropam** em cima, com a
-chance intacta e radiante e quantas fissuras daquele tier estão abertas neste momento. As vaulted
-ficam separadas, e as que voltaram na Prime Resurgence aparecem marcadas **na Varzia**, porque essas
-você consegue hoje, com Aya.
+This is the part that hurts. Each component lists the relics that **still drop** at the top, with
+intact and radiant chances and how many fissures of that tier are open right now. Vaulted ones are
+kept separate, and the ones that came back through Prime Resurgence are tagged **at Varzia**,
+because those you can get today, with Aya.
 
-![Tabela de relíquias separando as disponíveis das vaulted, com as que estão à venda na Varzia marcadas](docs/screenshots/reliquias.png)
+![Relic table separating available relics from vaulted ones, with the ones on sale at Varzia tagged](docs/screenshots/reliquias.png)
 
-## O estado do jogo, agora
+## The live state of the game
 
-As fissuras abertas neste minuto, com contagem regressiva, separadas em normais, Steel Path e Railjack. Os ciclos de Cetus, Vallis, Deimos, Duviri e Zariman ficam fixos no topo de todas as
-páginas, junto com o Baro.
+The fissures open this minute with a countdown, split into normal, Steel Path and Railjack. The
+Cetus, Vallis, Deimos, Duviri and Zariman cycles sit at the top of every page, next to Baro.
 
-![Lista de fissuras do Void ativas com tempo restante](docs/screenshots/fissuras.png)
+![List of active Void Fissures with time remaining](docs/screenshots/fissuras.png)
 
-## Nightwave explicado, ato por ato
+## Nightwave, act by act
 
-Os atos ativos da semana, cada um com um guia de como fazer. Inclusive os que ninguém explica
-direito: destruir Crewship com a Artilharia Frontal, os enigmas do Duviri, os guardiões Necramech
-dos vaults.
+This week's acts, each one with a guide on how to do it. Including the ones nobody explains
+properly: destroying a Crewship with the Forward Artillery, the Duviri enigmas, the Necramech vault
+guardians.
 
-![Atos do Nightwave da semana com o guia correspondente em cada um](docs/screenshots/nightwave.png)
+![This week's Nightwave acts, each with its matching guide](docs/screenshots/nightwave.png)
 
-## Cabe no celular
+## It fits on a phone
 
-Que é onde você vai olhar, com o jogo aberto na outra tela.
+Which is where you will actually look at it, with the game running on the other screen.
 
 <div align="center">
-  <img src="docs/screenshots/mobile.png" alt="O site no celular, mostrando a página de um recurso" width="330">
+  <img src="docs/screenshots/mobile.png" alt="The site on a phone, showing a resource page" width="330">
 </div>
 
-## Cinco idiomas, e o chinês é de verdade
+## Five languages, and the Chinese one is real
 
-Troque pela bandeira no topo. Quem abre da China, Taiwan, Hong Kong, Macau ou Singapura já cai em
-chinês direto.
+Switch with the flag at the top. Anyone opening the site from CN, TW, HK, MO or SG lands on Chinese
+already.
 
-No chinês os nomes vêm da nomenclatura oficial do cliente CN, não de tradução automática: o site
-diz 突变原聚合物, não "Mutagen Mass". A busca também funciona em chinês, os artigos foram traduzidos
-e a tipografia foi ajustada pra escrita CJK.
+In Chinese the names come from the official CN client naming, not from machine translation: the
+site says 突变原聚合物, not "Mutagen Mass". Search works in Chinese too, the articles are
+translated, and the typography was adjusted for CJK.
 
-![A mesma página de item em chinês, com nomes, passo a passo e relíquias traduzidos](docs/screenshots/chines.png)
+![The same item page in Chinese, with names, step by step and relics translated](docs/screenshots/chines.png)
 
-## Também tem
+## Also in there
 
-- **FAQ de mecânica**: o que fazer com arma que não usa mais, quando gastar Forma e potato, como
-  conseguir platina sem pagar, o que é Steel Path, ducats e Baro, e mais uns quinze.
-- **Onde farmar recurso**, não só peça prime: Neurodes, Espinobre, Archon Shard, moeda de sindicato.
-- **Pesquisa do Dojo**: qual laboratório, quanto custa e quais materiais, pra tudo que se pesquisa
-  no clã.
-- **Preço em platina** do warframe.market na página do item, pra você decidir entre farmar e comprar.
-- Funciona **sem cadastro, sem login e sem cookie de rastreio**.
+- **Mechanics FAQ**: what to do with weapons you no longer use, when to spend Forma and potatoes,
+  how to get platinum without paying, what Steel Path is, ducats and Baro, and a dozen more.
+- **Where to farm resources**, not just prime parts: Neurodes, Vainthorn, Archon Shards, syndicate
+  currencies.
+- **Clan Dojo research**: which lab, how much it costs and which materials, for everything the clan
+  can research.
+- **Platinum price** from warframe.market on the item page, so you can decide between farming and
+  buying.
+- Works with **no account, no login and no tracking cookies**.
 
-## De onde vêm os dados
+## Where the data comes from
 
-- **Itens e drops**: [WFCD/warframe-items](https://github.com/WFCD/warframe-items), que empacota as
-  drop tables oficiais da Digital Extremes. Reingerido todo dia.
-- **Pesquisa de clã, vendedores e Mercado**: módulos de dados da wiki oficial.
-- **Estado do jogo** (fissuras, Nightwave, Baro, ciclos, Varzia): [warframestat.us](https://api.warframestat.us),
-  consultado a cada acesso.
-- **Preços**: [warframe.market](https://warframe.market).
+- **Items and drops**: [WFCD/warframe-items](https://github.com/WFCD/warframe-items), which packages
+  Digital Extremes' official drop tables. Re-ingested daily.
+- **Clan research, vendors and Market prices**: the official wiki data modules.
+- **Live game state** (fissures, Nightwave, Baro, cycles, Varzia):
+  [warframestat.us](https://api.warframestat.us), queried on every request.
+- **Trading prices**: [warframe.market](https://warframe.market).
 
-## Achou algo errado?
+## Found something wrong?
 
-Drop que mudou, tradução esquisita, item que não aparece na busca:
-[abra uma issue](https://github.com/Bobagi/warframe-farm-helper/issues). O pedido de suporte a
-chinês veio assim.
+A drop that changed, an odd translation, an item missing from search:
+[open an issue](https://github.com/Bobagi/warframe-farm-helper/issues). Chinese support got added
+that way.
 
-## Para desenvolvedores
+## For developers
 
-Como rodar, atualizar os dados e fazer deploy: **[docs/DEV.md](docs/DEV.md)**.
+How to run it, update the data and deploy: **[docs/DEV.md](docs/DEV.md)**.
 
-Node 22, Express, SQLite e front vanilla sem framework. Roda inteiro em um container.
+Node 22, Express, SQLite and a vanilla front end with no framework. The whole thing runs in one
+container.
 
-## Licença e aviso
+## License and disclaimer
 
-MIT, ver [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE).
 
-Site não oficial, feito por fã. Sem afiliação com a Digital Extremes. Warframe e o logotipo de
-Warframe são marcas da Digital Extremes Ltd.
+Unofficial fan site, not affiliated with Digital Extremes. Warframe and the Warframe logo are
+trademarks of Digital Extremes Ltd.

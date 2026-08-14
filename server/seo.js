@@ -24,9 +24,9 @@ const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 const OG_IMAGE = `${SITE_ORIGIN}/og-banner.png`;
 
 // rótulo PT por categoria do WFCD - usado em descriptions e no bloco SSR
-const CATEGORY_PT = {
-  Mods: 'Mod', Resources: 'Recurso', Melee: 'Arma corpo a corpo',
-  Primary: 'Arma primária', Secondary: 'Arma secundária', Warframes: 'Warframe',
+const CATEGORY_EN = {
+  Mods: 'Mod', Resources: 'Resource', Melee: 'Melee weapon',
+  Primary: 'Primary weapon', Secondary: 'Secondary weapon', Warframes: 'Warframe',
   Arcanes: 'Arcano', Fish: 'Peixe', Pets: 'Companheiro', Quests: 'Quest',
   Gear: 'Equipamento', Railjack: 'Railjack', Misc: 'Item',
   SentinelWeapons: 'Arma de sentinela', Sentinels: 'Sentinela',
@@ -251,7 +251,7 @@ function itemForSlug(slug) {
   const u = uniqueBySlug.get(String(slug || '').toLowerCase());
   if (!u) return null;
   return getDb().prepare(
-    'SELECT unique_name, name, name_pt, category, type, image_name, vaulted, wiki_url, raw FROM items WHERE unique_name = ?'
+    'SELECT unique_name, name, name_pt, name_zh, category, type, image_name, vaulted, wiki_url, raw FROM items WHERE unique_name = ?'
   ).get(u);
 }
 
@@ -288,20 +288,25 @@ const safeParse = (s) => { try { return JSON.parse(s); } catch { return {}; } };
 /** Título/descrição/JSON-LD de um item (puro dado o row - testável). */
 function itemMeta(row, canonicalSlug) {
   const raw = safeParse(row.raw);
-  const display = row.name_pt && row.name_pt !== row.name
-    ? `${row.name_pt} (${row.name})` : row.name;
+  // Título e <h1> usam o nome CANÔNICO em inglês, que é o que a comunidade
+  // busca. Os nomes localizados não somem: entram no corpo do SSR como "also
+  // known as", que dá cauda longa sem poluir o title.
+  const display = row.name;
+  const alsoKnown = [row.name_pt, row.name_zh].filter((n) => n && n !== row.name);
   const isPrime = / Prime( |$)/.test(row.name);
-  const cat = CATEGORY_PT[row.category] || row.category;
-  const title = `Onde farmar ${display} · Warframe Farm Helper`;
+  const cat = CATEGORY_EN[row.category] || row.category;
+  // O título segue o padrão de busca REAL que o Search Console mostra chegando
+  // aqui ("where to farm X", "how to get X", "X farm"), todas em inglês.
+  const title = `Where to farm ${display} · Warframe Farm Helper`;
   const description = truncate(isPrime
-    ? `Como farmar ${display} em Warframe: relíquias que dropam cada componente (disponíveis vs vaulted), chances por refinamento, forja e passo a passo.`
-    : `Onde conseguir ${display} em Warframe: locais de drop com chances oficiais, forja e passo a passo. ${cat}.`);
+    ? `How to farm ${display} in Warframe: which relics drop each part, available vs vaulted, intact and radiant chances, ducats, crafting cost and a step by step.`
+    : `Where to get ${display} in Warframe: drop locations with official chances, clan research and vendors, crafting cost and a step by step. ${cat}.`);
   const canonical = `/item/${canonicalSlug}`;
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Início', item: `${SITE_ORIGIN}/` },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_ORIGIN}/` },
       { '@type': 'ListItem', position: 2, name: row.name, item: SITE_ORIGIN + canonical },
     ],
   };
@@ -313,7 +318,8 @@ function itemMeta(row, canonicalSlug) {
     ogImage: raw.imageName ? CDN_IMG + raw.imageName : null,
     jsonLd,
     display,
-    categoryPt: cat,
+    alsoKnown,
+    categoryEn: cat,
     descriptionEn: raw.description || '',
     image: raw.imageName ? CDN_IMG + raw.imageName : null,
   };
@@ -323,14 +329,17 @@ function itemMeta(row, canonicalSlug) {
 function itemSsrBlock(row, meta) {
   const parts = ['<section class="hero" style="padding-top:8px">'];
   parts.push(`<h1>${escapeHtml(meta.display)}</h1>`);
-  const status = row.vaulted === 1 ? ' · Vaulted' : row.vaulted === 0 ? ' · Disponível' : '';
-  parts.push(`<p class="lead">${escapeHtml(meta.categoryPt)}${row.type && row.type !== row.category ? ` · ${escapeHtml(row.type)}` : ''}${status}</p>`);
+  const status = row.vaulted === 1 ? ' · Vaulted' : row.vaulted === 0 ? ' · Available' : '';
+  parts.push(`<p class="lead">${escapeHtml(meta.categoryEn)}${row.type && row.type !== row.category ? ` · ${escapeHtml(row.type)}` : ''}${status}</p>`);
   if (meta.image) {
     parts.push(`<img src="${escapeHtml(meta.image)}" alt="${escapeHtml(row.name)}" width="128" height="128" loading="lazy" style="image-rendering:auto">`);
   }
+  if (meta.alsoKnown && meta.alsoKnown.length) {
+    parts.push(`<p class="small">Also known as: ${escapeHtml(meta.alsoKnown.join(' · '))}</p>`);
+  }
   if (meta.descriptionEn) parts.push(`<p class="desc">${escapeHtml(meta.descriptionEn)}</p>`);
   const wiki = safeHttpUrl(row.wiki_url);
-  if (wiki) parts.push(`<p class="small"><a href="${escapeHtml(wiki)}" rel="noopener">Página na wiki</a></p>`);
+  if (wiki) parts.push(`<p class="small"><a href="${escapeHtml(wiki)}" rel="noopener">Wiki page</a></p>`);
   parts.push('</section>');
   const acq = acquisitionSsr(row.name);
   if (acq) parts.push(acq);
@@ -350,20 +359,20 @@ function acquisitionSsr(name) {
   const map = getAcquisition(getDb(), [name]);
   const a = map.get(name);
   if (!a) return null;
-  const parts = ['<section class="panel panel-acq"><h2 class="eyebrow">Como conseguir</h2>'];
+  const parts = ['<section class="panel panel-acq"><h2 class="eyebrow">How to get it</h2>'];
   if (a.research) {
     const r = a.research;
     const mats = r.resources.map((m) => `${m.count}x ${m.name}`).join(', ');
     const bits = [
-      r.lab ? `Pesquisa no ${r.lab} do Dojo do clã` : 'Pesquisa no Dojo do clã',
-      r.credits != null ? `${r.credits.toLocaleString('pt-BR')} créditos` : null,
+      r.lab ? `Researched in the ${r.lab} at the clan Dojo` : 'Clan Dojo research',
+      r.credits != null ? `${r.credits.toLocaleString('en-US')} credits` : null,
       mats || null,
-      r.prereq ? `exige ${r.prereq} pesquisado antes` : null,
+      r.prereq ? `requires ${r.prereq} researched first` : null,
     ].filter(Boolean);
     parts.push(`<p>${escapeHtml(bits.join(' · '))}.</p>`);
   }
   if (a.vendors.length) {
-    parts.push('<h3>Onde comprar</h3><ul>');
+    parts.push('<h3>Where to buy</h3><ul>');
     for (const v of a.vendors.slice(0, 8)) {
       parts.push(`<li>${escapeHtml(`${v.vendor}: ${v.cost.toLocaleString('pt-BR')} ${v.currency || ''}`.trim())}</li>`);
     }
@@ -371,11 +380,11 @@ function acquisitionSsr(name) {
   }
   if (a.market) {
     const bits = [
-      a.market.platinum != null ? `${a.market.platinum} platina pelo item pronto` : null,
+      a.market.platinum != null ? `${a.market.platinum} platinum for the finished item` : null,
       a.market.blueprintCredits != null
-        ? `${a.market.blueprintCredits.toLocaleString('pt-BR')} créditos pelo projeto` : null,
+        ? `${a.market.blueprintCredits.toLocaleString('en-US')} credits for the blueprint` : null,
     ].filter(Boolean);
-    if (bits.length) parts.push(`<p>Mercado do jogo: ${escapeHtml(bits.join(', '))}.</p>`);
+    if (bits.length) parts.push(`<p>In-game Market: ${escapeHtml(bits.join(', '))}.</p>`);
   }
   parts.push('</section>');
   return parts.join('\n      ');
@@ -397,8 +406,8 @@ function relicSsrBlock(row) {
   const rewards = safeParse(row.rewards);
   const intact = Array.isArray(rewards.Intact) ? rewards.Intact : [];
   const parts = ['<section class="hero" style="padding-top:8px">'];
-  parts.push(`<h1>Relíquia ${escapeHtml(row.name)}</h1>`);
-  parts.push(`<p class="lead">Tier ${escapeHtml(row.tier)} · ${row.vaulted ? 'Vaulted (fora de rotação)' : 'Disponível - dropa em missões agora'}</p>`);
+  parts.push(`<h1>${escapeHtml(row.name)} Relic</h1>`);
+  parts.push(`<p class="lead">${escapeHtml(row.tier)} tier · ${row.vaulted ? 'Vaulted (no longer drops in missions)' : 'Available - drops in missions'}</p>`);
   if (intact.length) {
     parts.push('<h2 class="eyebrow">Recompensas (Intact)</h2><ul class="rowlist">');
     for (const rw of intact) {
@@ -414,8 +423,8 @@ function renderRelicPage(slug) {
   const row = relicForSlug(slug);
   if (!row) return null;
   const meta = {
-    title: `Relíquia ${row.name} · drops e recompensas | Warframe Farm Helper`,
-    description: truncate(`Conteúdo da relíquia ${row.name} de Warframe por refinamento (Intact a Radiant), chances de cada recompensa, onde a relíquia dropa e se está vaulted.`),
+    title: `${row.name} Relic drops and rewards · Warframe Farm Helper`,
+    description: truncate(`What the ${row.name} relic drops in Warframe, reward by reward and refinement by refinement (Intact to Radiant), the chance of each part, and where the relic itself drops.`),
     canonical: relicUrl(row.name),
     ogType: 'article',
   };
@@ -465,9 +474,9 @@ function renderFaqIndex() {
     })),
   };
   return injectHead(template('faq.html'), {
-    title: 'FAQ · mecânicas de Warframe explicadas em português',
+    title: 'Warframe FAQ · game mechanics explained',
     titleI18n: 'title.faq', // índice: cliente relocaliza a aba (en/es/ru); crawler lê o título rico
-    description: 'Guia de mecânicas de Warframe em português: Helminth, slots, relíquias, ducats, Forma, platina, vaulted e mais - direto ao ponto.',
+    description: 'Warframe game mechanics explained: Helminth, inventory slots, void relics, ducats and Baro, Forma, how to get platinum, vaulted primes and more.',
     canonical: '/faq',
     jsonLd,
   });
@@ -476,9 +485,9 @@ function renderFaqIndex() {
 /** Lista de guias do Nightwave (canonical limpo). */
 function renderNightwaveIndex() {
   return injectHead(template('nightwave.html'), {
-    title: 'Nightwave · atos da semana e guias · Warframe Farm Helper',
+    title: 'Warframe Nightwave · this week acts and guides',
     titleI18n: 'title.nightwave', // índice: cliente relocaliza a aba (en/es/ru); crawler lê o título rico
-    description: 'Atos ativos do Nightwave de Warframe com guia em português de como completar cada um - Artilharia Frontal, Enigmas do Duviri, Eximus e mais.',
+    description: 'Active Warframe Nightwave acts with a guide on how to complete each one: Forward Artillery on a Crewship, Duviri enigmas, Eximus, Kuva Siphon and more.',
     canonical: '/nightwave',
   });
 }

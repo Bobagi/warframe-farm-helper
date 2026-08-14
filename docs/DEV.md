@@ -3,6 +3,11 @@
 Como o projeto roda, como atualizar os dados e o que conferir depois de subir. O
 [README](../README.md) é a apresentação do produto; isto aqui é a parte de operação.
 
+**Idioma:** o site é servido em INGLÊS por padrão (SSR e `<html lang>`), porque o Search Console
+mostrou que 100% das buscas que chegam nele são em inglês. O cliente troca para pt/es/ru/zh pela
+preferência do navegador, pelo país (CF-IPCountry) ou pelo clique na bandeira. Os títulos SSR
+seguem o padrão de busca real ("Where to farm X"). Ver `server/seo.js` e `public/js/i18n.js`.
+
 ## Stack
 
 Node 22 + Express 5, **SQLite** (better-sqlite3), busca **MiniSearch** em memória, front **vanilla**

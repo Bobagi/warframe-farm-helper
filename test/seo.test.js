@@ -163,7 +163,8 @@ test('rebuild + itemUrl/itemForSlug: URL bonita e lookup de ida e volta', () => 
 
 test('renderItemPage: title/canonical/data-item-u/SSR h1 presentes', () => {
   const html = seo.renderItemPage('braton-prime');
-  assert.ok(html.includes('<title>Onde farmar Braton Prime · Warframe Farm Helper</title>'));
+  assert.ok(html.includes('<title>Where to farm Braton Prime · Warframe Farm Helper</title>'),
+    'o title segue o padrão de busca real medido no Search Console ("where to farm x")');
   assert.ok(html.includes('rel="canonical" href="https://warframe.bobagi.space/item/braton-prime"'));
   assert.ok(html.includes('data-item-u="/Lotus/Test/BratonPrime"'));
   assert.ok(html.includes('<h1>Braton Prime</h1>'));
@@ -228,8 +229,8 @@ test('sitemap: páginas fixas + item + relíquia + artigo, com lastmod da ingest
 
 test('renderRelicPage: h1, recompensas Intact no SSR e slug inválido → null', () => {
   const html = seo.renderRelicPage('lith-k12');
-  assert.ok(html.includes('<title>Relíquia Lith K12 · drops e recompensas | Warframe Farm Helper</title>'));
-  assert.ok(html.includes('<h1>Relíquia Lith K12</h1>'));
+  assert.ok(html.includes('<title>Lith K12 Relic drops and rewards · Warframe Farm Helper</title>'));
+  assert.ok(html.includes('<h1>Lith K12 Relic</h1>'));
   assert.ok(html.includes('Braton Prime Stock'));
   assert.ok(html.includes('data-relic-name="Lith K12"'));
   assert.equal(seo.renderRelicPage('../../etc/passwd'), null);
@@ -257,7 +258,7 @@ test('renderFaqIndex: JSON-LD FAQPage com pergunta e resposta', () => {
 test('índices (/faq, /nightwave): title mantém data-i18n p/ o cliente relocalizar a aba (en/es/ru)', () => {
   const faq = seo.renderFaqIndex();
   assert.ok(faq.includes('data-i18n="title.faq"'), 'FAQ índice mantém hook i18n no title');
-  assert.ok(faq.includes('FAQ · mecânicas de Warframe explicadas em português'), 'e serve o título rico p/ o crawler');
+  assert.ok(faq.includes('Warframe FAQ · game mechanics explained'), 'e serve o título rico p/ o crawler');
   const nw = seo.renderNightwaveIndex();
   assert.ok(nw.includes('data-i18n="title.nightwave"'), 'Nightwave índice mantém hook i18n no title');
 });
@@ -265,4 +266,17 @@ test('índices (/faq, /nightwave): title mantém data-i18n p/ o cliente relocali
 test('renderNoindex: robots noindex no fallback legado', () => {
   const html = seo.renderNoindex('item.html');
   assert.ok(html.includes('<meta name="robots" content="noindex">'));
+});
+
+test('SSR é em INGLÊS e os nomes localizados vão para o corpo, não para o title', () => {
+  // O Search Console mostrou que 100% das buscas que chegam ao site são em
+  // inglês. O title tem que ser limpo e em inglês; o nome pt/zh continua no
+  // HTML (cauda longa) mas fora do título, que é o que aparece no resultado.
+  seed();
+  const html = seo.renderItemPage('braton-prime');
+  assert.ok(html.includes('<title>Where to farm Braton Prime · Warframe Farm Helper</title>'));
+  assert.ok(!/<title>[^<]*Onde farmar/.test(html), 'nada de português no title');
+  assert.ok(/<html lang="en"/.test(html), 'o HTML servido ao crawler declara inglês');
+  assert.ok(html.includes('Where to get') || html.includes('How to farm'),
+    'a description usa o padrão de busca em inglês');
 });
