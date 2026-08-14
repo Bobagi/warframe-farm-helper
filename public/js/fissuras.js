@@ -10,7 +10,7 @@
 (() => {
   const { el, api, startTimers, tierBadge, farmCard } = App;
   const { t, missionName, enemyName } = I18n;
-  const placeName = (n) => (I18n.lang() === 'pt' ? Places.placePt(n) : n);
+  const placeName = (n) => (I18n.lang() === 'pt' || I18n.lang() === 'zh' ? Places.placeIn(n, I18n.lang()) : n);
 
   // ---- fissuras (mesma lógica da home) ----
   let fissures = [];

@@ -17,7 +17,7 @@
     ? t(CATEGORY_LABEL[item.category]) : (item.type || item.category));
   // locais de drop nas tabelas já vêm traduzidos do servidor; as fissuras ativas
   // vêm do worldstate (cache compartilhado) - traduz o node aqui, sem mutar o cache
-  const placeName = (n) => (lang() === 'pt' ? Places.placePt(n) : n);
+  const placeName = (n) => (lang() === 'pt' || lang() === 'zh' ? Places.placeIn(n, lang()) : n);
   const root = document.getElementById('content');
 
   function relicTable(comp) {
@@ -202,6 +202,9 @@
     el('span', { class: 'num price', text: `${fmtInt(v.cost)} ${currencyLabel(v.currency)}`.trim() }),
   ]);
 
+  // nome do laboratório no idioma ativo (só o chinês tem tabela; ver acquisition.js)
+  const labName = (r) => ((lang() === 'zh' && r.labZh) ? r.labZh : r.lab);
+
   function researchBlock(r) {
     const cost = fmtDuration(r.timeSec);
     return el('div', { class: 'acq-block' }, [
@@ -210,7 +213,7 @@
         r.lab
           ? el('a', {
             class: 'badge badge-lab', href: safeHref(r.labWiki),
-            target: '_blank', rel: 'noopener', text: r.lab,
+            target: '_blank', rel: 'noopener', text: labName(r),
           })
           : null,
       ]),
@@ -271,7 +274,7 @@
     // numa coluna de preço passaria a impressão de ser o preço do projeto
     if (a.research) {
       parts.push(el('li', { class: 'row' }, [
-        el('span', { class: 'grow small', text: t('acq.compDojo', { lab: a.research.lab }) }),
+        el('span', { class: 'grow small', text: t('acq.compDojo', { lab: labName(a.research) }) }),
       ]));
     }
     for (const v of a.vendors.slice(0, 4)) parts.push(vendorRow(v));

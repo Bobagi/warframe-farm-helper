@@ -3,7 +3,7 @@
 (() => {
   const { el, api, qs, fmtPct, tierBadge, rarityChip, statusBadge, startTimers, safeHref } = App;
   const { t, missionName, enemyName } = I18n;
-  const placeName = (n) => (I18n.lang() === 'pt' ? Places.placePt(n) : n);
+  const placeName = (n) => (I18n.lang() === 'pt' || I18n.lang() === 'zh' ? Places.placeIn(n, I18n.lang()) : n);
   const root = document.getElementById('content');
 
   const REFINEMENTS = ['Intact', 'Exceptional', 'Flawless', 'Radiant'];

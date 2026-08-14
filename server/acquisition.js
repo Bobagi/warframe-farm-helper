@@ -12,6 +12,18 @@
 const { itemUrl } = require('./seo');
 
 const CDN_IMG = 'https://cdn.warframestat.us/img/';
+
+// Nome do laboratório do Dojo em chinês. São 8 e mudam quase nunca, então uma
+// tabela fixa vale mais que outra fonte de dados. O que não estiver aqui cai no
+// nome em inglês (melhor um nome não traduzido que um traduzido errado).
+const LAB_ZH = {
+  'Bio Lab': '生物实验室',
+  'Chem Lab': '化学实验室',
+  'Energy Lab': '能量实验室',
+  'Tenno Lab': 'Tenno 实验室',
+  'Orokin Lab': 'Orokin 实验室',
+  'Dry Dock': '干船坞',
+};
 const WIKI_BASE = 'https://wiki.warframe.com/w/';
 
 /** URL da página da wiki a partir do nome canônico EN. */
@@ -59,8 +71,10 @@ function shape(rawEntry, resolve) {
   const r = rawEntry.research;
   if (r && (r.labName || (r.resources && r.resources.length))) {
     const prereqRef = r.prereq ? resolve(r.prereq) : null;
+    const labName = r.labName || r.lab || null;
     out.research = {
-      lab: r.labName || r.lab || null,
+      lab: labName,
+      labZh: (labName && LAB_ZH[labName]) || null,
       labWiki: wikiPage(r.labName || r.lab),
       credits: Number.isFinite(r.credits) ? r.credits : null,
       affinity: Number.isFinite(r.affinity) ? r.affinity : null,

@@ -11,7 +11,7 @@ const { getFissures } = require('./worldstate');
 const { getResourceDrops } = require('./drops');
 const { getQuestInfo } = require('./questwiki');
 const { getTopOrders } = require('./market');
-const { placePt } = require('../public/js/places');
+const { placeIn } = require('../public/js/places');
 const { COMMON_RESOURCES } = require('./util');
 const { itemUrl, safeHttpUrl } = require('./seo');
 const { getVarzia } = require('./varzia');
@@ -247,7 +247,7 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
   // caminho principal (o projeto nasce lá) e sem ela o passo a passo pulava
   // direto para a forja, mandando construir algo que o jogador nem tem.
   if (acq && acq.research) {
-    const r = acq.research;
+    const r = { ...acq.research, lab: (zh && acq.research.labZh) || acq.research.lab };
     // no chinês o material sai com o nome do cliente CN quando existe: o passo
     // fala "5x 突变原样本", não "5x Mutagen Sample"
     const matName = (m) => (zh && m.nameZh ? m.nameZh : m.name);
@@ -356,7 +356,7 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
     if (a.research) {
       steps.push(L(`${cn(c)}: pesquise no ${a.research.lab} do Dojo do clã.`,
         `${cn(c)}: research it in the ${a.research.lab} at your clan Dojo.`,
-        `${cn(c)}：在氏族道场的 ${a.research.lab} 研究。`));
+        `${cn(c)}：在氏族道场的 ${a.research.labZh || a.research.lab} 研究。`));
     } else if (a.vendors.length) {
       const v = a.vendors[0];
       steps.push(L(`${cn(c)}: compre com ${v.vendor} por ${int(v.cost)} ${v.currency || ''}.`.replace(/ +/g, ' '),
@@ -549,9 +549,9 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
   // buildSteps para o passo a passo sair traduzido também. CLONA os objetos
   // (map+spread) em vez de mutar: alguns arrays vêm de cache compartilhado
   // (getResourceDrops) - mutar corromperia o cache e vazaria PT para o EN.
-  if (lang === 'pt') {
+  if (lang === 'pt' || lang === 'zh') {
     const trLoc = (arr) => (Array.isArray(arr)
-      ? arr.map((s) => (s && s.location ? { ...s, location: placePt(s.location) } : s))
+      ? arr.map((s) => (s && s.location ? { ...s, location: placeIn(s.location, lang) } : s))
       : arr);
     itemSources.other = trLoc(itemSources.other);
     for (const c of outComps) {
