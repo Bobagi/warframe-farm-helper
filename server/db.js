@@ -12,6 +12,10 @@ CREATE TABLE IF NOT EXISTS items (
   unique_name TEXT PRIMARY KEY,
   name        TEXT NOT NULL,
   name_pt     TEXT,
+  -- nome oficial do cliente chinês (o WFCD traz 98% dos itens). Coluna própria,
+  -- e não só um campo no JSON, porque a BUSCA precisa indexar isso: sem ela um
+  -- jogador chinês que digita 布莱顿 não acha nada.
+  name_zh     TEXT,
   category    TEXT NOT NULL,
   type        TEXT,
   mastery_req INTEGER,
@@ -101,6 +105,27 @@ CREATE TABLE IF NOT EXISTS meta (
 
 let db = null;
 
+/**
+ * Colunas acrescentadas depois que o banco já existia.
+ *
+ * ★ `CREATE TABLE IF NOT EXISTS` NÃO altera tabela existente: num banco já
+ * criado o schema novo é simplesmente ignorado, e a app sobe e morre no primeiro
+ * SELECT da coluna nova ("no such column"). Toda coluna nova entra aqui também.
+ */
+const MIGRATIONS = [
+  ['items', 'name_zh', 'ALTER TABLE items ADD COLUMN name_zh TEXT'],
+];
+
+function migrate(d) {
+  for (const [table, column, sql] of MIGRATIONS) {
+    const cols = d.prepare(`PRAGMA table_info(${table})`).all();
+    if (!cols.length) continue; // tabela nem existe: o SCHEMA acabou de criá-la certa
+    if (cols.some((c) => c.name === column)) continue;
+    d.exec(sql);
+    console.log(`[db] migração aplicada: ${table}.${column}`);
+  }
+}
+
 function getDb() {
   if (db) return db;
   fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -108,6 +133,7 @@ function getDb() {
   db.pragma('journal_mode = WAL');
   db.pragma('synchronous = NORMAL');
   db.exec(SCHEMA);
+  migrate(db);
   return db;
 }
 
@@ -122,4 +148,4 @@ function setMeta(d, key, value) {
   ).run(key, value);
 }
 
-module.exports = { getDb, getMeta, setMeta, DB_PATH, DATA_DIR };
+module.exports = { getDb, getMeta, setMeta, migrate, DB_PATH, DATA_DIR };

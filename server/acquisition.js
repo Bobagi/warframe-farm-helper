@@ -30,7 +30,7 @@ const safeParse = (s) => { try { return JSON.parse(s); } catch { return null; } 
  */
 function makeResolver(db) {
   const stmt = db.prepare(
-    'SELECT unique_name, name_pt, image_name FROM items WHERE name = ? ORDER BY name, unique_name LIMIT 1'
+    'SELECT unique_name, name_pt, name_zh, image_name FROM items WHERE name = ? ORDER BY name, unique_name LIMIT 1'
   );
   const cache = new Map();
   return (name) => {
@@ -40,6 +40,7 @@ function makeResolver(db) {
       cache.set(name, row ? {
         url: itemUrl(row.unique_name),
         namePt: row.name_pt || null,
+        nameZh: row.name_zh || null,
         image: row.image_name ? CDN_IMG + row.image_name : null,
       } : null);
     }
@@ -71,6 +72,7 @@ function shape(rawEntry, resolve) {
         return {
           name: res.name,
           namePt: ref ? ref.namePt : null,
+          nameZh: ref ? ref.nameZh : null,
           count: res.count,
           url: ref ? ref.url : null,
           image: ref ? ref.image : null,

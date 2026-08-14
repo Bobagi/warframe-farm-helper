@@ -138,6 +138,39 @@ viraria uma linha de megabytes no banco. Ver `server/wikiacq.js`.
 Consequência prática: **conteúdo derivado do markdown vive no banco**. Editar `content/**/*.md` só aparece
 no site depois de rodar a ingestão - o mesmo vale para qualquer varredura de texto.
 
+## Idiomas
+
+Interface em **pt / en / es / ru / zh** (chinês simplificado). O seletor de bandeiras grava
+`localStorage['wfh-lang']`.
+
+**Nome de item por idioma, e por que zh é exceção.** `pt` e `zh` têm nome próprio (`name_pt` /
+`name_zh`, do i18n do WFCD); `en/es/ru` usam o nome canônico em inglês, porque é assim que a
+comunidade (market, wiki, trade) se refere aos itens nesses idiomas. O chinês é diferente: o
+servidor CN do jogo é um ecossistema à parte, com nomenclatura oficial própria (布莱顿 Prime,
+突变原聚合物), e é por ela que o jogador de lá procura. São **3.771 nomes** no banco.
+
+**Busca em chinês.** O chinês não separa palavra com espaço, então o tokenizador padrão faria do
+nome inteiro um único token e quem digitasse um pedaço não acharia nada. `server/search.js` tem um
+`tokenize()` que indexa o trecho CJK **e os bigramas dele** (突变原聚合物 → 突变/变原/原聚/聚合/合物),
+então qualquer pedaço de 2+ caracteres casa. A tokenização do alfabeto latino ficou idêntica à de
+antes (é o mesmo separador do MiniSearch), e há teste travando isso.
+
+**Idioma pelo país.** Quem abre de um país de língua chinesa (CN/TW/HK/MO/SG) cai direto em zh, mesmo
+com o navegador em outro idioma. O país vem do header `CF-IPCountry` do Cloudflare via `/api/geo`
+(`no-store`; não é geolocalização do navegador, não pede permissão e nada é gravado). A ordem é
+**escolha manual > país > idioma do navegador > pt**, e a dedução por país fica num
+`localStorage['wfh-geo-lang']` separado - assim ela nunca se disfarça de escolha do usuário, um
+clique na bandeira a apaga, e o reload acontece no máximo uma vez.
+
+**Tipografia CJK.** A Exo 2 (self-hosted) não tem glifo chinês: `--cjk` no `:root` acrescenta as
+fontes de SISTEMA por plataforma (o fallback é por caractere, então o latino segue na Exo 2). O
+bloco `html[lang^="zh"]` no fim do `style.css` ajusta o que a escrita quebra: `letter-spacing` alto
+vira ideograma solto, entrelinha do latino faz as linhas encostarem, 11px vira borrão e o peso 700
+sintetizado empastela os traços. Ver o relatório em `.claude/frontend-review/20260814-zh/`.
+
+**Limite honesto:** os artigos de FAQ/Nightwave e os nomes de LOCAL (nó de missão, bioma) seguem em
+português/inglês - são conteúdo escrito à mão e nomenclatura de nó que o dataset não traz em CN.
+
 ## Analytics (Umami)
 
 O site é medido pelo **Umami** próprio do box (`analytics.bobagi.space`), mas o script **não** é

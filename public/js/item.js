@@ -3,6 +3,18 @@
 (() => {
   const { el, api, qs, fmtInt, fmtPct, tierBadge, rarityChip, statusBadge, startTimers, safeHref } = App;
   const { t, lang, nameFor, missionName, enemyName } = I18n;
+  // nome do componente: ingrediente que é item próprio tem versão traduzida
+  // (o servidor manda em fullNameZh); peça de arma segue no nome canônico
+  const compName = (c) => ((lang() === 'zh' && c.fullNameZh) ? c.fullNameZh : c.fullName);
+  // selo de tipo: o dataset devolve o tipo cru em inglês ("Resource", "Rifle").
+  // As categorias que JÁ têm rótulo traduzido no dicionário usam ele; o resto
+  // (tipos de arma) fica no cru, que é como a comunidade se refere mesmo.
+  const CATEGORY_LABEL = {
+    Resources: 'kind.resource', Mods: 'kind.mod', Fish: 'kind.fish',
+    Gear: 'kind.gear', Quests: 'kind.quest', Arcanes: 'kind.arcane',
+  };
+  const typeLabel = (item) => (CATEGORY_LABEL[item.category]
+    ? t(CATEGORY_LABEL[item.category]) : (item.type || item.category));
   // locais de drop nas tabelas já vêm traduzidos do servidor; as fissuras ativas
   // vêm do worldstate (cache compartilhado) - traduz o node aqui, sem mutar o cache
   const placeName = (n) => (lang() === 'pt' ? Places.placePt(n) : n);
@@ -297,7 +309,7 @@
           lang() === 'pt' && item.namePt && item.namePt !== item.name
             ? el('p', { class: 'muted', style: 'margin:0', text: item.name }) : null,
           el('div', { class: 'badges-line' }, [
-            el('span', { class: 'badge', text: item.isQuest ? t('quest.title') : (item.type || item.category) }),
+            el('span', { class: 'badge', text: item.isQuest ? t('quest.title') : typeLabel(item) }),
             item.masteryReq ? el('span', { class: 'badge badge-gold', text: t('tag.mrShort', { n: item.masteryReq }) }) : null,
             item.vaulted != null ? statusBadge(item.vaulted) : null,
             item.tradable ? el('span', { class: 'badge', text: t('tag.tradable') }) : null,
@@ -406,8 +418,8 @@
           el('div', { class: 'comp-head' }, [
             c.image ? el('img', { src: c.image, alt: '', loading: 'lazy' }) : null,
             c.wikiUrl
-              ? el('a', { class: 'comp-name', href: safeHref(c.wikiUrl), target: '_blank', rel: 'noopener', text: c.fullName })
-              : el('span', { class: 'comp-name', text: c.fullName }),
+              ? el('a', { class: 'comp-name', href: safeHref(c.wikiUrl), target: '_blank', rel: 'noopener', text: compName(c) })
+              : el('span', { class: 'comp-name', text: compName(c) }),
             c.itemCount > 1 ? el('span', { class: 'count', text: `×${c.itemCount}` }) : null,
             c.ducats ? el('span', { class: 'badge badge-gold', text: t('tag.ducats', { n: c.ducats }) }) : null,
             statusBadge(!c.available),

@@ -101,7 +101,7 @@ function classifyMisc(it) {
 /** Linha da tabela `items` a partir de uma entrada de Misc.json já classificada. */
 function miscRow(it, category) {
   return {
-    unique_name: it.uniqueName, name: cleanName(it.name), name_pt: null,
+    unique_name: it.uniqueName, name: cleanName(it.name), name_pt: null, name_zh: null,
     category,
     type: it.type, mastery_req: Number.isFinite(it.masteryReq) ? it.masteryReq : null,
     vaulted: null,
@@ -327,6 +327,7 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
         unique_name: it.uniqueName,
         name: cleanName(it.name),
         name_pt: null,
+        name_zh: null,
         category: cat,
         type: it.type || null,
         mastery_req: Number.isFinite(it.masteryReq) ? it.masteryReq : null,
@@ -388,6 +389,7 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
       log('[ingest] baixando i18n (~50MB) para nomes PT-BR...');
       const i18n = await fetchJson(`${RAW_BASE}/i18n.json`, { timeoutMs: 300000, retries: 1 });
       let hits = 0;
+      let zhHits = 0;
       for (const row of itemRows) {
         const tr = i18n[row.unique_name];
         if (tr && tr.pt) {
@@ -395,8 +397,17 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
           if (pt && pt !== row.name) { row.name_pt = pt; hits++; }
           if (tr.pt.description) row.slim.descriptionPt = tr.pt.description;
         }
+        // chinês simplificado: nome E descrição. Diferente de es/ru (onde o nome
+        // fica em inglês de propósito, porque market/wiki/trade usam inglês), o
+        // servidor chinês do jogo tem nomenclatura PRÓPRIA e o jogador procura
+        // por ela - sem isso a busca em chinês não acha nada.
+        if (tr && tr.zh) {
+          const zh = cleanName(tr.zh.name);
+          if (zh && zh !== row.name) { row.name_zh = zh; zhHits++; }
+          if (tr.zh.description) row.slim.descriptionZh = tr.zh.description;
+        }
       }
-      log(`[ingest] i18n pt aplicado em ${hits} itens`);
+      log(`[ingest] i18n aplicado: ${hits} nomes pt, ${zhHits} nomes zh`);
     } catch (err) {
       log(`[ingest] i18n falhou (seguindo só com EN): ${err.message}`);
     }
@@ -432,11 +443,11 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
     for (const [nm, img] of assetMap) insAsset.run(nm, img);
 
     const insItem = db.prepare(`INSERT OR REPLACE INTO items
-      (unique_name, name, name_pt, category, type, mastery_req, vaulted, image_name, wiki_url, tradable, raw)
-      VALUES (@unique_name, @name, @name_pt, @category, @type, @mastery_req, @vaulted, @image_name, @wiki_url, @tradable, @raw)`);
+      (unique_name, name, name_pt, name_zh, category, type, mastery_req, vaulted, image_name, wiki_url, tradable, raw)
+      VALUES (@unique_name, @name, @name_pt, @name_zh, @category, @type, @mastery_req, @vaulted, @image_name, @wiki_url, @tradable, @raw)`);
     for (const r of itemRows) {
       insItem.run({
-        unique_name: r.unique_name, name: r.name, name_pt: r.name_pt,
+        unique_name: r.unique_name, name: r.name, name_pt: r.name_pt, name_zh: r.name_zh || null,
         category: r.category, type: r.type, mastery_req: r.mastery_req,
         vaulted: r.vaulted, image_name: r.image_name, wiki_url: r.wiki_url,
         tradable: r.tradable, raw: JSON.stringify(r.slim),

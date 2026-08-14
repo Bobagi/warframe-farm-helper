@@ -48,8 +48,9 @@
       en: '<svg viewBox="0 0 20 14" aria-hidden="true"><rect width="20" height="14" fill="#fff"/><g fill="#b22234"><rect width="20" height="1.08" y="0"/><rect width="20" height="1.08" y="2.15"/><rect width="20" height="1.08" y="4.3"/><rect width="20" height="1.08" y="6.46"/><rect width="20" height="1.08" y="8.6"/><rect width="20" height="1.08" y="10.77"/><rect width="20" height="1.08" y="12.92"/></g><rect width="9" height="7.54" fill="#3c3b6e"/></svg>',
       es: '<svg viewBox="0 0 20 14" aria-hidden="true"><rect width="20" height="14" fill="#c60b1e"/><rect width="20" height="7" y="3.5" fill="#ffc400"/></svg>',
       ru: '<svg viewBox="0 0 20 14" aria-hidden="true"><rect width="20" height="14" fill="#fff"/><rect width="20" height="4.67" y="4.66" fill="#0039a6"/><rect width="20" height="4.67" y="9.33" fill="#d52b1e"/></svg>',
+      zh: '<svg viewBox="0 0 20 14" aria-hidden="true"><rect width="20" height="14" fill="#ee1c25"/><path fill="#ffde00" d="M3.70,1.50L4.26,3.23L6.08,3.23L4.61,4.30L5.17,6.02L3.70,4.96L2.23,6.02L2.79,4.30L1.32,3.23L3.14,3.23Z M7.92,0.81L7.90,1.50L8.55,1.73L7.89,1.92L7.86,2.61L7.48,2.04L6.81,2.23L7.24,1.69L6.85,1.12L7.50,1.35Z M9.71,2.57L9.45,3.21L9.98,3.66L9.29,3.61L9.03,4.25L8.87,3.58L8.18,3.53L8.76,3.16L8.60,2.49L9.13,2.94Z M9.92,5.03L9.46,5.54L9.81,6.14L9.18,5.85L8.71,6.37L8.79,5.68L8.16,5.40L8.83,5.26L8.90,4.57L9.25,5.17Z M8.54,6.84L7.93,7.16L8.05,7.84L7.55,7.36L6.94,7.68L7.24,7.06L6.75,6.58L7.43,6.68L7.73,6.06L7.85,6.74Z"/></svg>',
     };
-    const FLAG_LABEL = { pt: 'Português', en: 'English', es: 'Español', ru: 'Русский' };
+    const FLAG_LABEL = { pt: 'Português', en: 'English', es: 'Español', ru: 'Русский', zh: '简体中文' };
     const langToggle = el('div', { class: 'lang-toggle', role: 'group', 'aria-label': t('lang.aria') },
       I18n.SUPPORTED.map((l) => {
         const btn = el('button', {

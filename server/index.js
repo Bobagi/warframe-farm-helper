@@ -49,6 +49,16 @@ app.use((req, res, next) => {
 
 app.use('/api', api);
 
+// Em produção o nginx intercepta /st.js e /st/ e manda para o Umami (ver
+// README). Rodando a app sozinha (dev, teste) esses caminhos não existem e o
+// navegador loga "Refused to execute script" em TODA página - ruído que já me
+// fez procurar bug de front onde não havia. Devolve um script vazio e válido.
+app.get('/st.js', (req, res) => {
+  res.type('application/javascript')
+    .setHeader('Cache-Control', 'no-store');
+  res.send('/* analytics: servido pelo nginx em produção */\n');
+});
+
 // ---- SEO: páginas SSR (meta por recurso), sitemap e redirects das URLs legadas ----
 
 const sendSsr = (res, html) => {

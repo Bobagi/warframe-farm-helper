@@ -9,16 +9,33 @@
 
 const I18n = (() => {
   const LANG_KEY = 'wfh-lang';
-  const SUPPORTED = ['pt', 'en', 'es', 'ru'];
+  const SUPPORTED = ['pt', 'en', 'es', 'ru', 'zh'];
   // locale BCP-47 por idioma - usado só para formatação de número (Intl).
-  const NUM_LOCALE = { pt: 'pt-BR', en: 'en-US', es: 'es-ES', ru: 'ru-RU' };
+  const NUM_LOCALE = { pt: 'pt-BR', en: 'en-US', es: 'es-ES', ru: 'ru-RU', zh: 'zh-CN' };
 
   // Idioma: 1) escolha salva no localStorage; 2) 1º idioma SUPORTADO na lista de
   // preferências do navegador (navigator.languages cobre casos como "de,en,pt" →
   // en, que antes caía direto no default); 3) default pt (o site é PT-first).
+  // Idioma deduzido do PAÍS do visitante (ver GEO_KEY abaixo). Fica num
+  // localStorage próprio, separado do LANG_KEY: assim a dedução não se disfarça
+  // de escolha do usuário, e um clique na bandeira continua mandando nela.
+  const GEO_LANG_KEY = 'wfh-geo-lang';
+  const GEO_KEY = 'wfh-geo';
+  // Onde o chinês simplificado é a língua de leitura. TW/HK/MO leem TRADICIONAL:
+  // entram porque simplificado é muito mais perto do que lêem do que português,
+  // e a bandeira no topo continua lá para trocar num clique.
+  const ZH_COUNTRIES = ['CN', 'TW', 'HK', 'MO', 'SG'];
+
+  const readLang = (key) => {
+    const v = (localStorage.getItem(key) || '').toLowerCase();
+    return SUPPORTED.includes(v) ? v : null;
+  };
+
   function detectLang() {
-    const saved = (localStorage.getItem(LANG_KEY) || '').toLowerCase();
-    if (SUPPORTED.includes(saved)) return saved;
+    const saved = readLang(LANG_KEY);
+    if (saved) return saved;               // clique na bandeira manda em tudo
+    const geo = readLang(GEO_LANG_KEY);
+    if (geo) return geo;                   // país já resolvido numa visita anterior
     const prefs = (Array.isArray(navigator.languages) && navigator.languages.length)
       ? navigator.languages : [navigator.language || ''];
     for (const p of prefs) {
@@ -28,6 +45,34 @@ const I18n = (() => {
     return 'pt';
   }
   let current = detectLang();
+
+  /**
+   * Abre o site já no idioma do PAÍS de quem acessa.
+   *
+   * Só entra em ação quando o visitante NÃO escolheu idioma e o navegador dele
+   * não resolveu o caso (quem já tem zh em navigator.languages nem chega aqui,
+   * e assim ninguém paga uma requisição à toa). O país vem do Cloudflare
+   * (`/api/geo`), fica guardado por 30 dias e o resultado vira `wfh-geo-lang`,
+   * então isto roda no máximo uma vez por mês por navegador - e o reload
+   * acontece uma vez só, nunca em laço (na volta o `detectLang` já lê a chave).
+   */
+  async function applyCountryLang() {
+    if (readLang(LANG_KEY) || readLang(GEO_LANG_KEY)) return;
+    if (current === 'zh') return;                 // navegador já resolveu
+    let cc = null;
+    try {
+      const cached = JSON.parse(localStorage.getItem(GEO_KEY) || 'null');
+      if (cached && Date.now() - cached.at < 30 * 24 * 3600 * 1000) cc = cached.cc;
+      else {
+        const r = await fetch('/api/geo', { headers: { Accept: 'application/json' } });
+        cc = (await r.json()).country;
+        localStorage.setItem(GEO_KEY, JSON.stringify({ cc, at: Date.now() }));
+      }
+    } catch { return; }                            // sem geo, fica como está
+    if (!ZH_COUNTRIES.includes(cc)) return;
+    localStorage.setItem(GEO_LANG_KEY, 'zh');
+    location.reload();
+  }
 
   const STRINGS = {
     pt: {
@@ -603,31 +648,297 @@ const I18n = (() => {
       'cyc.baroTipComing': "Baro Ki'Teer прибудет через {t} · {loc}. Нажмите, чтобы открыть гайд по дукатам.",
       'cyc.baroTipHere': "Baro Ki'Teer на {loc} · уйдёт через {t}. Нажмите, чтобы открыть гайд по дукатам.",
     },
+    zh: {
+      'brand.sub': '农场助手',
+      'title.home': 'Warframe 农场助手 · 什么都能查到哪里刷',
+      'title.search': '搜索 · Warframe 农场助手',
+      'title.faq': '常见问题 · 游戏机制 · Warframe 农场助手',
+      'title.fissures': '虚空裂缝 · 现在能刷什么 · Warframe 农场助手',
+      'title.nightwave': '午夜电波 · 任务与攻略 · Warframe 农场助手',
+      'title.relic': '遗物 · Warframe 农场助手',
+      'title.item': '物品 · Warframe 农场助手',
+      'title.e404': '404 · Warframe 农场助手',
+      'nav.search': '搜索',
+      'nav.fissures': '裂缝',
+      'nav.nightwave': '午夜电波',
+      'nav.faq': '常见问题',
+      'search.placeholder': '物品、遗物、游戏机制…',
+      'search.placeholderBig': '例如：布莱顿 Prime、突变原聚合物、库狛该怎么处理…',
+      'search.button': '搜索',
+      'search.aria': '搜索物品、遗物或问题',
+      'lang.aria': '语言',
+      'ads.label': '广告',
+      'home.h1a': '在哪里',
+      'home.h1b': '刷',
+      'home.h1c': 'Warframe 里的任何东西',
+      'home.lead': '物品、遗物、游戏机制或午夜电波任务 - 一个搜索框，官方掉落数据加上实时的游戏状态。',
+      'home.examples': '搜索示例',
+      'home.searchHint': '用页面顶部的搜索框。可以先从这些开始：',
+      'ex.bratonStock': '布莱顿 Prime',
+      'ex.kubrow': '库狛该怎么处理？',
+      'ex.apothic': '突变原聚合物',
+      'ex.crewship': '敌方战舰 + 前置火炮',
+      'fissures.title': '虚空裂缝 - 当前',
+      'fissures.active': '{n} 个进行中',
+      'fissures.normal': '普通',
+      'fissures.hard': '钢铁之路',
+      'fissures.storm': 'Railjack',
+      'fissures.type': '裂缝类型',
+      'fissures.loading': '正在查询世界状态…',
+      'fissures.none': '当前没有这种类型的裂缝。',
+      'fissures.down': '世界状态暂时不可用 - 请刷新重试。',
+      'farm.cta': '现在能刷什么',
+      'farm.back': '← 首页',
+      'farm.title': '现在能刷什么',
+      'farm.count': '{n} 个 Prime',
+      'farm.more': '查看更多',
+      'farm.sortLabel': '排序：',
+      'farm.sortValue': '价值',
+      'farm.sortDiff': '难度',
+      'farm.lead': '这些 Prime 武器和战甲的部件，正好在当前有裂缝的遗物等级里。按市场价值排序（整套最低出售价，单位白金）。可以按你手上的遗物等级筛选。',
+      'farm.seeAll': '查看全部并按等级筛选',
+      'farm.loading': '正在比对裂缝和遗物…',
+      'farm.all': '全部',
+      'farm.none': '这个等级当前没有 Prime。',
+      'farm.noTiers': '当前没有 Prime 遗物的裂缝（只有 Requiem/Omnia，或正处于轮换间隙）。',
+      'nw.weekTitle': '午夜电波 - 本周',
+      'nw.loading': '正在加载任务…',
+      'nw.allActs': '全部任务与攻略',
+      'nw.none': '当前没有进行中的任务（赛季间隙）。',
+      'nw.down': '午夜电波暂时不可用。',
+      'nw.daily': '每日',
+      'nw.weekly': '每周',
+      'nw.elite': '精英',
+      'nw.guide': '攻略',
+      'nw.howto': '怎么做',
+      'nw.noguide': '暂无攻略',
+      'nw.dailyActs': '每日任务',
+      'nw.weeklyActs': '每周任务',
+      'nw.eliteActs': '精英任务',
+      'nw.library': '攻略库',
+      'nw.libraryHint': '往期反复出现的任务',
+      'nw.boardTitle': '午夜电波 - 本周',
+      'nw.boardLead': '当前进行中的任务，每个都配了完成攻略。 ',
+      'nw.seasonEnds': '赛季将在 {t} 后结束。',
+      'nw.backList': '← 午夜电波任务与攻略',
+      'nw.standing': '{n} 声望',
+      'nw.seasonEndsPre': '赛季结束还有 ',
+      'baro.loading': '正在查询…',
+      'baro.none': '当前没有虚空商人的数据。',
+      'baro.down': '虚空商人暂时不可用。',
+      'baro.here': '正在 {loc} 中继站，带来 {n} 件商品 · 离开还有 ',
+      'baro.coming': '抵达还有 ',
+      'baro.comingTail': '（{loc}）。先囤好杜卡德！',
+      'baro.guide': '杜卡德攻略：卖什么、买什么',
+      'varzia.title': 'Prime 回归（Varzia）',
+      'varzia.until': '解除绝版还剩 ',
+      'varzia.at': '，地点 {loc}：',
+      'varzia.cat.frame': '战甲',
+      'varzia.cat.weapon': '武器',
+      'varzia.relics': '这些 Prime 的 {n} 个遗物回归了：可以在 {tiers} 等级用 Aya 购买。',
+      'varzia.next': '下一轮：{item}。',
+      'varzia.how': 'Varzia 是怎么运作的',
+      'faq.title': '常见问题 - 游戏机制',
+      'faq.all': '查看全部问题',
+      'faq.lead': '每个 Tenno 都会问的问题 - 直接给答案。',
+      'faq.back': '← 全部问题',
+      'faq.loading': '正在加载常见问题…',
+      'search.loading': '正在搜索…',
+      'search.prompt': '输入你想刷或者想搞懂的东西。',
+      'search.localResults': '站内结果',
+      'search.extResults': '站外结果',
+      'search.extHint': '社区里靠谱的站点',
+      'search.alsoWeb': '顺便搜一下网页',
+      'search.nLocal': '“{q}”的站内结果：{n} 条',
+      'search.noLocal': '站内没有“{q}”的结果',
+      'search.webCached': '网页搜索结果（缓存）- 外部来源：',
+      'search.web': '网页搜索结果 - 外部来源：',
+      'search.webNone': '网页搜索没有找到这个词。',
+      'search.linksDefault': '直接到这些靠谱的站点搜：',
+      'search.failed': '搜索失败：{e}',
+      'search.external': '站外',
+      'item.loading': '正在加载物品…',
+      'item.back': '← 返回',
+      'item.notItem': '没有指定物品。',
+      'item.wiki': 'wiki 页面',
+      'item.forge': '锻造厂',
+      'item.credits': '信用点',
+      'item.time': '时间',
+      'item.rush': '加速',
+      'item.platina': '白金',
+      'item.mrMin': '精通需求',
+      'item.steps': '怎么拿到 - 一步一步',
+      'item.usedIn': '用来制造',
+      'item.usedInHint': '这个物品是下列装备的材料',
+      'unit.day.one': '天',
+      'unit.day.few': '天',
+      'unit.day.many': '天',
+      'acq.title': '怎么拿到',
+      'acq.hint': '掉落之外：氏族研究、商人和游戏内市场',
+      'acq.dojo': '氏族道场研究',
+      'acq.dojoNote': '研究完成后，蓝图会在该实验室的终端出售。',
+      'acq.lab': '实验室',
+      'acq.researchCost': '研究花费',
+      'acq.researchTime': '研究耗时',
+      'acq.affinity': '氏族经验',
+      'acq.prereq': '需要先研究',
+      'acq.materials': '研究材料',
+      'acq.buy': '哪里买',
+      'acq.rank': '等级 {n}',
+      'acq.perBuy': '每次 {n} 个',
+      'acq.market': '游戏内市场',
+      'acq.marketItem': '成品',
+      'acq.marketBp': '仅蓝图',
+      'acq.compDojo': '在氏族道场的 {lab} 研究',
+      'acq.compBuy': '由 {vendor} 出售',
+      'acq.bpFrom': '蓝图来自这里：',
+      'acq.source': '来源：官方 wiki 的数据模块。',
+      'cur.Standing': '声望',
+      'cur.Credits': '信用点',
+      'cur.Platinum': '白金',
+      'item.allVaulted': '当前没有可用的遗物 - 全部已绝版。',
+      'item.varziaNote': '有 {n} 个已绝版的遗物正在 Varzia 出售（用 Aya 购买）：',
+      'item.showVaulted': '显示 {n} 个已绝版的遗物',
+      'item.showMoreSources': '再显示 {n} 个来源',
+      'item.components': '部件',
+      'item.componentsHint': '可用的遗物排在前面',
+      'item.otherSources': '其他来源',
+      'item.noSource': '官方掉落表里没有来源（常见资源、任务线、商店或氏族研究 - 见 wiki）。',
+      'item.noSourcePre': '官方掉落表里没有来源（资源、任务线、商店或氏族研究）。请查看 ',
+      'item.noSourcePost': '。',
+      'item.wikiInline': 'wiki 页面',
+      'item.fullSet': '整套',
+      'quest.title': '任务线',
+      'quest.wikiCta': 'wiki 上的前置条件与奖励',
+      'quest.requirements': '开启前置条件',
+      'quest.rewards': '完成奖励',
+      'quest.prev': '上一个任务线',
+      'quest.next': '下一个任务线',
+      'quest.source': '来源：',
+      'quest.note': '这是一条任务线（剧情任务）。官方数据表没有以结构化的形式提供它的前置条件和完成奖励 - 上面是剧情简介，完整流程、开启条件和最终奖励都在 wiki 页面上。',
+      'item.whereDrops': '在哪里掉落',
+      'item.fissNow': '现在可以刷的裂缝',
+      'item.fissHint': '可用遗物的等级',
+      'item.market': '或者向其他玩家购买',
+      'item.marketHint': 'warframe.market · 最低出售价',
+      'item.marketLoading': '正在查询 warframe.market 的价格…',
+      'item.marketOrders': '查看订单',
+      'relic.loading': '正在加载遗物…',
+      'relic.notFound': '没有指定遗物（例如 /relic/lith-k12）。',
+      'relic.relic': '遗物',
+      'relic.vaultedMsg': '这个遗物已绝版：任务里不再掉落。如果你手上还有，仍然可以在 {t} 裂缝里开启。想要更多：找玩家交易，或者等 Prime 回归（Varzia）。 ',
+      'relic.vaultedLink': '这是怎么回事 →',
+      'relic.availMsg': '该遗物在掉落表里是启用状态 - 现在就能刷。',
+      'relic.varziaMsg': '任务里已绝版，但通过 Prime 回归又能拿到了：在 {loc} 用 Aya 购买。结束还有 ',
+      'relic.rewards': '按精炼等级的奖励',
+      'relic.refinement': '{r} 精炼（{c} 虚空痕迹）',
+      'relic.whereDrops': '遗物在哪里掉落',
+      'relic.fissActive': '当前有 {t} 裂缝',
+      'th.relic': '遗物',
+      'th.rarity': '稀有度',
+      'th.status': '状态',
+      'item.dropsAt': '掉落于',
+      'item.fissNowShort': '当前 {t} 裂缝',
+      'ref.Intact': '完整',
+      'ref.Exceptional': '卓越',
+      'ref.Flawless': '无瑕',
+      'ref.Radiant': '光辉',
+      'status.available': '可获取',
+      'status.vaulted': '已绝版',
+      'status.varzia': '在 Varzia',
+      'rar.Common': '常见',
+      'rar.Uncommon': '罕见',
+      'rar.Rare': '稀有',
+      'rar.Legendary': '传说',
+      'sub.relic': '遗物',
+      'sub.faq': '常见问题 · 游戏机制',
+      'sub.nightwave': '攻略 · 午夜电波',
+      'sub.component': '部件',
+      'sub.gear': '装备',
+      'sub.quest': '任务线',
+      'sub.arcane': '赋能',
+      'sub.mod': 'MOD',
+      'sub.resource': '资源',
+      'sub.fish': '鱼',
+      'sub.item': '物品',
+      'kind.item': '物品',
+      'kind.component': '部件',
+      'kind.relic': '遗物',
+      'kind.faq': '常见问题',
+      'kind.nightwave': '午夜电波',
+      'kind.mod': 'MOD',
+      'kind.resource': '资源',
+      'kind.gear': '装备',
+      'kind.quest': '任务线',
+      'kind.arcane': '赋能',
+      'kind.fish': '鱼',
+      'tag.mrShort': '精通 {n}',
+      'tag.tradable': '可交易',
+      'tag.ducats': '{n} 杜卡德',
+      'foot.disclaimer': '非官方的粉丝站点。与 Digital Extremes 无关联。Warframe 及其标志是 Digital Extremes Ltd. 的商标。',
+      'foot.data': '物品与掉落数据：',
+      'foot.state': '游戏状态：',
+      'foot.prices': '价格：',
+      'foot.code': '开源代码：',
+      'e404.title': '404 - 迷失在虚空里',
+      'e404.home': '回到首页',
+      'cyc.aria': '星球昼夜循环',
+      'cyc.cetus': '希图斯',
+      'cyc.vallis': '奥布山谷',
+      'cyc.cambion': '火卫二',
+      'cyc.duviri': '德维里',
+      'cyc.zariman': '扎里曼',
+      'cyc.earth': '地球',
+      'cyc.s.day': '白天',
+      'cyc.s.night': '夜晚',
+      'cyc.s.warm': '温暖',
+      'cyc.s.cold': '寒冷',
+      'cyc.s.fass': 'Fass',
+      'cyc.s.vome': 'Vome',
+      'cyc.s.grineer': 'Grineer',
+      'cyc.s.corpus': 'Corpus',
+      'cyc.s.joy': '喜',
+      'cyc.s.anger': '怒',
+      'cyc.s.envy': '妒',
+      'cyc.s.sorrow': '哀',
+      'cyc.s.fear': '惧',
+      'cyc.next': '{w}：{s} 还有 {t}',
+      'cyc.s.baroComing': '抵达',
+      'cyc.s.baroHere': '在中继站',
+      'farm.down': '现在没能加载 - 请刷新重试。',
+      'baro.title': "Baro Ki'Teer",
+      'item.loadFail': '没能加载这个物品：{e}',
+      'relic.loadFail': '没能加载这个遗物：{e}',
+      'foot.dropSrc': '（DE 官方掉落表）',
+      'e404.lead': '这个页面不存在（或者被绝版了）。回到搜索再试一次吧。',
+      'cyc.baroTipComing': "Baro Ki'Teer 将在 {t} 后抵达 · {loc}。点击查看杜卡德攻略。",
+      'cyc.baroTipHere': "Baro Ki'Teer 正在 {loc} · 离开还有 {t}。点击查看杜卡德攻略。",
+    },
   };
 
   const MISSIONS = {
-    Extermination: { pt: 'Extermínio', en: 'Extermination', es: 'Exterminio', ru: 'Истребление' }, Capture: { pt: 'Captura', en: 'Capture', es: 'Captura', ru: 'Захват' },
-    Survival: { pt: 'Sobrevivência', en: 'Survival', es: 'Supervivencia', ru: 'Выживание' }, Defense: { pt: 'Defesa', en: 'Defense', es: 'Defensa', ru: 'Оборона' },
-    'Mobile Defense': { pt: 'Defesa Móvel', en: 'Mobile Defense', es: 'Defensa móvil', ru: 'Мобильная оборона' }, Rescue: { pt: 'Resgate', en: 'Rescue', es: 'Rescate', ru: 'Спасение' },
-    Sabotage: { pt: 'Sabotagem', en: 'Sabotage', es: 'Sabotaje', ru: 'Саботаж' }, Spy: { pt: 'Espionagem', en: 'Spy', es: 'Espionaje', ru: 'Шпионаж' },
-    Interception: { pt: 'Interceptação', en: 'Interception', es: 'Interceptación', ru: 'Перехват' }, Excavation: { pt: 'Escavação', en: 'Excavation', es: 'Excavación', ru: 'Раскопки' },
-    Disruption: { pt: 'Disrupção', en: 'Disruption', es: 'Disrupción', ru: 'Дизрапшн' }, Hijack: { pt: 'Sequestro de Carga', en: 'Hijack', es: 'Secuestro', ru: 'Захват груза' },
-    Assault: { pt: 'Assalto', en: 'Assault', es: 'Asalto', ru: 'Штурм' }, 'Free Roam': { pt: 'Mundo Aberto', en: 'Free Roam', es: 'Mundo abierto', ru: 'Свободный режим' },
-    Skirmish: { pt: 'Escaramuça', en: 'Skirmish', es: 'Escaramuza', ru: 'Стычка' }, Volatile: { pt: 'Volátil', en: 'Volatile', es: 'Volátil', ru: 'Нестабильность' },
-    Orphix: { pt: 'Orphix', en: 'Orphix', es: 'Orphix', ru: 'Orphix' }, 'Void Cascade': { pt: 'Cascata do Void', en: 'Void Cascade', es: 'Cascada del Void', ru: 'Каскад Бездны' },
-    'Void Flood': { pt: 'Inundação do Void', en: 'Void Flood', es: 'Inundación del Void', ru: 'Потоп Бездны' },
-    'Void Armageddon': { pt: 'Armagedom do Void', en: 'Void Armageddon', es: 'Armagedón del Void', ru: 'Армагеддон Бездны' },
-    Alchemy: { pt: 'Alquimia', en: 'Alchemy', es: 'Alquimia', ru: 'Алхимия' }, Hive: { pt: 'Colmeia', en: 'Hive', es: 'Colmena', ru: 'Улей' },
-    Assassination: { pt: 'Assassinato', en: 'Assassination', es: 'Asesinato', ru: 'Убийство' }, Arena: { pt: 'Arena', en: 'Arena', es: 'Arena', ru: 'Арена' },
-    Defection: { pt: 'Deserção', en: 'Defection', es: 'Deserción', ru: 'Дезертирство' }, 'Infested Salvage': { pt: 'Recuperação Infestada', en: 'Infested Salvage', es: 'Rescate infestado', ru: 'Заражённые обломки' },
+    Extermination: { pt: 'Extermínio', en: 'Extermination', es: 'Exterminio', ru: 'Истребление' , zh: '歼灭' }, Capture: { pt: 'Captura', en: 'Capture', es: 'Captura', ru: 'Захват' , zh: '捕获' },
+    Survival: { pt: 'Sobrevivência', en: 'Survival', es: 'Supervivencia', ru: 'Выживание' , zh: '生存' }, Defense: { pt: 'Defesa', en: 'Defense', es: 'Defensa', ru: 'Оборона' , zh: '防御' },
+    'Mobile Defense': { pt: 'Defesa Móvel', en: 'Mobile Defense', es: 'Defensa móvil', ru: 'Мобильная оборона' , zh: '移动防御' }, Rescue: { pt: 'Resgate', en: 'Rescue', es: 'Rescate', ru: 'Спасение' , zh: '救援' },
+    Sabotage: { pt: 'Sabotagem', en: 'Sabotage', es: 'Sabotaje', ru: 'Саботаж' , zh: '破坏' }, Spy: { pt: 'Espionagem', en: 'Spy', es: 'Espionaje', ru: 'Шпионаж' , zh: '间谍' },
+    Interception: { pt: 'Interceptação', en: 'Interception', es: 'Interceptación', ru: 'Перехват' , zh: '拦截' }, Excavation: { pt: 'Escavação', en: 'Excavation', es: 'Excavación', ru: 'Раскопки' , zh: '挖掘' },
+    Disruption: { pt: 'Disrupção', en: 'Disruption', es: 'Disrupción', ru: 'Дизрапшн' , zh: '中断' }, Hijack: { pt: 'Sequestro de Carga', en: 'Hijack', es: 'Secuestro', ru: 'Захват груза' , zh: '劫持' },
+    Assault: { pt: 'Assalto', en: 'Assault', es: 'Asalto', ru: 'Штурм' , zh: '突袭' }, 'Free Roam': { pt: 'Mundo Aberto', en: 'Free Roam', es: 'Mundo abierto', ru: 'Свободный режим' , zh: '自由漫游' },
+    Skirmish: { pt: 'Escaramuça', en: 'Skirmish', es: 'Escaramuza', ru: 'Стычка' , zh: '遭遇战' }, Volatile: { pt: 'Volátil', en: 'Volatile', es: 'Volátil', ru: 'Нестабильность' , zh: '不稳定' },
+    Orphix: { pt: 'Orphix', en: 'Orphix', es: 'Orphix', ru: 'Orphix' , zh: 'Orphix' }, 'Void Cascade': { pt: 'Cascata do Void', en: 'Void Cascade', es: 'Cascada del Void', ru: 'Каскад Бездны' , zh: '虚空级联' },
+    'Void Flood': { pt: 'Inundação do Void', en: 'Void Flood', es: 'Inundación del Void', ru: 'Потоп Бездны' , zh: '虚空洪流' },
+    'Void Armageddon': { pt: 'Armagedom do Void', en: 'Void Armageddon', es: 'Armagedón del Void', ru: 'Армагеддон Бездны' , zh: '虚空浩劫' },
+    Alchemy: { pt: 'Alquimia', en: 'Alchemy', es: 'Alquimia', ru: 'Алхимия' , zh: '炼金' }, Hive: { pt: 'Colmeia', en: 'Hive', es: 'Colmena', ru: 'Улей' , zh: '虫巢' },
+    Assassination: { pt: 'Assassinato', en: 'Assassination', es: 'Asesinato', ru: 'Убийство' , zh: '刺杀' }, Arena: { pt: 'Arena', en: 'Arena', es: 'Arena', ru: 'Арена' , zh: '竞技场' },
+    Defection: { pt: 'Deserção', en: 'Defection', es: 'Deserción', ru: 'Дезертирство' , zh: '叛逃' }, 'Infested Salvage': { pt: 'Recuperação Infestada', en: 'Infested Salvage', es: 'Rescate infestado', ru: 'Заражённые обломки' , zh: '感染残骸' },
   };
 
   const ENEMIES = {
-    Grineer: { pt: 'Grineer', en: 'Grineer', es: 'Grineer', ru: 'Гринир' }, Corpus: { pt: 'Corpus', en: 'Corpus', es: 'Corpus', ru: 'Корпус' },
-    Infested: { pt: 'Infestados', en: 'Infested', es: 'Infestados', ru: 'Заражённые' }, Corrupted: { pt: 'Corrompidos', en: 'Corrupted', es: 'Corruptos', ru: 'Порченые' },
-    Orokin: { pt: 'Orokin', en: 'Orokin', es: 'Orokin', ru: 'Орокин' }, Sentient: { pt: 'Senciente', en: 'Sentient', es: 'Sentiente', ru: 'Разумные' },
-    'The Murmur': { pt: 'The Murmur', en: 'The Murmur', es: 'The Murmur', ru: 'The Murmur' }, Narmer: { pt: 'Narmer', en: 'Narmer', es: 'Narmer', ru: 'Нармер' },
-    Crossfire: { pt: 'Fogo Cruzado', en: 'Crossfire', es: 'Fuego cruzado', ru: 'Перекрёстный огонь' },
+    Grineer: { pt: 'Grineer', en: 'Grineer', es: 'Grineer', ru: 'Гринир' , zh: 'Grineer' }, Corpus: { pt: 'Corpus', en: 'Corpus', es: 'Corpus', ru: 'Корпус' , zh: 'Corpus' },
+    Infested: { pt: 'Infestados', en: 'Infested', es: 'Infestados', ru: 'Заражённые' , zh: '感染者' }, Corrupted: { pt: 'Corrompidos', en: 'Corrupted', es: 'Corruptos', ru: 'Порченые' , zh: '堕落者' },
+    Orokin: { pt: 'Orokin', en: 'Orokin', es: 'Orokin', ru: 'Орокин' , zh: 'Orokin' }, Sentient: { pt: 'Senciente', en: 'Sentient', es: 'Sentiente', ru: 'Разумные' , zh: 'Sentient' },
+    'The Murmur': { pt: 'The Murmur', en: 'The Murmur', es: 'The Murmur', ru: 'The Murmur' , zh: 'The Murmur' }, Narmer: { pt: 'Narmer', en: 'Narmer', es: 'Narmer', ru: 'Нармер' , zh: 'Narmer' },
+    Crossfire: { pt: 'Fogo Cruzado', en: 'Crossfire', es: 'Fuego cruzado', ru: 'Перекрёстный огонь' , zh: '交火' },
   };
 
   function t(key, vars) {
@@ -641,13 +952,23 @@ const I18n = (() => {
   function setLang(l) {
     if (SUPPORTED.includes(l) && l !== current) {
       localStorage.setItem(LANG_KEY, l);
+      // a escolha explícita apaga a dedução por país: quem clicou na bandeira
+      // não pode ser levado de volta pelo IP na próxima visita
+      localStorage.removeItem(GEO_LANG_KEY);
       location.reload();
     }
   }
-  // nomes de item: PT tem tradução (namePt) do WFCD; en/es/ru usam o nome
-  // canônico em inglês - que é como a comunidade Warframe (market/wiki/trade)
-  // se refere aos itens em qualquer idioma.
-  const nameFor = (o) => (o ? (current === 'pt' ? (o.namePt || o.name) : o.name) : '');
+  // Nomes de item: PT e ZH têm tradução própria (namePt / nameZh, do WFCD);
+  // en/es/ru usam o nome canônico em inglês - que é como a comunidade Warframe
+  // (market/wiki/trade) se refere aos itens nesses idiomas. O chinês é exceção
+  // porque o servidor CN do jogo é um ecossistema à parte, com nomenclatura
+  // oficial própria: é por ela que o jogador de lá procura.
+  const nameFor = (o) => {
+    if (!o) return '';
+    if (current === 'pt') return o.namePt || o.name;
+    if (current === 'zh') return o.nameZh || o.name;
+    return o.name;
+  };
   // missão/inimigo: idioma atual → inglês (se faltar tradução) → a chave crua.
   const missionName = (m) => (MISSIONS[m] ? (MISSIONS[m][current] || MISSIONS[m].en) : m);
   const enemyName = (e) => (ENEMIES[e] ? (ENEMIES[e][current] || ENEMIES[e].en) : e);
@@ -671,7 +992,7 @@ const I18n = (() => {
   /** Preenche elementos estáticos: [data-i18n]=textContent, [data-i18n-ph]=placeholder. */
   function applyStatic(root) {
     // reflete o idioma ativo no <html lang> (o estático é pt-BR; o cliente troca)
-    const HTML_LANG = { pt: 'pt-BR', en: 'en', es: 'es', ru: 'ru' };
+    const HTML_LANG = { pt: 'pt-BR', en: 'en', es: 'es', ru: 'ru', zh: 'zh-CN' };
     document.documentElement.lang = HTML_LANG[current] || 'pt-BR';
     for (const el of (root || document).querySelectorAll('[data-i18n]')) {
       el.textContent = t(el.getAttribute('data-i18n'));
@@ -690,5 +1011,6 @@ const I18n = (() => {
     || Object.prototype.hasOwnProperty.call(STRINGS.en, key);
 
   document.documentElement.lang = current;
+  applyCountryLang();
   return { t, lang, locale, setLang, nameFor, missionName, enemyName, subLabel, applyStatic, has, SUPPORTED };
 })();

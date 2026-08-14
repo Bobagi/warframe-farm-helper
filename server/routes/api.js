@@ -56,6 +56,28 @@ router.get('/health', (req, res) => {
   });
 });
 
+/**
+ * País do visitante, para o cliente abrir já no idioma certo.
+ *
+ * A origem é o header `CF-IPCountry`, que o Cloudflare põe em toda requisição
+ * (a zona inteira é proxied). NÃO é geolocalização do navegador: não pede
+ * permissão, não identifica ninguém e nada é gravado - o header entra e sai na
+ * mesma resposta.
+ *
+ * `no-store` porque a resposta é diferente por visitante: se um cache
+ * intermediário guardasse isso, um chinês serviria país para um brasileiro.
+ * Por isso também é um endpoint separado, e não um atributo no HTML (que a
+ * app serve com `max-age`).
+ */
+router.get('/geo', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  const cc = String(req.get('cf-ipcountry') || '').trim().toUpperCase();
+  // XX = desconhecido e T1 = Tor, ambos na doc do Cloudflare; devolve null e o
+  // cliente cai na detecção pelo idioma do navegador
+  const ok = /^[A-Z]{2}$/.test(cc) && cc !== 'XX' && cc !== 'T1';
+  res.json({ country: ok ? cc : null });
+});
+
 router.get('/search', rateLimit, asyncRoute(async (req, res) => {
   const q = String(req.query.q || '').slice(0, 120).trim();
   if (q.length < 2) {
@@ -75,12 +97,18 @@ router.get('/suggest', rateLimit, (req, res) => {
 });
 
 // idioma da PROSA do servidor (descrição, passo a passo, locais de drop): só há
-// redação em pt e en. 'pt' → pt; en/es/ru/qualquer outro → en (fallback
-// internacional - antes es/ru caíam em pt, vazando português); sem lang → pt
-// (o site é PT-first). Nomes de item seguem em inglês (convenção da comunidade).
+// Redação do servidor em pt, en e zh. 'pt' → pt; 'zh' → zh; es/ru/qualquer
+// outro → en (fallback internacional - antes es/ru caíam em pt, vazando
+// português); sem lang → pt (o site é PT-first).
+//
+// Por que o chinês tem redação PRÓPRIA e es/ru não: es/ru mantêm nome de item em
+// inglês porque market/wiki/trade da comunidade usam inglês. O servidor chinês
+// do jogo é um ecossistema separado, com nomenclatura oficial própria, e o
+// jogador de lá procura por ela - por isso zh tem nome, descrição e prosa.
 const pickLang = (v) => {
   const s = String(v || '').toLowerCase();
-  return (s === '' || s === 'pt') ? 'pt' : 'en';
+  if (s === '' || s === 'pt') return 'pt';
+  return s === 'zh' ? 'zh' : 'en';
 };
 
 router.get('/item', asyncRoute(async (req, res) => {

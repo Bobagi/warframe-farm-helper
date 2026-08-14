@@ -56,8 +56,14 @@
   --axi: #8fe0ea;
   --requiem: #c46a7e;
   --omnia: #cbbfea;
-  --font-display: 'Exo 2', system-ui, sans-serif;
-  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  /* A Exo 2 (self-hosted) só tem latino/cirílico. O fallback CJK entra DEPOIS
+     dela, então caractere a caractere: texto latino continua na Exo 2 e só o
+     ideograma cai na fonte do sistema. São fontes de SISTEMA de propósito -
+     uma webfont chinesa custa vários MB mesmo com subset, e a Exo 2 inteira
+     tem 30 KB. A ordem cobre macOS/iOS, Windows, Android e Linux. */
+  --cjk: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC", "WenQuanYi Micro Hei", "WenQuanYi Zen Hei";
+  --font-display: 'Exo 2', var(--cjk), system-ui, sans-serif;
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', var(--cjk), sans-serif;
   --c: 12px; /* tamanho do chanfro */
 }
 
@@ -880,3 +886,47 @@ a.badge-lab:hover { color: var(--text); border-color: var(--energy); text-decora
 /* resumo compacto dentro do bloco de um componente */
 .comp-acq { margin-top: 10px; }
 .comp-acq .row { background: transparent; }
+
+
+/* ---------- chinês simplificado: ajustes de escrita ----------
+   O CJK não é só "outro alfabeto": o ideograma é quadrado e denso, então o que
+   funciona no latino desmonta aqui. Estes ajustes valem SÓ com <html lang=zh-*>
+   (o i18n carimba `zh-CN`), então nada muda nos outros idiomas. */
+
+/* 1. Espaçamento entre letras. A identidade do site usa `letter-spacing` alto
+      (até 0.22em) nos rótulos - em latino vira elegância, em chinês vira
+      caractere solto no meio do nada, porque cada glifo já é uma palavra. */
+html[lang^="zh"] .eyebrow,
+html[lang^="zh"] .stat .k,
+html[lang^="zh"] .badge,
+html[lang^="zh"] .brand,
+html[lang^="zh"] .site-foot .foot-brand,
+html[lang^="zh"] .btn-line,
+html[lang^="zh"] .eyebrow-sm { letter-spacing: 0.04em; }
+
+/* 2. Entrelinha. Ideograma ocupa a caixa inteira, sem ascendente/descendente
+      para dar respiro: com a entrelinha do latino o texto encosta. */
+html[lang^="zh"] body { line-height: 1.75; }
+html[lang^="zh"] .desc,
+html[lang^="zh"] .steps li,
+html[lang^="zh"] .article p { line-height: 1.85; }
+
+/* 3. Tamanho mínimo. 11px em latino é legível; em chinês um glifo de 11px vira
+      borrão (são até 20+ traços dentro do mesmo quadrado). */
+html[lang^="zh"] .stat .k,
+html[lang^="zh"] .small,
+html[lang^="zh"] .sub { font-size: 13px; }
+html[lang^="zh"] .eyebrow { font-size: 13px; }
+
+/* 4. Quebra de linha. O chinês quebra em qualquer caractere (não tem espaço),
+      mas nome de item vem em inglês no meio da frase: `break-word` evita que um
+      "Braton Prime Blueprint" estoure a caixa sem ter onde quebrar. */
+html[lang^="zh"] { word-break: normal; overflow-wrap: break-word; }
+
+/* 5. Negrito. O CJK do sistema costuma não ter peso 700 real e o navegador
+      "engorda" o glifo por síntese, empastelando os traços. 600 é o limite. */
+html[lang^="zh"] h1,
+html[lang^="zh"] h2,
+html[lang^="zh"] h3,
+html[lang^="zh"] .row .name,
+html[lang^="zh"] .comp-name { font-weight: 600; }

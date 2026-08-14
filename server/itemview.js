@@ -101,10 +101,15 @@ function wikiSearchFor(name) {
 }
 const RELIC_RE = /^(Lith|Meso|Neo|Axi|Requiem) (\S+) Relic(?: \((Exceptional|Flawless|Radiant)\))?$/;
 const RARITY_PT = { Common: 'Comum', Uncommon: 'Incomum', Rare: 'Rara', Legendary: 'Lendária' };
+const RARITY_ZH = { Common: '常见', Uncommon: '罕见', Rare: '稀有', Legendary: '传说' };
 
 const compAnchor = (name) => 'c-' + String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
-const rarityLabel = (r, lang = 'pt') => (lang === 'pt' ? (RARITY_PT[r] || r || '') : (r || ''));
+const rarityLabel = (r, lang = 'pt') => {
+  if (lang === 'pt') return RARITY_PT[r] || r || '';
+  if (lang === 'zh') return RARITY_ZH[r] || r || '';
+  return r || '';
+};
 
 function marketSlugFor(name) {
   return String(name).toLowerCase()
@@ -116,7 +121,10 @@ function marketSlugFor(name) {
 function fmtBuildTime(sec, lang = 'pt') {
   if (!Number.isFinite(sec) || sec <= 0) return null;
   const h = sec / 3600;
-  if (h >= 48) return `${Math.round(h / 24)} ${lang === 'pt' ? 'dias' : 'days'}`;
+  if (h >= 48) {
+    const d = Math.round(h / 24);
+    return `${d} ${lang === 'pt' ? 'dias' : (lang === 'zh' ? '天' : 'days')}`;
+  }
   if (h >= 1) return `${Math.round(h)} h`;
   return `${Math.round(sec / 60)} min`;
 }
@@ -217,12 +225,22 @@ function decorateRelics(db, relicRefs, fullName, fissuresByTier, relicCache) {
   return out;
 }
 
-/** Passo a passo bilíngue (pt/en). `lang==='pt'` → PT; qualquer outro → EN. */
+/**
+ * Passo a passo em PT, EN e ZH. `L(pt, en, zh)` escolhe pelo idioma; sem a
+ * variante `zh` cai no inglês, então acrescentar um passo novo nunca quebra o
+ * chinês, só o deixa em inglês até alguém traduzir.
+ *
+ * Nome de local (nó de missão, bioma) fica em inglês no chinês: o cliente CN
+ * tem nomenclatura própria de nó, que o nosso dataset não traz.
+ */
 function buildSteps(raw, comps, itemSources, lang, acq = null) {
   const en = lang !== 'pt';
-  const L = (pt, enStr) => (en ? enStr : pt);
+  const zh = lang === 'zh';
+  // nome do componente no idioma do passo (só ingrediente tem versão chinesa)
+  const cn = (c) => ((zh && c.fullNameZh) ? c.fullNameZh : c.fullName);
+  const L = (pt, enStr, zhStr) => (zh ? (zhStr || enStr) : (en ? enStr : pt));
   const pct = (n) => fmtPct(n, lang);
-  const int = (n) => Number(n).toLocaleString(en ? 'en-US' : 'pt-BR');
+  const int = (n) => Number(n).toLocaleString(zh ? 'zh-CN' : (en ? 'en-US' : 'pt-BR'));
   const steps = [];
 
   // Pesquisa no Dojo vem PRIMEIRO: quando o item tem essa via, ela é o
@@ -230,29 +248,36 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
   // direto para a forja, mandando construir algo que o jogador nem tem.
   if (acq && acq.research) {
     const r = acq.research;
-    const mats = r.resources.map((m) => `${int(m.count)}x ${m.name}`).join(', ');
+    // no chinês o material sai com o nome do cliente CN quando existe: o passo
+    // fala "5x 突变原样本", não "5x Mutagen Sample"
+    const matName = (m) => (zh && m.nameZh ? m.nameZh : m.name);
+    const mats = r.resources.map((m) => `${int(m.count)}x ${matName(m)}`).join(', ');
     const cost = [
-      r.credits != null ? `${int(r.credits)} ${L('créditos', 'credits')}` : null,
+      r.credits != null ? `${int(r.credits)} ${L('créditos', 'credits', '信用点')}` : null,
       mats || null,
     ].filter(Boolean).join(' + ');
     const time = fmtBuildTime(r.timeSec, lang);
     steps.push(L(
       `Projeto: pesquise no ${r.lab} do Dojo do clã${cost ? ` - a pesquisa custa ${cost}` : ''}${time ? `, ${time}` : ''}. Depois compre o projeto no console do laboratório.`,
-      `Blueprint: research it in the ${r.lab} at your clan Dojo${cost ? ` - the research costs ${cost}` : ''}${time ? `, ${time}` : ''}. Then buy the blueprint at the lab console.`));
+      `Blueprint: research it in the ${r.lab} at your clan Dojo${cost ? ` - the research costs ${cost}` : ''}${time ? `, ${time}` : ''}. Then buy the blueprint at the lab console.`,
+      `蓝图：在氏族道场的 ${r.lab} 研究${cost ? `，研究需要 ${cost}` : ''}${time ? `，耗时 ${time}` : ''}。研究完成后在该实验室的终端购买蓝图。`));
     if (r.prereq) {
       steps.push(L(`A pesquisa exige ${r.prereq} pesquisado antes.`,
-        `That research requires ${r.prereq} to be researched first.`));
+        `That research requires ${r.prereq} to be researched first.`,
+        `该研究需要先完成 ${r.prereq} 的研究。`));
     }
   }
   if (acq && acq.vendors.length) {
     const v = acq.vendors[0];
     steps.push(L(
       `Também dá para comprar com ${v.vendor}: ${int(v.cost)} ${v.currency || ''}${v.qty > 1 ? ` (vem ${v.qty})` : ''}.`.replace(/ +/g, ' '),
-      `You can also buy it from ${v.vendor}: ${int(v.cost)} ${v.currency || ''}${v.qty > 1 ? ` (${v.qty} per purchase)` : ''}.`.replace(/ +/g, ' ')));
+      `You can also buy it from ${v.vendor}: ${int(v.cost)} ${v.currency || ''}${v.qty > 1 ? ` (${v.qty} per purchase)` : ''}.`.replace(/ +/g, ' '),
+      `也可以向 ${v.vendor} 购买：${int(v.cost)} ${v.currency || ''}${v.qty > 1 ? `（每次 ${v.qty} 个）` : ''}。`.replace(/ +/g, ' ')));
   }
 
   if (Number.isFinite(raw.masteryReq) && raw.masteryReq > 0) {
-    steps.push(L(`Requisito: Maestria (MR) ${raw.masteryReq}.`, `Requirement: Mastery Rank (MR) ${raw.masteryReq}.`));
+    steps.push(L(`Requisito: Maestria (MR) ${raw.masteryReq}.`, `Requirement: Mastery Rank (MR) ${raw.masteryReq}.`,
+      `需求：精通段位 (MR) ${raw.masteryReq}。`));
   }
 
   const compSources = (c) => (c.otherSources.length ? c.otherSources : (c.resourceDrops || []));
@@ -261,7 +286,8 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
   if (comps.length && itemSources.other.length) {
     const top = itemSources.other[0];
     steps.push(L(`Também dropa em ${top.location} (${pct(top.chance)}).`,
-      `It also drops at ${top.location} (${pct(top.chance)}).`));
+      `It also drops at ${top.location} (${pct(top.chance)}).`,
+      `也会在 ${top.location} 掉落（${pct(top.chance)}）。`));
   }
 
   const relicComps = comps.filter((c) => c.relics.length);
@@ -280,15 +306,17 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
       const rar = rarityLabel(best.rarity, lang);
       const where = best.relicDrops[0]
         ? L(` A relíquia dropa em: ${best.relicDrops[0].location} (${pct(best.relicDrops[0].chance)}).`,
-            ` The relic drops at: ${best.relicDrops[0].location} (${pct(best.relicDrops[0].chance)}).`)
+            ` The relic drops at: ${best.relicDrops[0].location} (${pct(best.relicDrops[0].chance)}).`,
+            ` 该遗物掉落于：${best.relicDrops[0].location}（${pct(best.relicDrops[0].chance)}）。`)
         : '';
       const chances = [
         best.chanceIntact != null ? `${pct(best.chanceIntact)} intact` : null,
-        best.chanceRadiant != null ? `${pct(best.chanceRadiant)} ${L('radiante', 'radiant')}` : null,
+        best.chanceRadiant != null ? `${pct(best.chanceRadiant)} ${L('radiante', 'radiant', '光辉')}` : null,
       ].filter(Boolean).join(' / ');
       steps.push(L(
-        `${c.fullName}: farme a relíquia ${best.relic} (${rar}${chances ? `, ${chances}` : ''}).${where}`,
-        `${c.fullName}: farm the ${best.relic} relic (${rar}${chances ? `, ${chances}` : ''}).${where}`));
+        `${cn(c)}: farme a relíquia ${best.relic} (${rar}${chances ? `, ${chances}` : ''}).${where}`,
+        `${cn(c)}: farm the ${best.relic} relic (${rar}${chances ? `, ${chances}` : ''}).${where}`,
+        `${cn(c)}：刷 ${best.relic} 遗物（${rar}${chances ? `，${chances}` : ''}）。${where}`));
     } else {
       // relíquia vaulted que a Varzia vende AGORA tem caminho de farm hoje: sem
       // isto o passo a passo mandava "aguarde voltar" contradizendo a tabela de
@@ -298,42 +326,49 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
         const list = onSale.slice(0, 3).map((r) => r.relic).join(', ');
         const more = onSale.length > 3 ? L(` (+${onSale.length - 3})`, ` (+${onSale.length - 3})`) : '';
         steps.push(L(
-          `${c.fullName}: as relíquias estão vaulted, MAS voltaram na Prime Resurgence - compre ${list}${more} com Aya na Varzia (Bazar da Maroo, Marte) e abra em fissura.`,
-          `${c.fullName}: the relics are vaulted, BUT they are back via Prime Resurgence - buy ${list}${more} with Aya at Varzia (Maroo's Bazaar, Mars) and crack them in a fissure.`));
+          `${cn(c)}: as relíquias estão vaulted, MAS voltaram na Prime Resurgence - compre ${list}${more} com Aya na Varzia (Bazar da Maroo, Marte) e abra em fissura.`,
+          `${cn(c)}: the relics are vaulted, BUT they are back via Prime Resurgence - buy ${list}${more} with Aya at Varzia (Maroo's Bazaar, Mars) and crack them in a fissure.`,
+          `${cn(c)}：遗物已绝版，但通过 Prime 回归活动又能拿到了 - 在 Varzia（玛珑集市，火星）用 Aya 购买 ${list}${more}，再到虚空裂缝开启。`));
       } else {
         steps.push(L(
-          `${c.fullName}: todas as relíquias estão vaulted - compre a peça de outro jogador (warframe.market) ou aguarde ela voltar na Prime Resurgence (Varzia, Bazar da Maroo).`,
-          `${c.fullName}: every relic is vaulted - buy the part from another player (warframe.market) or wait for it to return via Prime Resurgence (Varzia, Maroo's Bazaar).`));
+          `${cn(c)}: todas as relíquias estão vaulted - compre a peça de outro jogador (warframe.market) ou aguarde ela voltar na Prime Resurgence (Varzia, Bazar da Maroo).`,
+          `${cn(c)}: every relic is vaulted - buy the part from another player (warframe.market) or wait for it to return via Prime Resurgence (Varzia, Maroo's Bazaar).`,
+          `${cn(c)}：所有遗物都已绝版 - 向其他玩家购买该部件（warframe.market），或等待 Prime 回归活动（Varzia，玛珑集市）。`));
       }
     }
   }
   if (relicComps.length) {
     steps.push(L(
       'Abra as relíquias em fissuras do Void do tier correspondente (lista de fissuras ativas nesta página). Dica: refine para Radiante com 100 Void Traces e abra em grupo (radshare) para melhorar a chance das peças raras.',
-      'Crack the relics in Void Fissures of the matching tier (active fissures listed on this page). Tip: refine to Radiant with 100 Void Traces and open in a group (radshare) to improve the odds on rare parts.'));
+      'Crack the relics in Void Fissures of the matching tier (active fissures listed on this page). Tip: refine to Radiant with 100 Void Traces and open in a group (radshare) to improve the odds on rare parts.',
+      '到对应等级的虚空裂缝任务里开启遗物（本页有当前活跃的裂缝列表）。小技巧：用 100 虚空痕迹精炼到光辉，并且组队开启（radshare），可以提高稀有部件的出货率。'));
   }
   for (const c of farmComps) {
     const top = compSources(c)[0];
     const rar = top.rarity ? `, ${rarityLabel(top.rarity, lang)}` : '';
     steps.push(L(
-      `${c.fullName}: dropa em ${top.location} (${pct(top.chance)}${rar}).`,
-      `${c.fullName}: drops at ${top.location} (${pct(top.chance)}${rar}).`));
+      `${cn(c)}: dropa em ${top.location} (${pct(top.chance)}${rar}).`,
+      `${cn(c)}: drops at ${top.location} (${pct(top.chance)}${rar}).`,
+      `${cn(c)}：掉落于 ${top.location}（${pct(top.chance)}${rar}）。`));
   }
   for (const c of comps.filter((x) => x.acquisition && !x.isBlueprint)) {
     const a = c.acquisition;
     if (a.research) {
-      steps.push(L(`${c.fullName}: pesquise no ${a.research.lab} do Dojo do clã.`,
-        `${c.fullName}: research it in the ${a.research.lab} at your clan Dojo.`));
+      steps.push(L(`${cn(c)}: pesquise no ${a.research.lab} do Dojo do clã.`,
+        `${cn(c)}: research it in the ${a.research.lab} at your clan Dojo.`,
+        `${cn(c)}：在氏族道场的 ${a.research.lab} 研究。`));
     } else if (a.vendors.length) {
       const v = a.vendors[0];
-      steps.push(L(`${c.fullName}: compre com ${v.vendor} por ${int(v.cost)} ${v.currency || ''}.`.replace(/ +/g, ' '),
-        `${c.fullName}: buy it from ${v.vendor} for ${int(v.cost)} ${v.currency || ''}.`.replace(/ +/g, ' ')));
+      steps.push(L(`${cn(c)}: compre com ${v.vendor} por ${int(v.cost)} ${v.currency || ''}.`.replace(/ +/g, ' '),
+        `${cn(c)}: buy it from ${v.vendor} for ${int(v.cost)} ${v.currency || ''}.`.replace(/ +/g, ' '),
+        `${cn(c)}：向 ${v.vendor} 购买，${int(v.cost)} ${v.currency || ''}。`.replace(/ +/g, ' ')));
     }
   }
   for (const c of orphanComps) {
     steps.push(L(
-      `${c.fullName}: sem fonte de drop listada - normalmente vem de quest, pesquisa de clã (Dojo) ou loja; confira a wiki.`,
-      `${c.fullName}: no listed drop source - usually from a quest, clan research (Dojo) or a shop; check the wiki.`));
+      `${cn(c)}: sem fonte de drop listada - normalmente vem de quest, pesquisa de clã (Dojo) ou loja; confira a wiki.`,
+      `${cn(c)}: no listed drop source - usually from a quest, clan research (Dojo) or a shop; check the wiki.`,
+      `${cn(c)}：掉落表里没有来源 - 通常来自任务线、氏族研究（道场）或商店；建议查看 wiki。`));
   }
 
   if (comps.length && Number.isFinite(raw.buildPrice)) {
@@ -341,17 +376,20 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
     const credits = Number(raw.buildPrice).toLocaleString(en ? 'en-US' : 'pt-BR');
     steps.push(L(
       `Na Foundry: construa cada componente e depois o blueprint principal - ${credits} créditos${time ? `, ${time} de forja` : ''}${raw.skipBuildTimePrice ? ` (apressar: ${raw.skipBuildTimePrice} platina)` : ''}.`,
-      `In the Foundry: build each component, then the main blueprint - ${credits} credits${time ? `, ${time} to build` : ''}${raw.skipBuildTimePrice ? ` (rush: ${raw.skipBuildTimePrice} platinum)` : ''}.`));
+      `In the Foundry: build each component, then the main blueprint - ${credits} credits${time ? `, ${time} to build` : ''}${raw.skipBuildTimePrice ? ` (rush: ${raw.skipBuildTimePrice} platinum)` : ''}.`,
+      `在锻造厂：先造好每个部件，再造主蓝图 - ${credits} 信用点${time ? `，锻造 ${time}` : ''}${raw.skipBuildTimePrice ? `（加速：${raw.skipBuildTimePrice} 白金）` : ''}。`));
   }
 
   if (!comps.length) {
     if (itemSources.relics.length || itemSources.other.length) {
       const top = itemSources.other[0] || null;
-      if (top) steps.push(L(`Melhor fonte: ${top.location} (${pct(top.chance)}).`, `Best source: ${top.location} (${pct(top.chance)}).`));
+      if (top) steps.push(L(`Melhor fonte: ${top.location} (${pct(top.chance)}).`, `Best source: ${top.location} (${pct(top.chance)}).`,
+        `最佳来源：${top.location}（${pct(top.chance)}）。`));
     } else if (!acq) {
       steps.push(L(
         'Este item não tem fonte de drop listada nas tabelas oficiais - normalmente vem de quest, pesquisa de clã (Dojo), loja de sindicato ou do Mercado (créditos). Confira a página da wiki para o caminho exato.',
-        'This item has no drop source in the official tables - usually from a quest, clan research (Dojo), a syndicate shop or the Market (credits). Check the wiki page for the exact path.'));
+        'This item has no drop source in the official tables - usually from a quest, clan research (Dojo), a syndicate shop or the Market (credits). Check the wiki page for the exact path.',
+        '官方掉落表里没有这个物品的来源 - 通常来自任务线、氏族研究（道场）、集团商店或游戏内市场（信用点）。具体途径请查看 wiki 页面。'));
     }
   }
   return steps;
@@ -383,12 +421,19 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
 
   // um componente cujo nome é um item avulso (Morphics, Orokin Cell, plantas…)
   // é ingrediente - mantém o nome dele; peças de fato ganham o prefixo do item
-  const isStandalone = db.prepare('SELECT 1 FROM items WHERE name = ? LIMIT 1');
+  const isStandalone = db.prepare('SELECT name_zh FROM items WHERE name = ? ORDER BY name, unique_name LIMIT 1');
   const standaloneCache = new Map();
-  const isIngredient = (name) => {
-    if (COMMON_RESOURCES.has(name)) return true;
-    if (!standaloneCache.has(name)) standaloneCache.set(name, !!isStandalone.get(name));
+  const lookupStandalone = (name) => {
+    if (!standaloneCache.has(name)) standaloneCache.set(name, isStandalone.get(name) || null);
     return standaloneCache.get(name);
+  };
+  const isIngredient = (name) => COMMON_RESOURCES.has(name) || !!lookupStandalone(name);
+  // ingrediente que é item próprio tem nome oficial em chinês (控制模块, 生物质…);
+  // PEÇA de arma ("Braton Prime Barrel") não tem, porque "Barrel" não é item -
+  // essas seguem em inglês, mesmo critério de es/ru.
+  const zhNameOf = (name) => {
+    const row = lookupStandalone(name);
+    return (row && row.name_zh) || null;
   };
 
   const relicCache = new Map();
@@ -406,6 +451,11 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
     comps.push({
       name: c.name,
       fullName,
+      // "Mutagen Mass Blueprint" → "突变原聚合物 蓝图": o projeto do próprio item
+      // dá para montar com o nome chinês do item + a palavra "蓝图"
+      fullNameZh: isIngredient(c.name)
+        ? zhNameOf(c.name)
+        : (c.name === 'Blueprint' && row.name_zh ? `${row.name_zh} 蓝图` : null),
       isBlueprint: c.name === 'Blueprint',
       itemCount: c.itemCount || 1,
       image: c.imageName ? CDN_IMG + c.imageName : null,
@@ -438,7 +488,7 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
   // índice reverso: quais itens usam ESTE como componente (ex.: Furis → Afuris)
   const usedToBuild = db.prepare(
     `SELECT cu.product_unique AS uniqueName, cu.item_count AS itemCount,
-            i.name, i.name_pt AS namePt, i.image_name AS imageName, i.vaulted
+            i.name, i.name_pt AS namePt, i.name_zh AS nameZh, i.image_name AS imageName, i.vaulted
      FROM crafting_uses cu JOIN items i ON i.unique_name = cu.product_unique
      WHERE cu.component_unique = ?
      ORDER BY i.name`
@@ -446,6 +496,7 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
     uniqueName: u.uniqueName,
     name: u.name,
     namePt: u.namePt,
+    nameZh: u.nameZh,
     image: u.imageName ? CDN_IMG + u.imageName : null,
     itemCount: u.itemCount,
     vaulted: u.vaulted === 1 ? true : u.vaulted === 0 ? false : null,
@@ -560,7 +611,9 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
     type: (raw.type === 'Misc' && row.category === 'Resources') ? 'Resource' : (raw.type || row.category),
     isQuest,
     questInfo,
-    description: (lang === 'pt' ? (raw.descriptionPt || raw.description) : raw.description) || '',
+    nameZh: row.name_zh || null,
+    description: (lang === 'pt' ? (raw.descriptionPt || raw.description)
+      : (lang === 'zh' ? (raw.descriptionZh || raw.description) : raw.description)) || '',
     vaulted: row.vaulted === 1 ? true : row.vaulted === 0 ? false : null,
     image: raw.imageName ? CDN_IMG + raw.imageName : null,
     // dataset traz wiki só p/ alguns; gera do nome quando falta (quests, etc.).
@@ -683,7 +736,7 @@ async function buildFarmable(fissuresArg, { prices = true } = {}) {
   // limpa para "Afentis Prime", que É o próprio item (match EXATO) - sem o exato,
   // o prefixo mais longo casaria o item BASE "Afentis" (bug). Uma peça
   // ("Afentis Prime Barrel") não é item exato → cai no prefixo mais longo.
-  const cols = 'unique_name, name, name_pt, category, image_name';
+  const cols = 'unique_name, name, name_pt, name_zh, category, image_name';
   const findExact = db.prepare(`SELECT ${cols} FROM items WHERE name = ?`);
   const findParent = db.prepare(
     `SELECT ${cols} FROM items WHERE ? LIKE name || ' %' ORDER BY LENGTH(name) DESC LIMIT 1`
@@ -708,7 +761,7 @@ async function buildFarmable(fissuresArg, { prices = true } = {}) {
       let e = bySet.get(p.unique_name);
       if (!e) {
         e = {
-          uniqueName: p.unique_name, name: p.name, namePt: p.name_pt, category: p.category,
+          uniqueName: p.unique_name, name: p.name, namePt: p.name_pt, nameZh: p.name_zh, category: p.category,
           image: p.image_name ? CDN_IMG + p.image_name : null,
           url: itemUrl(p.unique_name),
           tiers: new Set(),

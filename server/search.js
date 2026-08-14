@@ -43,8 +43,48 @@ const processTerm = (term) => {
   return t;
 };
 
+// Han (chinês/japonês), kana e hangul. Precisa de tratamento próprio porque
+// essas escritas NÃO separam palavra com espaço.
+const CJK_RUN = /[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\u3040-\u30ff\uac00-\ud7af]+/g;
+const HAS_CJK = /[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\u3040-\u30ff\uac00-\ud7af]/;
+
+// separador padrão do MiniSearch (espaço + pontuação) - reproduzido igual para
+// a tokenização do alfabeto latino não mudar nada em relação ao que já existia
+const SEP = /[\n\r\p{Z}\p{P}]+/u;
+
+/**
+ * Tokenizador consciente de CJK, usado na INDEXAÇÃO e na QUERY.
+ *
+ * Em chinês o nome inteiro é uma palavra só ("突变原聚合物" = Massa Mutagênica),
+ * então o tokenizador padrão gera UM token e quem digita um pedaço do nome
+ * ("聚合物") não acha nada. A solução barata e clássica é indexar também os
+ * BIGRAMAS do trecho CJK: com isso qualquer pedaço de 2+ caracteres casa.
+ * Também separa trecho CJK de trecho latino dentro do mesmo token, porque os
+ * nomes do cliente chinês misturam os dois ("布莱顿 Prime" / "布莱顿Prime").
+ */
+function tokenize(text) {
+  const out = [];
+  for (const part of String(text == null ? '' : text).split(SEP)) {
+    if (!part) continue;
+    if (!HAS_CJK.test(part)) { out.push(part); continue; }
+    let last = 0;
+    for (const m of part.matchAll(CJK_RUN)) {
+      if (m.index > last) out.push(part.slice(last, m.index));
+      const run = m[0];
+      out.push(run);
+      for (let i = 0; i < run.length - 1; i++) out.push(run.slice(i, i + 2));
+      last = m.index + run.length;
+    }
+    if (last < part.length) out.push(part.slice(last));
+  }
+  return out.filter(Boolean);
+}
+
+// tokens "de verdade" da query (sem bigrama), só para medir se o resultado é
+// forte o bastante para dispensar o fallback de busca web. Mantém CJK: com o
+// `[^a-z0-9]` antigo uma query chinesa virava lista vazia e NUNCA era forte.
 const tokensOf = (q) =>
-  stripDiacritics(String(q).toLowerCase()).split(/[^a-z0-9]+/)
+  tokenize(stripDiacritics(String(q).toLowerCase()))
     .filter((t) => t.length > 1 && !STOPWORDS.has(t));
 
 const compSlug = (name) => String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-');
@@ -61,7 +101,7 @@ function buildDocs() {
 
   // ordem estável = mesmo "vencedor" do dedup que o seo.js elege como canônico
   const items = db.prepare(
-    'SELECT unique_name, name, name_pt, category, type, image_name, raw FROM items ORDER BY name, unique_name'
+    'SELECT unique_name, name, name_pt, name_zh, category, type, image_name, raw FROM items ORDER BY name, unique_name'
   ).all();
   // nomes que já são itens próprios (recursos: Morphics, Orokin Cell, plantas…)
   // - não devem virar "componente" de outro item na busca
@@ -78,7 +118,8 @@ function buildDocs() {
     const url = seo.itemUrl(it.unique_name);
     push({
       id: `i:${it.unique_name}`, kind,
-      name: it.name, namePt: it.name_pt || '', alt: it.name_pt || '',
+      name: it.name, namePt: it.name_pt || '', nameZh: it.name_zh || '',
+      alt: [it.name_pt, it.name_zh].filter(Boolean).join(' '),
       sub: it.type || it.category,
       image: it.image_name ? CDN_IMG + it.image_name : null,
       url,
@@ -135,8 +176,9 @@ function buildIndex() {
   const docs = buildDocs();
   const ms = new MiniSearch({
     fields: ['name', 'alt'],
-    storeFields: ['kind', 'name', 'namePt', 'sub', 'image', 'url'],
+    storeFields: ['kind', 'name', 'namePt', 'nameZh', 'sub', 'image', 'url'],
     processTerm,
+    tokenize,
     searchOptions: {
       prefix: true,
       fuzzy: 0.2,
@@ -162,7 +204,8 @@ function maybeReindex() {
 
 function toResult(r) {
   return {
-    kind: r.kind, name: r.name, namePt: r.namePt || '', sub: r.sub, image: r.image, url: r.url,
+    kind: r.kind, name: r.name, namePt: r.namePt || '', nameZh: r.nameZh || '',
+    sub: r.sub, image: r.image, url: r.url,
     score: Math.round(r.score * 10) / 10,
   };
 }
@@ -214,4 +257,4 @@ function stats() {
   return { docs: docCount, lastIngestSeen };
 }
 
-module.exports = { buildIndex, maybeReindex, searchLocal, suggest, stats, tokensOf, trimTail };
+module.exports = { buildIndex, maybeReindex, searchLocal, suggest, stats, tokensOf, trimTail, tokenize };

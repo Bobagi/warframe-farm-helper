@@ -9,7 +9,7 @@ const path = require('node:path');
 // texto e comparamos os conjuntos de chaves de STRINGS.pt/en/es/ru, para
 // garantir que nenhuma string fica sem tradução (some/aparece só num idioma).
 const SRC = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'i18n.js'), 'utf8');
-const LANGS = ['pt', 'en', 'es', 'ru'];
+const LANGS = ['pt', 'en', 'es', 'ru', 'zh'];
 
 function keysOf(block) {
   const set = new Set();
@@ -28,7 +28,7 @@ function slice(from, to) {
 
 // cada bloco de idioma vai do seu "<lang>: {" até o começo do próximo; o último
 // (ru) termina onde começa "const MISSIONS".
-const BOUNDS = { pt: 'en: {', en: 'es: {', es: 'ru: {', ru: 'const MISSIONS' };
+const BOUNDS = { pt: 'en: {', en: 'es: {', es: 'ru: {', ru: 'zh: {', zh: 'const MISSIONS' };
 
 test('STRINGS.pt/en/es/ru têm exatamente as mesmas chaves', () => {
   const keys = {};
