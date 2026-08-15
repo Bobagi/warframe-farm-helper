@@ -148,6 +148,42 @@ test('classifyMisc: os critérios ANTIGOS continuam valendo (sem regressão)', (
   assert.equal(classifyMisc({ name: 'X', uniqueName: '/u/x', type: 'Misc', parents: ['Y'], drops: [{ location: 'Z', chance: 1 }] }).viaDrops, false);
 });
 
+test('classifyMisc: item cujo COMPONENTE dropa entra (Orokin Catalyst era invisível)', () => {
+  // O blueprint do Catalyst cai de sortie/Nightwave, mas os drops estão no
+  // componente, não no item - o critério 4 não via e o potato sumia da busca.
+  const catalyst = {
+    name: 'Orokin Catalyst', uniqueName: '/Lotus/Types/Items/MiscItems/OrokinCatalyst',
+    type: 'Misc', parents: [], drops: [],
+    components: [
+      { name: 'Blueprint', drops: [{ location: 'Sorties', chance: 5.64 }] },
+      { name: 'Gallium', drops: [] },
+    ],
+  };
+  const c = classifyMisc(catalyst);
+  assert.equal(c.take, true, 'se uma parte dele dropa, o site sabe responder onde');
+  assert.equal(c.category, 'Resources', 'type Misc segue o mapeamento do critério 4');
+  assert.equal(c.viaDrops, true, 'passa pelo guard de nome da 2ª passada');
+  // adaptador Exilus e nave: type real ⇒ categoria Misc, rótulo mostra o tipo
+  const exilus = classifyMisc({
+    name: 'Exilus Weapon Adapter', uniqueName: '/u/exilus', type: 'Equipment Adapter',
+    components: [{ name: 'Blueprint', drops: [{ location: 'Lua Rescue', chance: 8 }] }],
+  });
+  assert.equal(exilus.take, true);
+  assert.equal(exilus.category, 'Misc');
+  // mutation checks: componente SEM drops não basta; components ausente idem
+  assert.equal(classifyMisc({
+    name: 'X', uniqueName: '/u/x1', type: 'Misc',
+    components: [{ name: 'Blueprint', drops: [] }],
+  }).take, false, 'componente sem drop não pode contar como drop');
+  assert.equal(classifyMisc({
+    name: 'X', uniqueName: '/u/x2', type: 'Misc', components: [],
+  }).take, false);
+  assert.equal(classifyMisc({
+    name: 'X', uniqueName: '/u/x3', type: 'Misc',
+    components: [null, { name: 'Y' }],
+  }).take, false, 'componente malformado não derruba nem conta');
+});
+
 test('classifyMisc: entrada malformada não vira linha no banco', () => {
   assert.equal(classifyMisc(null).take, false);
   assert.equal(classifyMisc({ name: 'Sem unique', type: 'Resource' }).take, false);

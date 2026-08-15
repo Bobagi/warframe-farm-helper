@@ -64,7 +64,7 @@ const SEARCHABLE_MISC_TYPES = new Set([
 /**
  * Uma entrada de `Misc.json` vira item buscável? E em que categoria?
  *
- * Três critérios, nesta ordem:
+ * Cinco critérios, nesta ordem:
  *  1. `type: "Resource"` - o WFCD já diz que é recurso.
  *  2. tem `parents` - é ingrediente de alguma receita (Neurodes/Ferrite são
  *     `type: "Misc"` mas têm 115/160 usos, e é o `parents` que os pega).
@@ -77,9 +77,12 @@ const SEARCHABLE_MISC_TYPES = new Set([
  *     (gasta-se com um vendedor), então `parents` vem vazio e o WFCD os deixa
  *     como `type: "Misc"`. Eram 117 coisas farmáveis invisíveis na busca. Se o
  *     jogo DROPA, o site sabe responder "onde consigo" - que é a pergunta do site.
+ *  5. ★ **os COMPONENTES têm local de drop** (2026-08-15). O 4 só olha o drop do
+ *     próprio item, e o que se FORJA a partir de blueprint dropável escapava:
+ *     Orokin Catalyst/Reactor, adaptadores Exilus, Omni Forma, as naves.
  *
- * `viaDrops` marca as do critério 4: elas passam por um guard de nome numa 2ª
- * passada, para nunca criarem uma 2ª página de algo que o site já tem.
+ * `viaDrops` marca as dos critérios 4 e 5: elas passam por um guard de nome numa
+ * 2ª passada, para nunca criarem uma 2ª página de algo que o site já tem.
  */
 function classifyMisc(it) {
   if (!it || typeof it.name !== 'string' || typeof it.uniqueName !== 'string') return { take: false };
@@ -99,6 +102,17 @@ function classifyMisc(it) {
     // moeda/token/fragmento (o balde genérico "Misc") é recurso, com página de
     // "onde farmar"; o resto (cena de Captura, medalhão de sindicato, adaptador
     // de arcana, arena de Simulacrum) fica em Misc e o rótulo mostra o tipo real
+    return { take: true, viaDrops: true, category: it.type === 'Misc' ? 'Resources' : 'Misc' };
+  }
+  // ★ 5. os COMPONENTES têm local de drop (2026-08-15). O critério 4 só olha os
+  // drops do PRÓPRIO item, e itens que se obtêm forjando o blueprint dropável
+  // ficavam invisíveis: Orokin Catalyst/Reactor (o blueprint cai de sortie/
+  // Nightwave), os adaptadores Exilus, Omni Forma e as naves (Mantis, Xiphos,
+  // Scimitar, Parallax, cujas peças caem em missão). Se alguma PARTE dele
+  // dropa, o site sabe responder "onde consigo" - mesma pergunta, um nível
+  // abaixo. Passa pelos mesmos guards de nome da 2ª passada (viaDrops).
+  if (Array.isArray(it.components)
+      && it.components.some((c) => c && Array.isArray(c.drops) && c.drops.length > 0)) {
     return { take: true, viaDrops: true, category: it.type === 'Misc' ? 'Resources' : 'Misc' };
   }
   return { take: false };
@@ -409,7 +423,7 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
   {
     const { rows, blocked } = pickDropOnlyRows(dropOnly, itemRows);
     itemRows.push(...rows);
-    log(`[ingest] Misc com local de drop (moedas, tokens, cenas, medalhões): +${rows.length}`
+    log(`[ingest] Misc com local de drop no item ou nos componentes (moedas, tokens, cenas, potatoes, naves): +${rows.length}`
       + (blocked ? ` (${blocked} recusados: nome já usado por item ou por peça)` : ''));
   }
 
