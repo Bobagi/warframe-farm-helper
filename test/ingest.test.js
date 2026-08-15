@@ -84,6 +84,15 @@ test('markdown: link javascript: é neutralizado; https é mantido', () => {
   assert.match(good, /<a href="https:\/\/wiki\.warframe\.com\/x">wiki<\/a>/);
 });
 
+test('markdown: imagem local/https vira <img> lazy; esquema perigoso vira só o alt', () => {
+  const good = marked.parse('![tela do Index](/img/faq/index-investimento.webp)');
+  assert.match(good, /<img src="\/img\/faq\/index-investimento\.webp" alt="tela do Index" loading="lazy">/);
+  const bad = marked.parse('![alt "x](javascript:alert(1))');
+  assert.ok(!/<img/i.test(bad), 'imagem javascript: não pode virar <img>');
+  assert.ok(!/src\s*=/i.test(bad), 'nem sobrar um src=');
+  assert.match(bad, /alt &quot;x/, 'sobra o alt como texto, escapado');
+});
+
 // ---------------------------------------------------------------------------
 // classifyMisc: quem de Misc.json vira item buscável
 // ---------------------------------------------------------------------------

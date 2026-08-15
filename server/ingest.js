@@ -31,6 +31,12 @@ marked.use({
       const title = token.title ? ` title="${escapeHtml(token.title)}"` : '';
       return `<a href="${escapeHtml(href)}"${title}>${text}</a>`;
     },
+    image(token) {
+      const src = String(token.href || '');
+      if (!SAFE_HREF.test(src)) return escapeHtml(token.text || '');
+      const title = token.title ? ` title="${escapeHtml(token.title)}"` : '';
+      return `<img src="${escapeHtml(src)}" alt="${escapeHtml(token.text || '')}"${title} loading="lazy">`;
+    },
   },
 });
 

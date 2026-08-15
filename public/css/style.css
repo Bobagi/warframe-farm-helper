@@ -653,6 +653,11 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
 .article .art-body ol li::marker { color: var(--orokin); font-weight: 700; }
 .article .art-body strong { color: var(--orokin-bright); }
 .article .art-body blockquote { border-left: 2px solid var(--line-gold); margin: 14px 0; padding: 4px 14px; color: var(--text-dim); }
+.article .art-body img { display: block; margin: 14px auto; border: 1px solid var(--line-soft); border-radius: 4px; }
+.article .art-body img + em { display: block; text-align: center; font-size: 13px; color: var(--text-dim); margin-top: -6px; }
+.article .art-body table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 14px 0; display: block; overflow-x: auto; }
+.article .art-body th { text-align: left; padding: 8px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); border-bottom: 1px solid var(--line-gold); vertical-align: bottom; }
+.article .art-body td { padding: 8px; border-bottom: 1px solid var(--line-soft); }
 
 .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
 .card {
