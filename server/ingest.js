@@ -334,7 +334,7 @@ function loadArticles() {
       html: marked.parse(body),
     };
   };
-  for (const kind of ['faq', 'nightwave']) {
+  for (const kind of ['faq', 'nightwave', 'legal']) {
     const dir = path.join(CONTENT_DIR, kind);
     if (!fs.existsSync(dir)) continue;
     const base = new Set();

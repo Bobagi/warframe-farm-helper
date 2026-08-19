@@ -244,7 +244,7 @@ function itemUrl(uniqueName) {
 }
 
 const relicUrl = (name) => `/relic/${slugify(name)}`;
-const articleUrl = (kind, slug) => (kind === 'faq' ? `/faq/${slug}` : `/nightwave/${slug}`);
+const articleUrl = (kind, slug) => (kind === 'nightwave' ? `/nightwave/${slug}` : `/${kind}/${slug}`);
 
 function itemForSlug(slug) {
   ensureFresh();
@@ -444,7 +444,8 @@ function renderArticlePage(kind, slug) {
     canonical: articleUrl(kind, art.slug),
     ogType: 'article',
   };
-  const tpl = kind === 'faq' ? 'faq.html' : 'nightwave.html';
+  // 'legal' (política de privacidade) reusa o template de artigo do FAQ
+  const tpl = kind === 'nightwave' ? 'nightwave.html' : 'faq.html';
   let html = injectHead(template(tpl), meta);
   html = injectBodyData(html, { 'art-slug': art.slug });
   // o html do artigo já foi SANITIZADO na ingestão (markdown do repo);

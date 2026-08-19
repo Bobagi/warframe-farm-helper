@@ -3,9 +3,10 @@
 (() => {
   const { el, api, qs, fmtInt, fmtPct, tierBadge, rarityChip, statusBadge, startTimers, safeHref } = App;
   const { t, lang, nameFor, missionName, enemyName, typeName, relicName } = I18n;
-  // nome do componente: ingrediente que é item próprio tem versão traduzida
-  // (o servidor manda em fullNameZh); peça de arma segue no nome canônico
-  const compName = (c) => ((lang() === 'zh' && c.fullNameZh) ? c.fullNameZh : c.fullName);
+  // nome do componente: o servidor manda a versão traduzida em fullNameZh/
+  // fullNamePt ("Bronco Prime Cano"); sem tradução cai no nome canônico EN
+  const compName = (c) => ((lang() === 'zh' && c.fullNameZh) ? c.fullNameZh
+    : (lang() === 'pt' && c.fullNamePt) ? c.fullNamePt : c.fullName);
   // selo de tipo: o dataset devolve o tipo cru em inglês ("Resource", "Rifle").
   // As categorias que JÁ têm rótulo traduzido no dicionário usam ele; o resto
   // (tipos de arma) fica no cru, que é como a comunidade se refere mesmo.

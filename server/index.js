@@ -23,20 +23,21 @@ app.use((req, res, next) => {
   res.setHeader('Content-Security-Policy', [
     "default-src 'self'",
     // cdn.warframestat.us faz 301 → raw.githubusercontent.com; o CSP checa o
-    // destino do redirect, então ambos precisam estar liberados p/ as artes
-    "img-src 'self' https://cdn.warframestat.us https://raw.githubusercontent.com data:",
+    // destino do redirect, então ambos precisam estar liberados p/ as artes.
+    // Os hosts do Google servem os pixels/criativos do AdSense.
+    "img-src 'self' https://cdn.warframestat.us https://raw.githubusercontent.com data: https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google",
     // 'unsafe-inline' cobre os atributos style="" do layout; script-src fica
-    // estrito ('self', sem inline) - é ele que barra XSS, não o style.
+    // estrito ('self' + hosts do AdSense, sem inline) - é ele que barra XSS.
     // (JSON-LD <script type="application/ld+json"> é bloco de DADOS, não
     // executa - o CSP não o bloqueia.)
     "style-src 'self' 'unsafe-inline'",
-    "script-src 'self'",
-    "connect-src 'self'",
+    // anúncios Google AdSense: o adsbygoogle.js SÓ é injetado pelo ads.js após
+    // consentimento no banner de cookies (LGPD) - nunca tag estática no HTML.
+    "script-src 'self' https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://googleads.g.doubleclick.net https://www.googletagservices.com https://adservice.google.com https://ep2.adtrafficquality.google",
+    "connect-src 'self' https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google https://csi.gstatic.com",
     "font-src 'self'",
-    // anúncios A-ads (mesma rede/units do Porkfolio): iframe puro - o código do
-    // anunciante roda na ORIGEM DELES, nunca na nossa página; script-src segue
-    // 'self'. É a única exceção de frame permitida.
-    'frame-src https://acceptable.a-ads.com',
+    // os criativos do AdSense rodam em iframes destas origens
+    'frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://pagead2.googlesyndication.com https://www.google.com https://ep2.adtrafficquality.google',
     "base-uri 'none'",
     "frame-ancestors 'none'",
     "form-action 'self'",
@@ -81,6 +82,7 @@ app.get('/item/:slug', ssrRoute((s) => seo.renderItemPage(s)));
 app.get('/relic/:slug', ssrRoute((s) => seo.renderRelicPage(s)));
 app.get('/faq/:slug', ssrRoute((s) => seo.renderArticlePage('faq', s)));
 app.get('/nightwave/:slug', ssrRoute((s) => seo.renderArticlePage('nightwave', s)));
+app.get('/legal/:slug', ssrRoute((s) => seo.renderArticlePage('legal', s)));
 
 // URLs limpas das páginas fixas (os .html antigos redirecionam para cá)
 app.get('/faq', (req, res) => sendSsr(res, seo.renderFaqIndex()));

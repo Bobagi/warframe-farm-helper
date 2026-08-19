@@ -797,10 +797,46 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
 }
 
 /* ============================================================
-   Publicidade (A-ads - iframe puro, sem cookies/JS de terceiro)
-   Rails fixos nas calhas laterais no desktop largo; um bloco em
-   fluxo antes do rodapé no restante. Ver public/js/ads.js.
+   Publicidade (Google AdSense, só após consentimento no banner
+   de cookies - ver public/js/ads.js). Rails/bloco mobile só
+   renderizam com unit manual configurada; Auto ads posiciona
+   sozinho. + Banner de consentimento (LGPD).
    ============================================================ */
+.cookie-banner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 90;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 18px;
+  background: rgba(10, 14, 26, 0.97);
+  border-top: 1px solid var(--line-gold);
+}
+.cookie-banner p {
+  margin: 0;
+  max-width: 720px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.cookie-banner a { color: var(--energy); }
+.cookie-actions { display: flex; gap: 10px; }
+/* Aceitar e Recusar com a MESMA proeminência (sem dark pattern) */
+.cookie-btn {
+  padding: 8px 18px;
+  font: inherit;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--orokin);
+  cursor: pointer;
+}
+.cookie-btn:hover { background: rgba(207, 174, 102, 0.15); }
 .ad-rail { display: none; }
 
 @media (min-width: 1420px) {
@@ -841,11 +877,8 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
   opacity: 0.7;
 }
 
-.ad-frame {
-  display: block;
+ins.adsbygoogle {
   max-width: 100%;
-  border: 0;
-  background: transparent;
 }
 
 /* ---------- "como conseguir" (pesquisa no Dojo / vendedores / Mercado) ----------

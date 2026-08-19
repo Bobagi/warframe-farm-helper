@@ -109,9 +109,10 @@ test('passo a passo não diz "sem fonte" de um componente que a página mostra c
   const d = await buildItemDetail(RESOURCE_U, 'pt');
   const ms = d.components.find((c) => c.name === 'Mutagen Sample');
   assert.ok(ms.resourceDrops.length > 0, 'pré-condição: a página mostra onde farmar');
-  const contradiz = d.steps.filter((s) => s.startsWith('Mutagen Sample') && /sem fonte/i.test(s));
+  // em PT o passo usa o nome traduzido do componente ("Amostra Mutagênica")
+  const contradiz = d.steps.filter((s) => s.startsWith('Amostra Mutagênica') && /sem fonte/i.test(s));
   assert.deepEqual(contradiz, [], `a página se contradizia: ${JSON.stringify(d.steps)}`);
-  assert.ok(d.steps.some((s) => s.startsWith('Mutagen Sample') && s.includes('Eris/Candiru')),
+  assert.ok(d.steps.some((s) => s.startsWith('Amostra Mutagênica') && s.includes('Eris/Candiru')),
     'e o passo certo cita o local achado');
 });
 
@@ -123,8 +124,9 @@ test('a pesquisa do Dojo entra no payload e é o PRIMEIRO passo', async () => {
   assert.equal(d.acquisition.research.credits, 5000);
   assert.match(d.steps[0], /^Projeto: pesquise no Bio Lab do Dojo do clã/);
   assert.match(d.steps[0], /5\.000 créditos/);
-  assert.match(d.steps[0], /5x Mutagen Sample/);
-  assert.match(d.steps[0], /150x Circuits/);
+  // materiais com name_pt no banco saem traduzidos no passo da pesquisa
+  assert.match(d.steps[0], /5x Amostra Mutagênica/);
+  assert.match(d.steps[0], /150x Circuitos/);
   assert.match(d.steps[0], /3 dias/);
 });
 

@@ -1,61 +1,126 @@
 'use strict';
 
 /**
- * Publicidade - A-ads (aads.com), a MESMA rede/units do Porkfolio.
+ * Publicidade - Google AdSense, carregado SÓ após consentimento (LGPD/GDPR).
  *
- * Por que A-ads: o ad unit é um <iframe> puro - nenhum JavaScript de terceiro
- * roda na NOSSA página (o código do anunciante fica isolado na origem do
- * iframe), então o CSP continua com script-src 'self' e só libera o host do
- * frame em frame-src (server/index.js). A rede também é cookieless (não seta
- * cookies nem rastreia usuários), por isso não exige banner de consentimento
- * LGPD - diferente de AdSense e afins.
+ * Padrão (app-essentials §9): nenhum tag estático de ads no HTML - o script
+ * do AdSense é injetado em runtime apenas quando o visitante ACEITA cookies
+ * no banner. "Rejeitar" tem a mesma proeminência e nada de terceiro carrega.
+ * O Umami (analytics) é cookieless e self-hosted, então fica fora do gate.
  *
- * Placements (espelham o AdRails do Porkfolio):
- *  - Desktop (≥1420px): dois skyscrapers 160x600 fixos nas calhas laterais
- *    vazias (o .wrap tem 1060px → sobra ≥180px de calha em cada lado).
- *  - Mobile/estreito (<1420px): um 300x250 em fluxo, imediatamente antes do
- *    rodapé - nunca cobre navegação, só rola com a página.
- * O id pode repetir nos dois rails (ganhos idênticos; unit extra só compraria
- * estatística por slot). String vazia desliga o placement.
+ * Revogação: o rodapé ganha um link "Gerenciar cookies" que reabre o banner;
+ * trocar aceite por recusa recarrega a página para derrubar o script já
+ * carregado. A CHAVE do consentimento é versionada - mudar as categorias de
+ * cookies (ex.: nova rede de ads) = bumpar CONSENT_KEY para todos re-decidirem.
+ *
+ * AdSense: com o site aprovado e Auto ads LIGADO no painel, o script sozinho
+ * já posiciona os anúncios. Units manuais (criadas na UI do AdSense, não há
+ * API) entram em SLOTS abaixo - vazio = só Auto ads.
  */
 
 (() => {
-  const A_ADS_HOST = 'acceptable.a-ads.com';
-  const AD_UNITS = { left: '2446812', right: '2446812', mobile: '2446824' };
+  const ADSENSE_CLIENT = 'ca-pub-5349785075769585';
+  const CONSENT_KEY = 'cookieConsent.v1'; // v1 = categoria "publicidade" (AdSense)
+  const PRIVACY_URL = '/legal/politica-de-privacidade';
+
+  // IDs de unit manuais do AdSense (data-ad-slot). Vazio = nenhum bloco fixo;
+  // o Auto ads decide os posicionamentos sozinho.
+  const SLOTS = { rail: '', mobile: '' };
 
   const { el } = App;
   const { t } = I18n;
 
-  const unitSrc = (id) => `https://${A_ADS_HOST}/${id}/?size=Adaptive`;
+  const getConsent = () => {
+    try { return localStorage.getItem(CONSENT_KEY); } catch { return null; }
+  };
+  const setConsent = (v) => {
+    try { localStorage.setItem(CONSENT_KEY, v); } catch { /* modo privado */ }
+  };
 
-  const frame = (id, w, h) => el('iframe', {
-    class: 'ad-frame',
-    title: t('ads.label'),
-    'data-aa': id,
-    src: unitSrc(id),
-    width: String(w),
-    height: String(h),
-    loading: 'lazy',
-    scrolling: 'no',
-    frameborder: '0',
-  });
+  let adsenseLoaded = false;
+  function loadAdsense() {
+    if (adsenseLoaded) return;
+    adsenseLoaded = true;
+    const s = document.createElement('script');
+    s.async = true;
+    s.crossOrigin = 'anonymous';
+    s.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`;
+    document.head.appendChild(s);
+    renderManualUnits();
+  }
 
-  const label = () => el('span', { class: 'ad-label', text: t('ads.label') });
+  const adIns = (slot, style) => {
+    const ins = document.createElement('ins');
+    ins.className = 'adsbygoogle';
+    ins.style.cssText = style;
+    ins.dataset.adClient = ADSENSE_CLIENT;
+    ins.dataset.adSlot = slot;
+    ins.dataset.adFormat = 'auto';
+    ins.dataset.fullWidthResponsive = 'true';
+    return ins;
+  };
 
-  for (const side of ['left', 'right']) {
-    if (!AD_UNITS[side]) continue;
-    document.body.append(el('aside', { class: `ad-rail ${side}`, 'aria-label': t('ads.label') }, [
-      label(), frame(AD_UNITS[side], 160, 600),
+  function renderManualUnits() {
+    const label = () => el('span', { class: 'ad-label', text: t('ads.label') });
+    if (SLOTS.rail) {
+      for (const side of ['left', 'right']) {
+        document.body.append(el('aside', { class: `ad-rail ${side}`, 'aria-label': t('ads.label') }, [
+          label(), adIns(SLOTS.rail, 'display:block;width:160px;height:600px'),
+        ]));
+      }
+    }
+    const footer = document.getElementById('site-footer');
+    if (SLOTS.mobile && footer) {
+      footer.parentNode.insertBefore(
+        el('aside', { class: 'ad-mobile', 'aria-label': t('ads.label') }, [
+          label(), adIns(SLOTS.mobile, 'display:block'),
+        ]),
+        footer
+      );
+    }
+    document.querySelectorAll('ins.adsbygoogle').forEach(() => {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    });
+  }
+
+  function showBanner() {
+    if (document.getElementById('cookie-banner')) return;
+    const decide = (v) => {
+      const had = getConsent();
+      setConsent(v);
+      document.getElementById('cookie-banner')?.remove();
+      if (v === 'accepted') loadAdsense();
+      // já tinha aceitado e agora recusou: recarrega p/ derrubar o script
+      else if (had === 'accepted' || adsenseLoaded) location.reload();
+    };
+    document.body.append(el('div', {
+      id: 'cookie-banner', class: 'cookie-banner', role: 'dialog',
+      'aria-live': 'polite', 'aria-label': t('cookies.aria'),
+    }, [
+      el('p', {}, [
+        t('cookies.msg') + ' ',
+        el('a', { href: PRIVACY_URL, text: t('cookies.privacy') }),
+      ]),
+      el('div', { class: 'cookie-actions' }, [
+        el('button', { type: 'button', class: 'cookie-btn', onclick: () => decide('accepted'), text: t('cookies.accept') }),
+        el('button', { type: 'button', class: 'cookie-btn', onclick: () => decide('rejected'), text: t('cookies.reject') }),
+      ]),
     ]));
   }
 
-  const footer = document.getElementById('site-footer');
-  if (AD_UNITS.mobile && footer) {
-    footer.parentNode.insertBefore(
-      el('aside', { class: 'ad-mobile', 'aria-label': t('ads.label') }, [
-        label(), frame(AD_UNITS.mobile, 300, 250),
-      ]),
-      footer
-    );
+  // link "Gerenciar cookies" no rodapé (o layout.js já montou o #site-footer)
+  const footWrap = document.querySelector('#site-footer .wrap');
+  if (footWrap) {
+    footWrap.append(el('p', {}, [
+      el('a', { href: PRIVACY_URL, text: t('cookies.privacy') }), ' · ',
+      el('a', {
+        href: '#', text: t('cookies.manage'),
+        onclick: (ev) => { ev.preventDefault(); showBanner(); },
+      }),
+    ]));
   }
+
+  const consent = getConsent();
+  if (consent === 'accepted') loadAdsense();
+  else if (consent !== 'rejected') showBanner();
 })();

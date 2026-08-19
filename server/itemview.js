@@ -103,6 +103,21 @@ const PART_ZH = {
   Carapace: '甲壳', Cerebrum: '脑', Boot: '靴',
 };
 
+// Mesmo papel do PART_ZH para o PT-BR: o i18n oficial do WFCD não cobre
+// componentes, então a palavra da peça é traduzida aqui, no formato que a
+// comunidade BR usa ("Bronco Prime Cano", "Braton Prime Receptor"). Peça fora
+// do mapa segue em inglês (fullNamePt = null → o cliente cai no fullName).
+const PART_PT = {
+  Blueprint: 'Projeto', Barrel: 'Cano', Receiver: 'Receptor', Stock: 'Coronha',
+  Blade: 'Lâmina', Blades: 'Lâminas', Handle: 'Cabo', Grip: 'Empunhadura',
+  Gauntlet: 'Manopla', Hilt: 'Punho', Guard: 'Guarda', Head: 'Cabeça',
+  Disc: 'Disco', Pouch: 'Bolsa', String: 'Corda', 'Upper Limb': 'Haste Superior',
+  'Lower Limb': 'Haste Inferior', Limb: 'Haste', Link: 'Elo', Chassis: 'Chassi',
+  Neuroptics: 'Neuro-óticas', Systems: 'Sistemas', Harness: 'Arnês',
+  Wings: 'Asas', Engines: 'Motores', Fuselage: 'Fuselagem',
+  Carapace: 'Carapaça', Cerebrum: 'Cérebro', Boot: 'Bota',
+};
+
 /** URL da página da wiki a partir do nome (título canônico EN, espaços → _). */
 function wikiUrlFor(name) {
   const slug = String(name || '').trim().replace(/\s+/g, '_');
@@ -258,8 +273,9 @@ function decorateRelics(db, relicRefs, fullName, fissuresByTier, relicCache) {
 function buildSteps(raw, comps, itemSources, lang, acq = null) {
   const en = lang !== 'pt';
   const zh = lang === 'zh';
-  // nome do componente no idioma do passo (só ingrediente tem versão chinesa)
-  const cn = (c) => ((zh && c.fullNameZh) ? c.fullNameZh : c.fullName);
+  // nome do componente no idioma do passo (zh e pt têm versão própria)
+  const cn = (c) => ((zh && c.fullNameZh) ? c.fullNameZh
+    : (lang === 'pt' && c.fullNamePt) ? c.fullNamePt : c.fullName);
   const L = (pt, enStr, zhStr) => (zh ? (zhStr || enStr) : (en ? enStr : pt));
   const pct = (n) => fmtPct(n, lang);
   const int = (n) => Number(n).toLocaleString(zh ? 'zh-CN' : (en ? 'en-US' : 'pt-BR'));
@@ -272,7 +288,8 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
     const r = { ...acq.research, lab: (zh && acq.research.labZh) || acq.research.lab };
     // no chinês o material sai com o nome do cliente CN quando existe: o passo
     // fala "5x 突变原样本", não "5x Mutagen Sample"
-    const matName = (m) => (zh && m.nameZh ? m.nameZh : m.name);
+    const matName = (m) => (zh && m.nameZh ? m.nameZh
+      : (lang === 'pt' && m.namePt) ? m.namePt : m.name);
     const mats = r.resources.map((m) => `${int(m.count)}x ${matName(m)}`).join(', ');
     const cost = [
       r.credits != null ? `${int(r.credits)} ${L('créditos', 'credits', '信用点')}` : null,
@@ -445,7 +462,7 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
 
   // um componente cujo nome é um item avulso (Morphics, Orokin Cell, plantas…)
   // é ingrediente - mantém o nome dele; peças de fato ganham o prefixo do item
-  const isStandalone = db.prepare('SELECT name_zh FROM items WHERE name = ? ORDER BY name, unique_name LIMIT 1');
+  const isStandalone = db.prepare('SELECT name_pt, name_zh FROM items WHERE name = ? ORDER BY name, unique_name LIMIT 1');
   const standaloneCache = new Map();
   const lookupStandalone = (name) => {
     if (!standaloneCache.has(name)) standaloneCache.set(name, isStandalone.get(name) || null);
@@ -458,6 +475,10 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
   const zhNameOf = (name) => {
     const row = lookupStandalone(name);
     return (row && row.name_zh) || null;
+  };
+  const ptNameOf = (name) => {
+    const row = lookupStandalone(name);
+    return (row && row.name_pt) || null;
   };
 
   const relicCache = new Map();
@@ -480,6 +501,10 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
       fullNameZh: isIngredient(c.name)
         ? zhNameOf(c.name)
         : (row.name_zh ? `${row.name_zh} ${PART_ZH[c.name] || c.name}` : null),
+      // "Bronco Prime Cano": nome do item (PT se houver) + peça traduzida
+      fullNamePt: isIngredient(c.name)
+        ? ptNameOf(c.name)
+        : (PART_PT[c.name] ? `${row.name_pt || raw.name} ${PART_PT[c.name]}` : null),
       isBlueprint: c.name === 'Blueprint',
       itemCount: c.itemCount || 1,
       image: c.imageName ? CDN_IMG + c.imageName : null,
