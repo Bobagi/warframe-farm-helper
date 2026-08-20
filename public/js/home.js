@@ -55,11 +55,18 @@
 
   api('/api/fissures').then((data) => {
     fissures = data.fissures || [];
+    // upstream respondeu mas tudo veio expirado: espelho do warframestat
+    // travado no tempo - avisa a verdade em vez de "0 fissuras"
+    if (!fissures.length && (data.source && data.source !== 'ok')) {
+      hint.textContent = '';
+      list.replaceChildren(el('li', { class: 'error-box', text: t('ws.down') }));
+      return;
+    }
     hint.textContent = t('fissures.active', { n: fissures.length });
     renderFissures();
     startTimers();
   }).catch(() => {
-    list.replaceChildren(el('li', { class: 'error-box', text: t('fissures.down') }));
+    list.replaceChildren(el('li', { class: 'error-box', text: t('ws.down') }));
   });
 
   // ---- nightwave (mini) ----
@@ -82,7 +89,7 @@
         : el('span', { class: 'kind-tag', text: a.isDaily ? t('nw.daily') : a.isElite ? t('nw.elite') : t('nw.weekly') }),
     ])));
   }).catch(() => {
-    nwList.replaceChildren(el('li', { class: 'empty', text: t('nw.down') }));
+    nwList.replaceChildren(el('li', { class: 'empty', text: t('ws.down') }));
   });
 
   // ---- baro ----
@@ -109,7 +116,7 @@
       baroGuide()
     );
     startTimers();
-  }).catch(() => { baro.textContent = t('baro.down'); });
+  }).catch(() => { baro.textContent = t('ws.down'); });
 
   // ---- varzia (prime resurgence) ----
   // O painel nasce hidden: rotação é informação de "está rolando agora", então
@@ -153,12 +160,13 @@
   api('/api/farmable').then((data) => {
     const list = (data.items || []).slice(0, 9); // os 9 mais valiosos
     if (!list.length) {
-      farmGrid.replaceChildren(el('p', { class: 'empty', text: t('farm.noTiers') }));
+      const msg = (data.source && data.source !== 'ok') ? t('ws.down') : t('farm.noTiers');
+      farmGrid.replaceChildren(el('p', { class: 'empty', text: msg }));
       return;
     }
     farmHint.textContent = t('farm.count', { n: (data.items || []).length });
     farmGrid.replaceChildren(...list.map(App.farmCard));
-  }).catch(() => { farmGrid.replaceChildren(el('p', { class: 'empty', text: t('farm.down') })); });
+  }).catch(() => { farmGrid.replaceChildren(el('p', { class: 'empty', text: t('ws.down') })); });
 
   // ---- faq teaser ----
   const cards = document.getElementById('faq-cards');

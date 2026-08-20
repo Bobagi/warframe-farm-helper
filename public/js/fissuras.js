@@ -48,11 +48,18 @@
 
   api('/api/fissures').then((data) => {
     fissures = data.fissures || [];
+    // upstream respondeu mas tudo veio expirado: espelho do warframestat
+    // travado no tempo - avisa a verdade em vez de "0 fissuras"
+    if (!fissures.length && (data.source && data.source !== 'ok')) {
+      hint.textContent = '';
+      list.replaceChildren(el('li', { class: 'error-box', text: t('ws.down') }));
+      return;
+    }
     hint.textContent = t('fissures.active', { n: fissures.length });
     renderFissures();
     startTimers();
   }).catch(() => {
-    list.replaceChildren(el('li', { class: 'error-box', text: t('fissures.down') }));
+    list.replaceChildren(el('li', { class: 'error-box', text: t('ws.down') }));
   });
 
   // ---- dá pra farmar agora ----
@@ -117,12 +124,13 @@
     farmHint.textContent = t('farm.count', { n: items.length });
     if (!items.length) {
       farmHint.textContent = '';
-      grid.replaceChildren(el('p', { class: 'empty', text: t('farm.noTiers') }));
+      const msg = (data.source && data.source !== 'ok') ? t('ws.down') : t('farm.noTiers');
+      grid.replaceChildren(el('p', { class: 'empty', text: msg }));
       return;
     }
     buildFilter(data.tiers || []);
     renderFarm();
   }).catch(() => {
-    grid.replaceChildren(el('p', { class: 'error-box', text: t('farm.down') }));
+    grid.replaceChildren(el('p', { class: 'error-box', text: t('ws.down') }));
   });
 })();

@@ -6,7 +6,7 @@ const { listArticles, getArticle } = require('../articles');
 const { searchLocal, suggest, stats } = require('../search');
 const { webSearch } = require('../websearch');
 const { getTopOrders } = require('../market');
-const { getFissures, getBaro, getCycles } = require('../worldstate');
+const { getFissures, fissuresSource, getBaro, getCycles } = require('../worldstate');
 const { getVarzia } = require('../varzia');
 const { getActs } = require('../nightwave');
 const { buildItemDetail, buildRelicDetail, buildFarmable } = require('../itemview');
@@ -164,11 +164,13 @@ router.get('/relic', asyncRoute(async (req, res) => {
 }));
 
 router.get('/fissures', asyncRoute(async (req, res) => {
-  res.json({ fissures: await getFissures() });
+  const fissures = await getFissures();
+  res.json({ fissures, source: fissuresSource() });
 }));
 
 router.get('/farmable', asyncRoute(async (req, res) => {
-  res.json(await buildFarmable());
+  const data = await buildFarmable();
+  res.json({ ...data, source: fissuresSource() });
 }));
 
 router.get('/nightwave', asyncRoute(async (req, res) => {

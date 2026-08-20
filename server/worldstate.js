@@ -49,11 +49,28 @@ const MISSION_PT = {
   Arena: 'Arena', Defection: 'Deserção', Rush: 'Corrida',
 };
 
+// 'ok' | 'stale' | 'down' - no jogo SEMPRE há fissuras ativas. 'stale' = o
+// upstream responde mas tudo vem expirado (espelho do warframestat.us travado
+// no tempo, visto em 2026-08-20 com worldstate 4h atrasado); 'down' = o fetch
+// falhou de vez (404/timeout). A UI usa isso para dizer a verdade ("fonte
+// fora do ar") em vez de "nenhuma fissura ativa". Consumidores que engolem o
+// erro (buildFarmable) herdam o estado correto via fissuresSource().
+let fissuresSourceState = 'ok';
+const fissuresSource = () => fissuresSourceState;
+
 async function getFissures() {
-  const arr = await cached('fissures', `${BASE}/fissures`);
+  let arr;
+  try {
+    arr = await cached('fissures', `${BASE}/fissures`);
+  } catch (err) {
+    fissuresSourceState = 'down';
+    throw err;
+  }
   const now = Date.now();
-  return (Array.isArray(arr) ? arr : [])
-    .filter((f) => f && !f.expired && f.expiry && Date.parse(f.expiry) > now)
+  const active = (Array.isArray(arr) ? arr : [])
+    .filter((f) => f && !f.expired && f.expiry && Date.parse(f.expiry) > now);
+  fissuresSourceState = active.length ? 'ok' : 'stale';
+  return active
     .map((f) => ({
       id: f.id,
       node: f.node,
@@ -187,7 +204,7 @@ async function getBaro() {
 }
 
 module.exports = {
-  getFissures, getNightwaveRaw, getVaultTraderRaw, getBaro, getCycles, MISSION_PT,
+  getFissures, fissuresSource, getNightwaveRaw, getVaultTraderRaw, getBaro, getCycles, MISSION_PT,
   // exportados para testes
   CYCLE_DEFS, advanceCycle, normalizeCycle, normalizeBaro,
 };
