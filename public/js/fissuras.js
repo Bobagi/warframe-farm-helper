@@ -14,6 +14,7 @@
 
   // ---- fissuras (mesma lógica da home) ----
   let fissures = [];
+  let fissDegraded = false; // warframestat fora do ar/atrasado: TODA aba avisa
   let mode = 'normal';
   const list = document.getElementById('fiss-list');
   const hint = document.getElementById('fiss-hint');
@@ -33,9 +34,13 @@
     const filtered = fissures.filter((f) => (
       mode === 'hard' ? f.isHard : mode === 'storm' ? f.isStorm : (!f.isHard && !f.isStorm)
     ));
+    // fonte degradada: o aviso vale para TODAS as abas (trocar de aba
+    // re-renderiza, e "nenhuma fissura desse tipo" seria mentira)
     list.replaceChildren(...(filtered.length
       ? filtered.map(fissRow)
-      : [el('li', { class: 'empty', text: t('fissures.none') })]));
+      : [fissDegraded
+        ? el('li', { class: 'error-box', text: t('ws.down') })
+        : el('li', { class: 'empty', text: t('fissures.none') })]));
   }
 
   document.getElementById('fiss-mode').addEventListener('click', (ev) => {
@@ -50,16 +55,14 @@
     fissures = data.fissures || [];
     // upstream respondeu mas tudo veio expirado: espelho do warframestat
     // travado no tempo - avisa a verdade em vez de "0 fissuras"
-    if (!fissures.length && (data.source && data.source !== 'ok')) {
-      hint.textContent = '';
-      list.replaceChildren(el('li', { class: 'error-box', text: t('ws.down') }));
-      return;
-    }
-    hint.textContent = t('fissures.active', { n: fissures.length });
+    fissDegraded = !fissures.length && !!data.source && data.source !== 'ok';
+    hint.textContent = fissDegraded ? '' : t('fissures.active', { n: fissures.length });
     renderFissures();
-    startTimers();
+    if (!fissDegraded) startTimers();
   }).catch(() => {
-    list.replaceChildren(el('li', { class: 'error-box', text: t('ws.down') }));
+    fissDegraded = true;
+    hint.textContent = '';
+    renderFissures();
   });
 
   // ---- dá pra farmar agora ----
