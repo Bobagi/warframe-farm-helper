@@ -763,10 +763,11 @@ let farmableCache = null; // { key, data, at }
 // O upstream vive caindo/congelando (saga de 2026-08-19..22). Sempre que o
 // farmável sai COMPLETO de uma fonte saudável, guardamos uma foto na tabela
 // meta; quando a fonte degrada, a rota serve a foto com um aviso datado em
-// vez de um painel vazio. Throttle de 1h: a foto muda devagar (relíquias
-// vaulted/Varzia), não precisa reescrever a cada request.
+// vez de um painel vazio. UMA foto por dia (ordem do operador, 2026-08-22:
+// economia de recurso do box) - a foto muda devagar (relíquias vaulted/
+// Varzia), um dia de defasagem não muda a utilidade.
 const SNAPSHOT_KEY = 'farmable_snapshot';
-const SNAPSHOT_MIN_INTERVAL_MS = 60 * 60 * 1000;
+const SNAPSHOT_MIN_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 function saveFarmableSnapshot(data, db = getDb()) {
   const prev = loadFarmableSnapshot(db);

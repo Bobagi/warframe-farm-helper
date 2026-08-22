@@ -17,7 +17,7 @@ const { saveFarmableSnapshot, loadFarmableSnapshot } = require('../server/itemvi
 // Resiliência contra o warframestat.us (saga 2026-08-19..22): a última resposta
 // saudável do farmável vira uma foto na tabela meta, servida com aviso datado
 // quando a fonte degrada. Aqui trava-se o ciclo salvar → carregar → throttle.
-test('snapshot do farmável: salva, carrega e respeita o throttle de 1h', () => {
+test('snapshot do farmável: salva, carrega e respeita o throttle de 1 por dia', () => {
   const db = getDb();
   assert.equal(loadFarmableSnapshot(db), null, 'sem foto no banco novo');
 
@@ -31,7 +31,7 @@ test('snapshot do farmável: salva, carrega e respeita o throttle de 1h', () => 
   assert.ok(snap && snap.savedAt, 'foto tem data');
   assert.deepEqual(snap.data, data, 'conteúdo íntegro no roundtrip');
 
-  // 2ª gravação logo em seguida: dentro do throttle → não sobrescreve
+  // 2ª gravação logo em seguida: dentro do throttle diário → não sobrescreve
   const other = { tiers: ['Axi'], items: [{ uniqueName: '/u/x', name: 'X Prime', tiers: ['Axi'] }] };
   assert.equal(saveFarmableSnapshot(other, db), false, 'throttle bloqueia');
   assert.deepEqual(loadFarmableSnapshot(db).data, data, 'foto original preservada');
