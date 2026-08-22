@@ -762,6 +762,8 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
 .small a { display: inline-block; padding: 5px 0; min-height: 24px; }
 .spin { color: var(--text-faint); padding: 12px 0; }
 .error-box { color: #ffc9bd; background: rgba(227, 109, 93, 0.12); border: 1px solid var(--danger); padding: 10px 14px; }
+/* alerta de fallback dentro das grades de farm ocupa a linha inteira */
+.card-grid > .error-box { grid-column: 1 / -1; }
 
 /* ---------- footer ---------- */
 

@@ -98,6 +98,7 @@ const I18n = (() => {
       'lang.aria': 'Idioma',
       'ads.label': 'Anúncio',
       'ws.down': 'A fonte de dados do jogo (warframestat.us) está fora do ar ou com dados atrasados. Este painel volta ao normal quando ela se recuperar.',
+      'ws.fallback': 'A fonte de dados (warframestat.us) está fora do ar. Mostrando a última foto do que dava para farmar, salva em {when} - pode ter mudado desde então.',
       'cookies.aria': 'Aviso de cookies',
       'cookies.msg': 'Este site pode exibir anúncios do Google, que usam cookies. Você aceita? Sua escolha pode ser mudada depois em "Gerenciar cookies", no rodapé.',
       'cookies.accept': 'Aceitar',
@@ -246,6 +247,7 @@ const I18n = (() => {
       'lang.aria': 'Language',
       'ads.label': 'Ad',
       'ws.down': 'The game-state data source (warframestat.us) is down or serving stale data. This panel will recover automatically once it does.',
+      'ws.fallback': 'The data source (warframestat.us) is down. Showing the last saved snapshot of what was farmable at {when} - it may have changed since.',
       'cookies.aria': 'Cookie notice',
       'cookies.msg': 'This site may show Google ads, which use cookies. Do you accept? You can change your choice later via "Manage cookies" in the footer.',
       'cookies.accept': 'Accept',
@@ -393,6 +395,7 @@ const I18n = (() => {
       'lang.aria': 'Idioma',
       'ads.label': 'Anuncio',
       'ws.down': 'La fuente de datos del juego (warframestat.us) está caída o con datos atrasados. Este panel volverá a la normalidad cuando se recupere.',
+      'ws.fallback': 'La fuente de datos (warframestat.us) está caída. Mostrando la última foto de lo que se podía farmear, guardada el {when} - puede haber cambiado desde entonces.',
       'cookies.aria': 'Aviso de cookies',
       'cookies.msg': 'Este sitio puede mostrar anuncios de Google, que usan cookies. ¿Aceptas? Puedes cambiar tu elección luego en "Gestionar cookies", en el pie de página.',
       'cookies.accept': 'Aceptar',
@@ -540,6 +543,7 @@ const I18n = (() => {
       'lang.aria': 'Язык',
       'ads.label': 'Реклама',
       'ws.down': 'Источник данных о состоянии игры (warframestat.us) недоступен или отдаёт устаревшие данные. Панель восстановится автоматически, когда он заработает.',
+      'ws.fallback': 'Источник данных (warframestat.us) недоступен. Показан последний сохранённый снимок того, что можно было фармить ({when}) - с тех пор всё могло измениться.',
       'cookies.aria': 'Уведомление о cookies',
       'cookies.msg': 'Сайт может показывать рекламу Google, использующую cookies. Согласны? Решение можно изменить позже через «Управление cookies» внизу страницы.',
       'cookies.accept': 'Принять',
@@ -691,6 +695,7 @@ const I18n = (() => {
       'lang.aria': '语言',
       'ads.label': '广告',
       'ws.down': '游戏状态数据源（warframestat.us）当前不可用或数据滞后。数据源恢复后，此面板会自动恢复正常。',
+      'ws.fallback': '数据源（warframestat.us）当前不可用。正在显示 {when} 保存的最近一次可刷取快照，此后可能已有变化。',
       'cookies.aria': 'Cookie 提示',
       'cookies.msg': '本站可能展示使用 cookies 的 Google 广告。是否接受？之后可随时通过页脚的"管理 cookies"更改选择。',
       'cookies.accept': '接受',
@@ -997,6 +1002,11 @@ const I18n = (() => {
   }
   const lang = () => current;
   const locale = () => NUM_LOCALE[current] || 'en-US';
+  // data+hora curta no locale corrente (ex.: aviso "foto salva em <quando>")
+  const fmtWhen = (iso) => {
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime()) ? '' : d.toLocaleString(locale(), { dateStyle: 'short', timeStyle: 'short' });
+  };
   function setLang(l) {
     if (SUPPORTED.includes(l) && l !== current) {
       localStorage.setItem(LANG_KEY, l);
@@ -1078,7 +1088,7 @@ const I18n = (() => {
   document.documentElement.lang = HTML_LANG[current] || 'en';
   applyCountryLang();
   return {
-    t, lang, locale, setLang, nameFor, missionName, enemyName, typeName, relicName, tierName,
+    t, lang, locale, fmtWhen, setLang, nameFor, missionName, enemyName, typeName, relicName, tierName,
     subLabel, applyStatic, has, SUPPORTED,
   };
 })();

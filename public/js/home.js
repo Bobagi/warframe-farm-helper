@@ -165,7 +165,11 @@
       return;
     }
     farmHint.textContent = t('farm.count', { n: (data.items || []).length });
-    farmGrid.replaceChildren(...list.map(App.farmCard));
+    // fonte fora do ar: itens vêm da última foto salva - alerta datado em cima
+    const alert = data.fallback
+      ? [el('p', { class: 'error-box', text: t('ws.fallback', { when: I18n.fmtWhen(data.fallback.savedAt) }) })]
+      : [];
+    farmGrid.replaceChildren(...alert, ...list.map(App.farmCard));
   }).catch(() => { farmGrid.replaceChildren(el('p', { class: 'empty', text: t('ws.down') })); });
 
   // ---- faq teaser ----

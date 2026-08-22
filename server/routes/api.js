@@ -9,7 +9,9 @@ const { getTopOrders } = require('../market');
 const { getFissures, fissuresSource, getBaro, getCycles } = require('../worldstate');
 const { getVarzia } = require('../varzia');
 const { getActs } = require('../nightwave');
-const { buildItemDetail, buildRelicDetail, buildFarmable } = require('../itemview');
+const {
+  buildItemDetail, buildRelicDetail, buildFarmable, saveFarmableSnapshot, loadFarmableSnapshot,
+} = require('../itemview');
 
 const router = express.Router();
 
@@ -170,7 +172,20 @@ router.get('/fissures', asyncRoute(async (req, res) => {
 
 router.get('/farmable', asyncRoute(async (req, res) => {
   const data = await buildFarmable();
-  res.json({ ...data, source: fissuresSource() });
+  const source = fissuresSource();
+  if (source === 'ok' && data.items.length) {
+    saveFarmableSnapshot(data);
+    res.json({ ...data, source });
+    return;
+  }
+  // fonte degradada (warframestat fora do ar/atrasado): serve a última foto
+  // saudável com aviso datado, em vez de painel vazio
+  const snap = loadFarmableSnapshot();
+  if (snap) {
+    res.json({ ...snap.data, source, fallback: { savedAt: snap.savedAt } });
+    return;
+  }
+  res.json({ ...data, source });
 }));
 
 router.get('/nightwave', asyncRoute(async (req, res) => {

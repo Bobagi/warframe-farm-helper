@@ -6,7 +6,7 @@
  * forja, fissuras ativas relevantes e o passo a passo em PT-BR.
  */
 
-const { getDb } = require('./db');
+const { getDb, getMeta, setMeta } = require('./db');
 const { getFissures } = require('./worldstate');
 const { getResourceDrops } = require('./drops');
 const { getQuestInfo } = require('./questwiki');
@@ -759,6 +759,33 @@ async function addSetPrices(items) {
 const FARMABLE_TTL_MS = 15 * 60 * 1000;
 let farmableCache = null; // { key, data, at }
 
+// ---- snapshot do farmável (resiliência contra o warframestat.us) ----
+// O upstream vive caindo/congelando (saga de 2026-08-19..22). Sempre que o
+// farmável sai COMPLETO de uma fonte saudável, guardamos uma foto na tabela
+// meta; quando a fonte degrada, a rota serve a foto com um aviso datado em
+// vez de um painel vazio. Throttle de 1h: a foto muda devagar (relíquias
+// vaulted/Varzia), não precisa reescrever a cada request.
+const SNAPSHOT_KEY = 'farmable_snapshot';
+const SNAPSHOT_MIN_INTERVAL_MS = 60 * 60 * 1000;
+
+function saveFarmableSnapshot(data, db = getDb()) {
+  const prev = loadFarmableSnapshot(db);
+  if (prev && Date.now() - Date.parse(prev.savedAt) < SNAPSHOT_MIN_INTERVAL_MS) return false;
+  setMeta(db, SNAPSHOT_KEY, JSON.stringify({ savedAt: new Date().toISOString(), data }));
+  return true;
+}
+
+function loadFarmableSnapshot(db = getDb()) {
+  try {
+    const raw = getMeta(db, SNAPSHOT_KEY);
+    if (!raw) return null;
+    const snap = JSON.parse(raw);
+    return (snap && snap.savedAt && snap.data && Array.isArray(snap.data.items)) ? snap : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * "O que dá pra farmar agora": cruza os tiers com fissura ativa × relíquias
  * disponíveis (não-vaulted) desses tiers → agrupa as recompensas pelo item pai
@@ -836,5 +863,6 @@ async function buildFarmable(fissuresArg, { prices = true } = {}) {
 
 module.exports = {
   buildItemDetail, buildRelicDetail, buildFarmable, activePrimeTiers, rewardPt, enrichRewards,
+  saveFarmableSnapshot, loadFarmableSnapshot,
   classifyDrops, marketSlugFor, fmtBuildTime, fmtPct, rarityLabel, buildSteps, wikiUrlFor, wikiSearchFor,
 };

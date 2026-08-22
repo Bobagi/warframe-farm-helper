@@ -70,6 +70,7 @@
   const maxTier = (it) => Math.max(...it.tiers.map((tr) => (tr in TIER_RANK ? TIER_RANK[tr] : 9)));
   const minTier = (it) => Math.min(...it.tiers.map((tr) => (tr in TIER_RANK ? TIER_RANK[tr] : 9)));
   let items = [];
+  let fallbackAt = null; // ISO da foto usada quando o warframestat está fora
   let tierFilter = 'all';
   let sortBy = 'value'; // 'value' (ordem do backend, por platina) | 'difficulty'
   const grid = document.getElementById('farm-grid');
@@ -90,7 +91,11 @@
   function renderFarm() {
     const filtered = tierFilter === 'all' ? items : items.filter((it) => it.tiers.includes(tierFilter));
     const shown = sortItems(filtered);
-    grid.replaceChildren(...(shown.length
+    // fonte fora do ar: os itens vêm da última foto salva - alerta datado fixo
+    const alert = fallbackAt
+      ? [el('p', { class: 'error-box', text: t('ws.fallback', { when: I18n.fmtWhen(fallbackAt) }) })]
+      : [];
+    grid.replaceChildren(...alert, ...(shown.length
       ? shown.map(farmCard)
       : [el('p', { class: 'empty', text: t('farm.none') })]));
   }
@@ -121,6 +126,7 @@
 
   api('/api/farmable').then((data) => {
     items = data.items || [];
+    fallbackAt = data.fallback ? data.fallback.savedAt : null;
     farmHint.textContent = t('farm.count', { n: items.length });
     if (!items.length) {
       farmHint.textContent = '';
