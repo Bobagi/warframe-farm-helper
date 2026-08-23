@@ -219,6 +219,31 @@ test('cleanName é defensivo com entrada estranha', () => {
   assert.equal(cleanName(42), 42);
 });
 
+// ---------------------------------------------------------------------------
+// stripIconTags: tag de cor do jogo dentro de DESCRIÇÃO (item ou ato do Nightwave)
+// ---------------------------------------------------------------------------
+
+const { stripIconTags } = require('../server/util');
+
+test('stripIconTags tira a tag de cor que vazava na descrição do ato do Nightwave', () => {
+  // estava NO AR: o ato "Detonador" mostrava "Dano <DT_EXPLOSION>Explosivo" cru
+  assert.equal(
+    stripIconTags('Elimine |COUNT| Inimigos com Dano <DT_EXPLOSION>Explosivo.'),
+    'Elimine |COUNT| Inimigos com Dano Explosivo.'
+  );
+  assert.equal(
+    stripIconTags('pulses <DT_ELECTRICITY_COLOR>Electricity before it explodes.'),
+    'pulses Electricity before it explodes.'
+  );
+});
+
+test('stripIconTags é defensivo com entrada estranha', () => {
+  assert.equal(stripIconTags(null), null);
+  assert.equal(stripIconTags(undefined), undefined);
+  assert.equal(stripIconTags(42), 42);
+  assert.equal(stripIconTags(''), '');
+});
+
 test('classifyMisc: peça de arma é reconhecida pelo CAMINHO, não pela etiqueta type', () => {
   // as peças de Kitgun infestado vêm com type "Pistol" (não "Kitgun Component")
   const verm = {

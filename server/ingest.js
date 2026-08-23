@@ -11,7 +11,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { marked } = require('marked');
-const { fetchJson, escapeHtml, COMMON_RESOURCES, cleanName } = require('./util');
+const { fetchJson, escapeHtml, COMMON_RESOURCES, cleanName, stripIconTags } = require('./util');
 const { fetchAcquisitionIndex } = require('./wikiacq');
 const { getDb, setMeta } = require('./db');
 
@@ -189,7 +189,7 @@ function slimItem(it) {
   const s = {
     name: it.name,
     uniqueName: it.uniqueName,
-    description: it.description,
+    description: stripIconTags(it.description),
     type: it.type,
     category: it.category,
     productCategory: it.productCategory,
@@ -444,7 +444,7 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
         if (tr && tr.pt) {
           const pt = cleanName(tr.pt.name);
           if (pt && pt !== row.name) { row.name_pt = pt; hits++; }
-          if (tr.pt.description) row.slim.descriptionPt = tr.pt.description;
+          if (tr.pt.description) row.slim.descriptionPt = stripIconTags(tr.pt.description);
         }
         // chinês simplificado: nome E descrição. Diferente de es/ru (onde o nome
         // fica em inglês de propósito, porque market/wiki/trade usam inglês), o
@@ -453,17 +453,22 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
         if (tr && tr.zh) {
           const zh = cleanName(tr.zh.name);
           if (zh && zh !== row.name) { row.name_zh = zh; zhHits++; }
-          if (tr.zh.description) row.slim.descriptionZh = tr.zh.description;
+          if (tr.zh.description) row.slim.descriptionZh = stripIconTags(tr.zh.description);
         }
       }
-      // mesma passada do i18n: traduz os desafios do Nightwave
+      // mesma passada do i18n: traduz os desafios do Nightwave. O dataset deixa
+      // tokens de cor tipo `<DT_EXPLOSION>` colados ANTES da palavra traduzida
+      // ("Dano <DT_EXPLOSION>Explosivo") - no jogo isso pinta o texto, aqui vazava
+      // cru pro jogador (issue: "Detonador" mostrando a tag literal).
       for (const c of challengeRows) {
         const tr = i18n[c.u];
         if (!tr) continue;
         c.langs = {};
         for (const l of ['pt', 'en', 'es', 'ru', 'zh']) {
           const v = tr[l];
-          if (v && (v.name || v.description)) c.langs[l] = { title: v.name || null, descr: v.description || null };
+          if (v && (v.name || v.description)) {
+            c.langs[l] = { title: stripIconTags(v.name) || null, descr: stripIconTags(v.description) || null };
+          }
         }
       }
       const cTraduzidos = challengeRows.filter((c) => c.langs && Object.keys(c.langs).length).length;

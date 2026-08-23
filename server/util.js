@@ -42,18 +42,23 @@ async function fetchJson(url, { timeoutMs = 20000, retries = 2, headers = {} } =
 }
 
 /**
- * Remove o token de ÍCONE do jogo que o dataset deixa dentro do nome:
- * `<ARCHWING> Itzal`, `<Shard_blue_simple> Azure Archon Shard`,
- * `File-A-Style<Retro_tm> Binder`. No jogo isso vira um glifo; em texto puro
- * vaza para o `<h1>`, para o `<title>` e para a busca.
+ * Remove o token de ÍCONE/cor do jogo que o dataset deixa dentro do nome ou da
+ * descrição: `<ARCHWING> Itzal`, `<Shard_blue_simple> Azure Archon Shard`,
+ * `File-A-Style<Retro_tm> Binder`, `Dano <DT_EXPLOSION>Explosivo`. No jogo isso
+ * vira um glifo ou uma cor; em texto puro vaza cru para a tela (`<h1>`,
+ * `<title>`, descrição de item, ato do Nightwave).
  *
  * O padrão é estreito de propósito (`<` + letras/dígitos/_ + `>`, sem espaço):
- * assim não morde um nome legítimo que tenha `<` no meio.
+ * assim não morde um nome/texto legítimo que tenha `<` no meio.
  */
 const ICON_TOKEN_RE = /<[A-Za-z0-9_]+>/g;
+function stripIconTags(text) {
+  if (typeof text !== 'string') return text;
+  return text.replace(ICON_TOKEN_RE, ' ').replace(/\s{2,}/g, ' ').trim();
+}
 function cleanName(name) {
   if (typeof name !== 'string') return name;
-  const out = name.replace(ICON_TOKEN_RE, ' ').replace(/\s{2,}/g, ' ').trim();
+  const out = stripIconTags(name);
   return out || name; // nome que era SÓ token: melhor o original que vazio
 }
 
@@ -83,6 +88,6 @@ const CATEGORY_KIND = {
 };
 
 module.exports = {
-  fetchJson, sleep, nowSec, stripDiacritics, escapeHtml, USER_AGENT, cleanName,
+  fetchJson, sleep, nowSec, stripDiacritics, escapeHtml, USER_AGENT, cleanName, stripIconTags,
   COMMON_RESOURCES, CATEGORY_KIND,
 };
