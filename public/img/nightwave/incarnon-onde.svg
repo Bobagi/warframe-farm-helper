@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 494" width="400" height="494" role="img" aria-label="Os três caminhos para ter uma arma Incarnon" font-family="'Exo 2','Segoe UI',Roboto,Helvetica,Arial,'Noto Sans CJK SC','Microsoft YaHei','PingFang SC',sans-serif">
+<rect width="400" height="494" fill="#0b0e17"/>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#cfae66"/></marker></defs>
+<text x="20" y="28" font-size="14" fill="#cfae66" font-weight="700" text-anchor="start" letter-spacing="0.10em">NÃO TENHO NENHUMA ARMA INCARNON</text>
+<text x="20" y="48" font-size="12" fill="#6b7590" font-weight="400" text-anchor="start" letter-spacing="0">os três caminhos, do mais barato ao mais rápido</text>
+<path d="M20 66 H370 L380 76 V160 H20 Z" fill="#151b2c" stroke="#232c42" stroke-width="1"/>
+<rect x="20" y="66" width="3" height="94" fill="#6ee7f2"/>
+<text x="34" y="90" font-size="13.5" fill="#6ee7f2" font-weight="700" text-anchor="start" letter-spacing="0">1 · CIRCUITO DO STEEL PATH</text>
+<text x="34" y="112" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">Duviri: 2 adaptadores por semana, nas</text>
+<text x="34" y="128" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">recompensas 5 e 10. Rotação de 9 semanas.</text>
+<text x="34" y="144" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">Exige The Duviri Paradox + Steel Path.</text>
+<path d="M42 165 L42 177" stroke="#cfae66" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M20 182 H370 L380 192 V276 H20 Z" fill="#151b2c" stroke="#232c42" stroke-width="1"/>
+<rect x="20" y="182" width="3" height="94" fill="#6ee7f2"/>
+<text x="34" y="206" font-size="13.5" fill="#6ee7f2" font-weight="700" text-anchor="start" letter-spacing="0">2 · CAVALERO, NO ZARIMAN</text>
+<text x="34" y="228" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">Phenmor, Laetum, Felarx e cia. já nascem</text>
+<text x="34" y="244" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">Incarnon. Exige Angels of the Zariman</text>
+<text x="34" y="260" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">e maestria 14.</text>
+<path d="M42 281 L42 293" stroke="#cfae66" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M20 298 H370 L380 308 V392 H20 Z" fill="#151b2c" stroke="#232c42" stroke-width="1"/>
+<rect x="20" y="298" width="3" height="94" fill="#cfae66"/>
+<text x="34" y="322" font-size="13.5" fill="#cfae66" font-weight="700" text-anchor="start" letter-spacing="0">3 · ATALHO DE PLATINA</text>
+<text x="34" y="344" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">O Cavalero vende 1 adaptador por semana</text>
+<text x="34" y="360" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">por 120 de platina, já com os recursos</text>
+<text x="34" y="376" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">da instalação.</text>
+<path d="M20 408 H370 L380 418 V476 H20 Z" fill="#111624" stroke="rgba(207,174,102,0.42)" stroke-width="1"/>
+<text x="34" y="430" font-size="11.5" fill="#e8ce8f" font-weight="700" text-anchor="start" letter-spacing="0.10em">MELEE CONTA, MAS ATRAPALHA</text>
+<text x="34" y="450" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">A forma corpo a corpo dura 180 s e não dá</text>
+<text x="34" y="467" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">para cancelar: 5 ativações = 15 min parado.</text>
+</svg>

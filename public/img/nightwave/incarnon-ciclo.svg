@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 578" width="400" height="578" role="img" aria-label="O laço das 5 ativações do Aspecto Encarnado" font-family="'Exo 2','Segoe UI',Roboto,Helvetica,Arial,'Noto Sans CJK SC','Microsoft YaHei','PingFang SC',sans-serif">
+<rect width="400" height="578" fill="#0b0e17"/>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#cfae66"/></marker></defs>
+<text x="20" y="28" font-size="14" fill="#cfae66" font-weight="700" text-anchor="start" letter-spacing="0.10em">O LAÇO DAS 5 ATIVAÇÕES</text>
+<text x="20" y="48" font-size="12" fill="#6b7590" font-weight="400" text-anchor="start" letter-spacing="0">o ato conta ATIVAÇÃO, não tempo de uso</text>
+<path d="M20 66 H370 L380 76 V160 H20 Z" fill="#151b2c" stroke="#232c42" stroke-width="1"/>
+<rect x="20" y="66" width="3" height="94" fill="#6ee7f2"/>
+<text x="34" y="90" font-size="13.5" fill="#6ee7f2" font-weight="700" text-anchor="start" letter-spacing="0">1 · ENCHA A BARRINHA</text>
+<text x="34" y="112" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">Acerto em ponto fraco (cabeça) enche a</text>
+<text x="34" y="128" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">barra sob a mira. Torid e Angstrum contam</text>
+<text x="34" y="144" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">acerto DIRETO, sem precisar de cabeça.</text>
+<path d="M42 165 L42 177" stroke="#cfae66" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M20 182 H370 L380 192 V260 H20 Z" fill="#151b2c" stroke="#232c42" stroke-width="1"/>
+<rect x="20" y="182" width="3" height="78" fill="#6ee7f2"/>
+<text x="34" y="206" font-size="13.5" fill="#6ee7f2" font-weight="700" text-anchor="start" letter-spacing="0">2 · ALT FIRE</text>
+<text x="34" y="228" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">A arma vira Aspecto Encarnado.</text>
+<text x="34" y="244" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">Isso já conta 1 das 5.</text>
+<path d="M42 265 L42 277" stroke="#cfae66" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M20 282 H370 L380 292 V376 H20 Z" fill="#151b2c" stroke="#232c42" stroke-width="1"/>
+<rect x="20" y="282" width="3" height="94" fill="#cfae66"/>
+<text x="34" y="306" font-size="13.5" fill="#cfae66" font-weight="700" text-anchor="start" letter-spacing="0">3 · VOLTE AO NORMAL</text>
+<text x="34" y="328" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">Alt Fire de novo (Phenmor, Laetum) ou</text>
+<text x="34" y="344" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">gaste a munição Incarnon, que com carga</text>
+<text x="34" y="360" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">parcial acaba em segundos.</text>
+<path d="M42 381 L42 393" stroke="#cfae66" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M20 398 H370 L380 408 V476 H20 Z" fill="#151b2c" stroke="#232c42" stroke-width="1"/>
+<rect x="20" y="398" width="3" height="78" fill="#cfae66"/>
+<text x="34" y="422" font-size="13.5" fill="#cfae66" font-weight="700" text-anchor="start" letter-spacing="0">4 · REPITA</text>
+<text x="34" y="444" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">5 ativações na MESMA missão</text>
+<text x="34" y="460" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">fecham o ato.</text>
+<path d="M20 492 H370 L380 502 V560 H20 Z" fill="#111624" stroke="rgba(207,174,102,0.42)" stroke-width="1"/>
+<text x="34" y="514" font-size="11.5" fill="#e8ce8f" font-weight="700" text-anchor="start" letter-spacing="0.10em">NÃO PRECISA DA BARRA CHEIA</text>
+<text x="34" y="534" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">Ativar com carga parcial dá menos munição.</text>
+<text x="34" y="551" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">Aqui isso é vantagem, não defeito.</text>
+</svg>

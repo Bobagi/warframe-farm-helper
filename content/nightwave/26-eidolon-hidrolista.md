@@ -9,6 +9,10 @@ O ato de elite **Caçador de Hidrolista** ("Elimine ou Capture um Eidolon Hidrol
 
 Este guia cobre a corrente inteira, do Teralyst (o eidolon padrão, o primeiro que todo mundo enfrenta) até o Hidrolista.
 
+![Tela do Códice com o Eidolon Teralyst: facção Sentient, escudo 1500, armadura de liga 125, robótico 9000](/img/nightwave/eidolon-teralyst-codex.webp?v=20260825)
+*O Teralyst no Códice. É este o bicho: 25 metros de Sentient andando pelo lago.*
+
+
 ## A pegadinha do ato
 
 ![Diagrama da cadeia do Tridolon: Teralyst capturado com 2 lures libera o fragmento Brilhante, que invoca o Gantulyst; capturado com 3 lures ele libera o fragmento Radiante, que invoca o Hydrolyst](/img/nightwave/eidolon-cadeia.svg?v=20260823)
@@ -54,8 +58,16 @@ Contas dos três, para você saber o que está encarando:
 *O lure é a peça que a maioria dos iniciantes ignora, e é a que decide se a noite rende ou não.*
 
 - Lures ficam **perto dos acampamentos Grineer** e só aparecem à noite.
+
+![Mapa das Planícies de Eidolon com todos os acampamentos Grineer marcados e os pontos onde nascem os lures](/img/nightwave/eidolon-mapa-lures.webp?v=20260825)
+*Todos os pontos onde nasce lure nas Planícies. A área avermelhada é a mais distante de onde o Teralyst costuma emergir: prefira os acampamentos fora dela. Abra a imagem para ler os nomes.*
+
 - Você **não destrói** o lure: atira nele até desabilitar e depois **hackeia**. A partir daí ele te segue (ícone de escudo no HUD). Interagir de novo faz ele parar ou voltar a seguir.
 - **Carregar = 3 Vomvalysts por lure.** Vomvalyst é aquele bicho azul flutuante da noite. Derrube a forma física com arma normal; ele vira uma forma espectral que **só o feixe Void do Operador machuca** (e some em 20 segundos se ninguém tocar). O lure a até 5 ou 6 metros absorve sozinho, ou você pega a esfera de energia caída e leva perto dele.
+
+![O Vomvalyst, o pequeno Sentient flutuante que aparece nas Planícies à noite](/img/nightwave/eidolon-vomvalyst.webp?v=20260825)
+*O Vomvalyst. Cada lure quer três deles.*
+
 - Quando uma sinóvia cai, o lure carregado dispara um **feixe laranja** que prende o Eidolon (alcance 50 m). Cada lure segura até duas juntas. Sem feixe preso no fim, é morte e não captura.
 - **Leve 3 ou 4, nunca o mínimo.** O Eidolon atira no lure e ele morre. Trinity com Blessing, Oberon ou o martelo Sancti Magistar curam lure.
 
@@ -75,7 +87,15 @@ Contas dos três, para você saber o que está encarando:
 
 Vá até o **santuário no meio do lago Gara Toht** e **ofereça o fragmento Brilhante**. O Gantulyst emerge ali mesmo.
 
+![O santuário de Eidolon no meio do lago Gara Toht, com um Warframe parado na frente](/img/nightwave/eidolon-santuario.webp?v=20260825)
+*O santuário, no meio do lago. É aqui que os fragmentos são oferecidos. A foto é de dia; à noite o lago fica escuro e o santuário acende.*
+
+
 Ele é o mais lento e o mais "de poste" dos três: braço de pedra que arremessa rocha, um feixe contínuo em arco e um estouro de lasers em todas as direções. São **6 sinóvias** e ele exige **3 lures carregados** para capturar. A captura devolve o fragmento Brilhante que você gastou e entrega o **[fragmento Radiante](/item/radiant-eidolon-shard)**.
+
+![O Gantulyst disparando seu feixe de luz em arco durante a noite nas Planícies](/img/nightwave/eidolon-gantulyst.webp?v=20260825)
+*O Gantulyst soltando o feixe em arco. Correr para o lado resolve; ficar parado, não.*
+
 
 ## O Hidrolista: o que muda
 
@@ -147,3 +167,7 @@ Em inglês, mais recentes:
 - [Master Solo 4x3 Tridolons With This Foolproof Setup](https://www.youtube.com/watch?v=PUqOxErl_Jw) (NuMmy, 2026)
 - [How an Old Player Solos Tridolon in 2025](https://www.youtube.com/watch?v=Xwp-89-RG6o) (Four-Eyed Foundry)
 - [The Ultimate Beginners Guide for Eidolons](https://www.youtube.com/watch?v=yw732IQ4kDY) (WarframeFlo)
+
+---
+
+*Imagens do jogo: Digital Extremes, via a wiki oficial do Warframe. Mapa dos acampamentos: R1L3Z e TGDM, da mesma wiki.*

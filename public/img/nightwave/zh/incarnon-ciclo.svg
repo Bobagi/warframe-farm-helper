@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 578" width="400" height="578" role="img" aria-label="灵化形态 5 次激活的循环" font-family="'Exo 2','Segoe UI',Roboto,Helvetica,Arial,'Noto Sans CJK SC','Microsoft YaHei','PingFang SC',sans-serif">
+<rect width="400" height="578" fill="#0b0e17"/>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#cfae66"/></marker></defs>
+<text x="20" y="28" font-size="14" fill="#cfae66" font-weight="700" text-anchor="start" letter-spacing="0">5 次激活的循环</text>
+<text x="20" y="48" font-size="12" fill="#6b7590" font-weight="400" text-anchor="start" letter-spacing="0">挑战数的是激活次数，不是使用时间</text>
+<path d="M20 66 H370 L380 76 V160 H20 Z" fill="#151b2c" stroke="#232c42" stroke-width="1"/>
+<rect x="20" y="66" width="3" height="94" fill="#6ee7f2"/>
+<text x="34" y="90" font-size="13.5" fill="#6ee7f2" font-weight="700" text-anchor="start" letter-spacing="0">1 · 把小条充满</text>
+<text x="34" y="112" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">打中弱点（头）会让准星下的小条</text>
+<text x="34" y="128" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">上涨。Torid 和 Angstrum 算直接命中，</text>
+<text x="34" y="144" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">不需要打头。</text>
+<path d="M42 165 L42 177" stroke="#cfae66" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M20 182 H370 L380 192 V260 H20 Z" fill="#151b2c" stroke="#232c42" stroke-width="1"/>
+<rect x="20" y="182" width="3" height="78" fill="#6ee7f2"/>
+<text x="34" y="206" font-size="13.5" fill="#6ee7f2" font-weight="700" text-anchor="start" letter-spacing="0">2 · 按副射击键</text>
+<text x="34" y="228" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">武器变成灵化形态。</text>
+<text x="34" y="244" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">这就已经算 5 次里的 1 次了。</text>
+<path d="M42 265 L42 277" stroke="#cfae66" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M20 282 H370 L380 292 V376 H20 Z" fill="#151b2c" stroke="#232c42" stroke-width="1"/>
+<rect x="20" y="282" width="3" height="94" fill="#cfae66"/>
+<text x="34" y="306" font-size="13.5" fill="#cfae66" font-weight="700" text-anchor="start" letter-spacing="0">3 · 变回普通形态</text>
+<text x="34" y="328" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">再按一次副射击（Phenmor、Laetum），</text>
+<text x="34" y="344" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">或者把灵化弹药打完 - 半充能时</text>
+<text x="34" y="360" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">几秒就没了。</text>
+<path d="M42 381 L42 393" stroke="#cfae66" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M20 398 H370 L380 408 V476 H20 Z" fill="#151b2c" stroke="#232c42" stroke-width="1"/>
+<rect x="20" y="398" width="3" height="78" fill="#cfae66"/>
+<text x="34" y="422" font-size="13.5" fill="#cfae66" font-weight="700" text-anchor="start" letter-spacing="0">4 · 重复</text>
+<text x="34" y="444" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">在同一场任务里激活 5 次</text>
+<text x="34" y="460" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">就完成挑战。</text>
+<path d="M20 492 H370 L380 502 V560 H20 Z" fill="#111624" stroke="rgba(207,174,102,0.42)" stroke-width="1"/>
+<text x="34" y="514" font-size="11.5" fill="#e8ce8f" font-weight="700" text-anchor="start" letter-spacing="0">不需要充满</text>
+<text x="34" y="534" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">半充能激活只是弹药少一点。</text>
+<text x="34" y="551" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">在这个挑战里这是优点，不是缺点。</text>
+</svg>

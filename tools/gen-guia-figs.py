@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Figuras SVG do guia de Eidolon, uma versão por idioma do artigo.
+Figuras SVG dos guias ilustrados do Nightwave, uma versão por idioma do artigo.
 
 Desenho MOBILE-FIRST de propósito: a arte tem 400 unidades de largura, então num
 celular de 390px ela renderiza quase 1:1 (o corpo do texto sai a ~10px em vez dos
@@ -79,6 +79,42 @@ T = {
                      ["O Eidolon atira no lure e ele morre. Trinity,",
                       "Oberon e o Sancti Magistar curam lure."]),
         },
+        "incarnon-ciclo": {
+            "aria": "O laço das 5 ativações do Aspecto Encarnado",
+            "title": "O LAÇO DAS 5 ATIVAÇÕES", "sub": "o ato conta ATIVAÇÃO, não tempo de uso",
+            "steps": [
+                (CYAN, "1 · ENCHA A BARRINHA", ["Acerto em ponto fraco (cabeça) enche a",
+                                                "barra sob a mira. Torid e Angstrum contam",
+                                                "acerto DIRETO, sem precisar de cabeça."]),
+                (CYAN, "2 · ALT FIRE", ["A arma vira Aspecto Encarnado.",
+                                        "Isso já conta 1 das 5."]),
+                (GOLD, "3 · VOLTE AO NORMAL", ["Alt Fire de novo (Phenmor, Laetum) ou",
+                                               "gaste a munição Incarnon, que com carga",
+                                               "parcial acaba em segundos."]),
+                (GOLD, "4 · REPITA", ["5 ativações na MESMA missão", "fecham o ato."]),
+            ],
+            "foot": ("NÃO PRECISA DA BARRA CHEIA",
+                     ["Ativar com carga parcial dá menos munição.",
+                      "Aqui isso é vantagem, não defeito."]),
+        },
+        "incarnon-onde": {
+            "aria": "Os três caminhos para ter uma arma Incarnon",
+            "title": "NÃO TENHO NENHUMA ARMA INCARNON", "sub": "os três caminhos, do mais barato ao mais rápido",
+            "steps": [
+                (CYAN, "1 · CIRCUITO DO STEEL PATH", ["Duviri: 2 adaptadores por semana, nas",
+                                                      "recompensas 5 e 10. Rotação de 9 semanas.",
+                                                      "Exige The Duviri Paradox + Steel Path."]),
+                (CYAN, "2 · CAVALERO, NO ZARIMAN", ["Phenmor, Laetum, Felarx e cia. já nascem",
+                                                    "Incarnon. Exige Angels of the Zariman",
+                                                    "e maestria 14."]),
+                (GOLD, "3 · ATALHO DE PLATINA", ["O Cavalero vende 1 adaptador por semana",
+                                                 "por 120 de platina, já com os recursos",
+                                                 "da instalação."]),
+            ],
+            "foot": ("MELEE CONTA, MAS ATRAPALHA",
+                     ["A forma corpo a corpo dura 180 s e não dá",
+                      "para cancelar: 5 ativações = 15 min parado."]),
+        },
         "noite": {
             "aria": "Roteiro de uma noite nas Planícies de Eidolon",
             "title": "A NOITE DURA 50 MINUTOS", "sub": "o dia seguinte custa 100 minutos de espera",
@@ -144,6 +180,41 @@ T = {
             "foot": ("带 3 到 4 个，别只带最低数",
                      ["夜灵会打诱捕器，它会死。Trinity、",
                       "Oberon 和圣洁·执法者都能奶它。"]),
+        },
+        "incarnon-ciclo": {
+            "aria": "灵化形态 5 次激活的循环",
+            "title": "5 次激活的循环", "sub": "挑战数的是激活次数，不是使用时间",
+            "steps": [
+                (CYAN, "1 · 把小条充满", ["打中弱点（头）会让准星下的小条",
+                                          "上涨。Torid 和 Angstrum 算直接命中，",
+                                          "不需要打头。"]),
+                (CYAN, "2 · 按副射击键", ["武器变成灵化形态。",
+                                          "这就已经算 5 次里的 1 次了。"]),
+                (GOLD, "3 · 变回普通形态", ["再按一次副射击（Phenmor、Laetum），",
+                                            "或者把灵化弹药打完 - 半充能时",
+                                            "几秒就没了。"]),
+                (GOLD, "4 · 重复", ["在同一场任务里激活 5 次", "就完成挑战。"]),
+            ],
+            "foot": ("不需要充满",
+                     ["半充能激活只是弹药少一点。",
+                      "在这个挑战里这是优点，不是缺点。"]),
+        },
+        "incarnon-onde": {
+            "aria": "拿到灵化武器的三条路",
+            "title": "一把灵化武器都没有", "sub": "三条路，从最省钱到最快",
+            "steps": [
+                (CYAN, "1 · 钢铁之路的回路", ["都瓦丽：每周 2 个转化器，在第 5 和",
+                                              "第 10 个奖励位。9 周一轮换。",
+                                              "需要《都瓦丽悖论》+ 钢铁之路。"]),
+                (CYAN, "2 · 扎里曼的 Cavalero", ["Phenmor、Laetum、Felarx 等本身就是",
+                                                 "灵化武器。需要《扎里曼的天使》",
+                                                 "以及段位 14。"]),
+                (GOLD, "3 · 白金捷径", ["Cavalero 每周卖 1 个转化器，",
+                                        "120 白金，安装用的材料也一起给。"]),
+            ],
+            "foot": ("近战也算，但会拖慢你",
+                     ["近战灵化形态持续 180 秒且无法取消：",
+                      "激活 5 次就是干等 15 分钟。"]),
         },
         "noite": {
             "aria": "夜灵平野一个夜晚的行程",
@@ -276,10 +347,31 @@ def fig_noite(d, ls):
     f, end = footer(y0 + step * (len(marks) - 1) + 30, d["foot"], ls)
     return s + f, end + BOT
 
+def fig_passos(d, ls):
+    """Passos empilhados com corpo de 2 ou 3 linhas, sem laço de volta."""
+    gap, y0 = 22, 66
+    s = title_bar(d["title"], d["sub"], ls)
+    y = y0
+    for i, (col, t, body) in enumerate(d["steps"]):
+        ch = 46 + 16 * len(body)
+        s += chamfer(M, y, CW, ch, 10)
+        s += '<rect x="%g" y="%g" width="3" height="%g" fill="%s"/>\n' % (M, y, ch, col)
+        s += txt(M + 14, y + 24, t, 13.5, col, "700")
+        s += lines(M + 14, y + 46, body, 12.5, DIM, 16)
+        y += ch
+        if i < len(d["steps"]) - 1:
+            s += vline(M + 22, y + 5, y + gap - 5)
+            y += gap
+    f, end = footer(y + 16, d["foot"], ls)
+    return s + f, end + BOT
+
+
 FIGS = [("eidolon-cadeia.svg", "cadeia", fig_cadeia),
         ("eidolon-ciclo-luta.svg", "luta", fig_luta),
         ("eidolon-lure.svg", "lure", fig_lure),
-        ("eidolon-noite.svg", "noite", fig_noite)]
+        ("eidolon-noite.svg", "noite", fig_noite),
+        ("incarnon-ciclo.svg", "incarnon-ciclo", fig_passos),
+        ("incarnon-onde.svg", "incarnon-onde", fig_passos)]
 
 for lang, tabela in T.items():
     # o chinês não leva letter-spacing: espaçar ideograma abre buraco no meio da palavra

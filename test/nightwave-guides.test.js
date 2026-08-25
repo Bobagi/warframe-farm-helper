@@ -25,6 +25,7 @@ const ROOT = path.join(__dirname, '..');
 const CONTENT_DIR = path.join(ROOT, 'content');
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const EIDOLON = '26-eidolon-hidrolista';
+const INCARNON = '27-evolucao-cerimonial';
 
 /** Mesma lista que `loadGuides` monta do banco, só que direto dos .md. */
 function guidesFromDisk() {
@@ -68,6 +69,12 @@ test('ato de contrato nas Planícies NÃO cai no guia de Eidolon', () => {
     const g = matchGuide(guides, act(title, desc));
     assert.notEqual((g || {}).slug, EIDOLON, title);
   }
+});
+
+test('ato de elite da Evolução Cerimonial cai no guia de Incarnon', () => {
+  const g = matchGuide(guidesFromDisk(),
+    act('Ceremonial Evolution', 'Evolve any Incarnon weapon in-mission 5 times'));
+  assert.equal(g && g.slug, INCARNON);
 });
 
 test('nenhum guia tem grupo de match vazio (casaria com qualquer ato)', () => {
