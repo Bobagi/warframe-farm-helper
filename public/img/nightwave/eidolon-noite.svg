@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 414" width="400" height="414" role="img" aria-label="Roteiro de uma noite nas Planícies de Eidolon" font-family="'Exo 2','Segoe UI',Roboto,Helvetica,Arial,'Noto Sans CJK SC','Microsoft YaHei','PingFang SC',sans-serif">
+<rect width="400" height="414" fill="#0b0e17"/>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#cfae66"/></marker></defs>
+<text x="20" y="28" font-size="14" fill="#cfae66" font-weight="700" text-anchor="start" letter-spacing="0.10em">A NOITE DURA 50 MINUTOS</text>
+<text x="20" y="48" font-size="12" fill="#6b7590" font-weight="400" text-anchor="start" letter-spacing="0">o dia seguinte custa 100 minutos de espera</text>
+<path d="M74 70 V302" stroke="#232c42" stroke-width="2"/>
+<circle cx="74" cy="74" r="6" fill="#0b0e17" stroke="#6ee7f2" stroke-width="2"/>
+<text x="60" y="79" font-size="12" fill="#6ee7f2" font-weight="700" text-anchor="end" letter-spacing="0">0 min</text>
+<text x="92" y="75" font-size="14" fill="#6ee7f2" font-weight="700" text-anchor="start" letter-spacing="0">lures</text>
+<text x="92" y="93" font-size="12" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">hackeie 3 ou 4 e carregue cada um</text>
+<circle cx="74" cy="130" r="6" fill="#0b0e17" stroke="#cfae66" stroke-width="2"/>
+<text x="60" y="135" font-size="12" fill="#cfae66" font-weight="700" text-anchor="end" letter-spacing="0">8 min</text>
+<text x="92" y="131" font-size="14" fill="#cfae66" font-weight="700" text-anchor="start" letter-spacing="0">Teralyst</text>
+<text x="92" y="149" font-size="12" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">capture com 2 lures presos</text>
+<circle cx="74" cy="186" r="6" fill="#0b0e17" stroke="#cfae66" stroke-width="2"/>
+<text x="60" y="191" font-size="12" fill="#cfae66" font-weight="700" text-anchor="end" letter-spacing="0">20 min</text>
+<text x="92" y="187" font-size="14" fill="#cfae66" font-weight="700" text-anchor="start" letter-spacing="0">Gantulyst</text>
+<text x="92" y="205" font-size="12" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">fragmento Brilhante no santuário</text>
+<circle cx="74" cy="242" r="6" fill="#0b0e17" stroke="#e8ce8f" stroke-width="2"/>
+<text x="60" y="247" font-size="12" fill="#e8ce8f" font-weight="700" text-anchor="end" letter-spacing="0">34 min</text>
+<text x="92" y="243" font-size="14" fill="#e8ce8f" font-weight="700" text-anchor="start" letter-spacing="0">Hidrolista</text>
+<text x="92" y="261" font-size="12" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">fragmento Radiante no santuário</text>
+<circle cx="74" cy="298" r="6" fill="#0b0e17" stroke="#e36d5d" stroke-width="2"/>
+<text x="60" y="303" font-size="12" fill="#e36d5d" font-weight="700" text-anchor="end" letter-spacing="0">50 min</text>
+<text x="92" y="299" font-size="14" fill="#e36d5d" font-weight="700" text-anchor="start" letter-spacing="0">amanhece</text>
+<text x="92" y="317" font-size="12" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">quem sobrou vira invulnerável</text>
+<path d="M20 328 H370 L380 338 V396 H20 Z" fill="#111624" stroke="rgba(207,174,102,0.42)" stroke-width="1"/>
+<text x="34" y="350" font-size="11.5" fill="#e8ce8f" font-weight="700" text-anchor="start" letter-spacing="0.10em">ROTEIRO FOLGADO, NÃO É REGRA DO JOGO</text>
+<text x="34" y="370" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">Esquadrão treinado fecha os três em 6 a 10 min.</text>
+<text x="34" y="387" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">O relógio de Cetus fica na home do site.</text>
+</svg>

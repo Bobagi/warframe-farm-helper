@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 530" width="400" height="530" role="img" aria-label="Como conseguir e carregar um Eidolon Lure" font-family="'Exo 2','Segoe UI',Roboto,Helvetica,Arial,'Noto Sans CJK SC','Microsoft YaHei','PingFang SC',sans-serif">
+<rect width="400" height="530" fill="#0b0e17"/>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#cfae66"/></marker></defs>
+<text x="20" y="28" font-size="14" fill="#cfae66" font-weight="700" text-anchor="start" letter-spacing="0.10em">O LURE, PASSO A PASSO</text>
+<text x="20" y="48" font-size="12" fill="#6b7590" font-weight="400" text-anchor="start" letter-spacing="0">sem lure carregado não existe captura</text>
+<path d="M20 66 H370 L380 76 V140 H20 Z" fill="#151b2c" stroke="#232c42" stroke-width="1"/>
+<circle cx="44" cy="92" r="11" fill="none" stroke="#6ee7f2"/>
+<text x="44" y="96" font-size="12.5" fill="#6ee7f2" font-weight="700" text-anchor="middle" letter-spacing="0">1</text>
+<text x="64" y="96" font-size="14" fill="#6ee7f2" font-weight="700" text-anchor="start" letter-spacing="0.10em">ACHE</text>
+<text x="34" y="116" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">Lures ficam nos acampamentos Grineer</text>
+<text x="34" y="132" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">das Planícies e só aparecem à noite.</text>
+<path d="M44 144 L44 158" stroke="#cfae66" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M20 162 H370 L380 172 V236 H20 Z" fill="#151b2c" stroke="#232c42" stroke-width="1"/>
+<circle cx="44" cy="188" r="11" fill="none" stroke="#6ee7f2"/>
+<text x="44" y="192" font-size="12.5" fill="#6ee7f2" font-weight="700" text-anchor="middle" letter-spacing="0">2</text>
+<text x="64" y="192" font-size="14" fill="#6ee7f2" font-weight="700" text-anchor="start" letter-spacing="0.10em">HACKEIE</text>
+<text x="34" y="212" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">Atire até desabilitar e hackeie.</text>
+<text x="34" y="228" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">Depois disso ele te segue pelo mapa.</text>
+<path d="M44 240 L44 254" stroke="#cfae66" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M20 258 H370 L380 268 V332 H20 Z" fill="#151b2c" stroke="#232c42" stroke-width="1"/>
+<circle cx="44" cy="284" r="11" fill="none" stroke="#6ee7f2"/>
+<text x="44" y="288" font-size="12.5" fill="#6ee7f2" font-weight="700" text-anchor="middle" letter-spacing="0">3</text>
+<text x="64" y="288" font-size="14" fill="#6ee7f2" font-weight="700" text-anchor="start" letter-spacing="0.10em">CARREGUE</text>
+<text x="34" y="308" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">3 Vomvalysts por lure: forma física</text>
+<text x="34" y="324" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">com arma, espectral com o Operador.</text>
+<path d="M44 336 L44 350" stroke="#cfae66" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M20 354 H370 L380 364 V428 H20 Z" fill="#151b2c" stroke="#232c42" stroke-width="1"/>
+<circle cx="44" cy="380" r="11" fill="none" stroke="#6ee7f2"/>
+<text x="44" y="384" font-size="12.5" fill="#6ee7f2" font-weight="700" text-anchor="middle" letter-spacing="0">4</text>
+<text x="64" y="384" font-size="14" fill="#6ee7f2" font-weight="700" text-anchor="start" letter-spacing="0.10em">USE</text>
+<text x="34" y="404" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">Cada sinóvia quebrada vira um feixe</text>
+<text x="34" y="420" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">laranja do lure. Sem feixe, sem captura.</text>
+<path d="M20 444 H370 L380 454 V512 H20 Z" fill="#111624" stroke="rgba(207,174,102,0.42)" stroke-width="1"/>
+<text x="34" y="466" font-size="11.5" fill="#e8ce8f" font-weight="700" text-anchor="start" letter-spacing="0.10em">LEVE 3 OU 4, NUNCA O MÍNIMO</text>
+<text x="34" y="486" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">O Eidolon atira no lure e ele morre. Trinity,</text>
+<text x="34" y="503" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">Oberon e o Sancti Magistar curam lure.</text>
+</svg>

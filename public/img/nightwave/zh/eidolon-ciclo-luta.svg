@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 550" width="400" height="550" role="img" aria-label="夜灵战斗的循环" font-family="'Exo 2','Segoe UI',Roboto,Helvetica,Arial,'Noto Sans CJK SC','Microsoft YaHei','PingFang SC',sans-serif">
+<rect width="400" height="550" fill="#0b0e17"/>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#cfae66"/></marker></defs>
+<text x="20" y="28" font-size="14" fill="#cfae66" font-weight="700" text-anchor="start" letter-spacing="0">战斗的循环</text>
+<text x="20" y="48" font-size="12" fill="#6b7590" font-weight="400" text-anchor="start" letter-spacing="0">每破一个滑膜就重来一次</text>
+<path d="M20 66 H370 L380 76 V142 H20 Z" fill="#151b2c" stroke="#232c42" stroke-width="1"/>
+<rect x="20" y="66" width="3" height="76" fill="#6ee7f2"/>
+<text x="34" y="90" font-size="14" fill="#6ee7f2" font-weight="700" text-anchor="start" letter-spacing="0">1 · 五角神使护盾</text>
+<text x="34" y="112" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">战甲武器完全无效。</text>
+<text x="34" y="128" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">只有指挥官增幅器的虚空伤害。</text>
+<path d="M42 147 L42 163" stroke="#cfae66" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M20 168 H370 L380 178 V244 H20 Z" fill="#151b2c" stroke="#232c42" stroke-width="1"/>
+<rect x="20" y="168" width="3" height="76" fill="#6ee7f2"/>
+<text x="34" y="192" font-size="14" fill="#6ee7f2" font-weight="700" text-anchor="start" letter-spacing="0">2 · 滑膜暴露</text>
+<text x="34" y="214" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">护盾清零：发光的关节</text>
+<text x="34" y="230" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">吃所有伤害。这是狙击枪的窗口。</text>
+<path d="M42 249 L42 265" stroke="#cfae66" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M20 270 H370 L380 280 V346 H20 Z" fill="#151b2c" stroke="#232c42" stroke-width="1"/>
+<rect x="20" y="270" width="3" height="76" fill="#cfae66"/>
+<text x="34" y="294" font-size="14" fill="#cfae66" font-weight="700" text-anchor="start" letter-spacing="0">3 · 滑膜被破坏</text>
+<text x="34" y="316" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">扣 20% 生命，掉一个神使核心，</text>
+<text x="34" y="332" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">并在 60 米内造成磁力异常。</text>
+<path d="M42 351 L42 367" stroke="#cfae66" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M20 372 H370 L380 382 V448 H20 Z" fill="#151b2c" stroke="#232c42" stroke-width="1"/>
+<rect x="20" y="372" width="3" height="76" fill="#cfae66"/>
+<text x="34" y="396" font-size="14" fill="#cfae66" font-weight="700" text-anchor="start" letter-spacing="0">4 · 护盾回来了</text>
+<text x="34" y="418" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">附近没有充能诱捕器回 75%，</text>
+<text x="34" y="434" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">有的话只回 50% 且不会瞬移。</text>
+<path d="M384 410 H392 V104 H382" stroke="#cfae66" stroke-width="1.4" fill="none" stroke-dasharray="4 4" marker-end="url(#a)"/>
+<path d="M20 464 H370 L380 474 V532 H20 Z" fill="#111624" stroke="rgba(207,174,102,0.42)" stroke-width="1"/>
+<text x="34" y="486" font-size="11.5" fill="#e8ce8f" font-weight="700" text-anchor="start" letter-spacing="0">最后一个滑膜破了</text>
+<text x="34" y="506" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">本体变脆弱：击杀，或者用锁住它的</text>
+<text x="34" y="523" font-size="12.5" fill="#9aa5bc" font-weight="400" text-anchor="start" letter-spacing="0">诱捕器捕获。</text>
+</svg>
