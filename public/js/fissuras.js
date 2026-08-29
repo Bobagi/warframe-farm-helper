@@ -35,12 +35,12 @@
       mode === 'hard' ? f.isHard : mode === 'storm' ? f.isStorm : (!f.isHard && !f.isStorm)
     ));
     // fonte degradada: o aviso vale para TODAS as abas (trocar de aba
-    // re-renderiza, e "nenhuma fissura desse tipo" seria mentira)
-    list.replaceChildren(...(filtered.length
-      ? filtered.map(fissRow)
-      : [fissDegraded
-        ? el('li', { class: 'error-box' }, wsMsg('ws.down'))
-        : el('li', { class: 'empty', text: t('fissures.none') })]));
+    // re-renderiza) - mas a lista continua aparecendo embaixo dele, mesmo
+    // atrasada, com as que já venceram destacadas em vermelho (.expired,
+    // aplicado ao vivo pelo startTimers)
+    const warn = fissDegraded ? [el('li', { class: 'error-box' }, wsMsg('ws.down'))] : [];
+    const rows = filtered.length ? filtered.map(fissRow) : [el('li', { class: 'empty', text: t('fissures.none') })];
+    list.replaceChildren(...warn, ...rows);
   }
 
   document.getElementById('fiss-mode').addEventListener('click', (ev) => {
@@ -53,12 +53,12 @@
 
   api('/api/fissures').then((data) => {
     fissures = data.fissures || [];
-    // upstream respondeu mas tudo veio expirado: espelho do warframestat
-    // travado no tempo - avisa a verdade em vez de "0 fissuras"
-    fissDegraded = !fissures.length && !!data.source && data.source !== 'ok';
+    // upstream respondeu (mesmo que atrasado/travado): a lista vem inteira,
+    // sem filtrar as já expiradas - avisa a verdade em vez de escondê-las
+    fissDegraded = !!data.source && data.source !== 'ok';
     hint.textContent = fissDegraded ? '' : t('fissures.active', { n: fissures.length });
     renderFissures();
-    if (!fissDegraded) startTimers();
+    startTimers(); // liga o countdown mesmo degradado, pra marcar .expired ao vivo
   }).catch(() => {
     fissDegraded = true;
     hint.textContent = '';
@@ -73,7 +73,8 @@
   const maxTier = (it) => Math.max(...it.tiers.map((tr) => (tr in TIER_RANK ? TIER_RANK[tr] : 9)));
   const minTier = (it) => Math.min(...it.tiers.map((tr) => (tr in TIER_RANK ? TIER_RANK[tr] : 9)));
   let items = [];
-  let fallbackAt = null; // ISO da foto usada quando o warframestat está fora
+  let fallbackAt = null; // ISO da foto usada quando o warframestat está fora de vez
+  let farmDegraded = false; // upstream respondeu mas atrasado: itens são ao vivo, só o aviso muda
   let tierFilter = 'all';
   let sortBy = 'value'; // 'value' (ordem do backend, por platina) | 'difficulty'
   const grid = document.getElementById('farm-grid');
@@ -94,10 +95,13 @@
   function renderFarm() {
     const filtered = tierFilter === 'all' ? items : items.filter((it) => it.tiers.includes(tierFilter));
     const shown = sortItems(filtered);
-    // fonte fora do ar: os itens vêm da última foto salva - alerta datado fixo
+    // upstream de vez (raro): itens vêm da última foto salva - alerta datado.
+    // upstream atrasado (mais comum): itens calculados na hora - alerta genérico.
     const alert = fallbackAt
       ? [el('p', { class: 'error-box' }, wsMsg('ws.fallback', { when: I18n.fmtWhen(fallbackAt) }))]
-      : [];
+      : farmDegraded
+        ? [el('p', { class: 'error-box' }, wsMsg('ws.down'))]
+        : [];
     grid.replaceChildren(...alert, ...(shown.length
       ? shown.map(farmCard)
       : [el('p', { class: 'empty', text: t('farm.none') })]));
@@ -130,6 +134,7 @@
   api('/api/farmable').then((data) => {
     items = data.items || [];
     fallbackAt = data.fallback ? data.fallback.savedAt : null;
+    farmDegraded = !fallbackAt && !!data.source && data.source !== 'ok';
     farmHint.textContent = t('farm.count', { n: items.length });
     if (!items.length) {
       farmHint.textContent = '';

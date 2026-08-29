@@ -51,9 +51,10 @@ const MISSION_PT = {
 
 // 'ok' | 'stale' | 'down' - no jogo SEMPRE há fissuras ativas. 'stale' = o
 // upstream responde mas tudo vem expirado (espelho do warframestat.us travado
-// no tempo, visto em 2026-08-20 com worldstate 4h atrasado); 'down' = o fetch
-// falhou de vez (404/timeout). A UI usa isso para dizer a verdade ("fonte
-// fora do ar") em vez de "nenhuma fissura ativa". Consumidores que engolem o
+// no tempo, visto em 2026-08-20 com worldstate 4h atrasado, e de novo em
+// 2026-08-22..29 com atraso de horas); 'down' = o fetch falhou de vez
+// (404/timeout). A UI usa isso para dizer a verdade ("fonte fora do ar/com
+// atraso") em vez de "nenhuma fissura ativa". Consumidores que engolem o
 // erro (buildFarmable) herdam o estado correto via fissuresSource().
 let fissuresSourceState = 'ok';
 const fissuresSource = () => fissuresSourceState;
@@ -67,10 +68,17 @@ async function getFissures() {
     throw err;
   }
   const now = Date.now();
-  const active = (Array.isArray(arr) ? arr : [])
-    .filter((f) => f && !f.expired && f.expiry && Date.parse(f.expiry) > now);
-  fissuresSourceState = active.length ? 'ok' : 'stale';
-  return active
+  // NÃO confia no `f.expired` do upstream (mentiu ao vivo em 2026-08-20/29:
+  // veio `false` num item cujo expiry já tinha passado há mais de 2h) -
+  // a verdade é comparar o expiry contra o relógio real. Diferente de antes,
+  // NÃO descarta as expiradas: elas continuam na resposta (a UI mostra com
+  // um aviso visual de "já venceu") em vez de sumir e virar um painel vazio
+  // quando o espelho está atrasado (ordem do operador, 2026-08-29).
+  const clean = (Array.isArray(arr) ? arr : [])
+    .filter((f) => f && f.tier && f.expiry && Number.isFinite(Date.parse(f.expiry)));
+  const anyActive = clean.some((f) => Date.parse(f.expiry) > now);
+  fissuresSourceState = clean.length ? (anyActive ? 'ok' : 'stale') : 'down';
+  return clean
     .map((f) => ({
       id: f.id,
       node: f.node,
@@ -82,6 +90,7 @@ async function getFissures() {
       expiry: f.expiry,
       isStorm: !!f.isStorm,
       isHard: !!f.isHard,
+      expired: Date.parse(f.expiry) <= now,
     }))
     .sort((a, b) =>
       (a.tierNum || 0) - (b.tierNum || 0) || Date.parse(a.expiry) - Date.parse(b.expiry));

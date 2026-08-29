@@ -40,12 +40,12 @@
       mode === 'hard' ? f.isHard : mode === 'storm' ? f.isStorm : (!f.isHard && !f.isStorm)
     ));
     // fonte degradada: o aviso vale para TODAS as abas (trocar de aba
-    // re-renderiza, e "nenhuma fissura desse tipo" seria mentira)
-    list.replaceChildren(...(filtered.length
-      ? filtered.map(fissRow)
-      : [fissDegraded
-        ? el('li', { class: 'error-box' }, wsMsg('ws.down'))
-        : el('li', { class: 'empty', text: t('fissures.none') })]));
+    // re-renderiza) - mas a lista continua aparecendo embaixo dele, mesmo
+    // atrasada, com as que já venceram destacadas em vermelho (.expired,
+    // aplicado ao vivo pelo startTimers)
+    const warn = fissDegraded ? [el('li', { class: 'error-box' }, wsMsg('ws.down'))] : [];
+    const rows = filtered.length ? filtered.map(fissRow) : [el('li', { class: 'empty', text: t('fissures.none') })];
+    list.replaceChildren(...warn, ...rows);
   }
 
   document.getElementById('fiss-mode').addEventListener('click', (ev) => {
@@ -60,12 +60,12 @@
 
   api('/api/fissures').then((data) => {
     fissures = data.fissures || [];
-    // upstream respondeu mas tudo veio expirado: espelho do warframestat
-    // travado no tempo - avisa a verdade em vez de "0 fissuras"
-    fissDegraded = !fissures.length && !!data.source && data.source !== 'ok';
+    // upstream respondeu (mesmo que atrasado/travado): a lista vem inteira,
+    // sem filtrar as já expiradas - avisa a verdade em vez de escondê-las
+    fissDegraded = !!data.source && data.source !== 'ok';
     hint.textContent = fissDegraded ? '' : t('fissures.active', { n: fissures.length });
     renderFissures();
-    if (!fissDegraded) startTimers();
+    startTimers(); // liga o countdown mesmo degradado, pra marcar .expired ao vivo
   }).catch(() => {
     fissDegraded = true;
     hint.textContent = '';
@@ -168,10 +168,14 @@
       return;
     }
     farmHint.textContent = t('farm.count', { n: (data.items || []).length });
-    // fonte fora do ar: itens vêm da última foto salva - alerta datado em cima
+    // upstream de vez (raro): itens vêm da última foto salva - alerta datado.
+    // upstream respondeu mas atrasado (mais comum): itens são calculados na
+    // hora com o dado que ele tem - alerta genérico, sem data específica.
     const alert = data.fallback
       ? [el('p', { class: 'error-box' }, wsMsg('ws.fallback', { when: I18n.fmtWhen(data.fallback.savedAt) }))]
-      : [];
+      : (data.source && data.source !== 'ok')
+        ? [el('p', { class: 'error-box' }, wsMsg('ws.down'))]
+        : [];
     farmGrid.replaceChildren(...alert, ...list.map(App.farmCard));
   }).catch(() => { farmGrid.replaceChildren(el('p', { class: 'empty' }, wsMsg('ws.down'))); });
 

@@ -85,7 +85,13 @@ const App = (() => {
     return `${m}m ${String(s % 60).padStart(2, '0')}s`;
   }
 
-  /** atualiza countdowns de elementos com [data-expiry] a cada segundo */
+  /**
+   * Atualiza countdowns de elementos com [data-expiry] a cada segundo. Se o
+   * timer vive dentro de um .row (fissura), a linha inteira ganha a classe
+   * "expired" quando o prazo vence - marca visualmente uma fissura que já
+   * fechou no jogo real, mesmo que ela ainda apareça na lista (fonte
+   * degradada servindo dado atrasado; ver [[ws.down]]).
+   */
   function startTimers() {
     const tick = () => {
       for (const node of document.querySelectorAll('[data-expiry]')) {
@@ -93,6 +99,8 @@ const App = (() => {
         node.textContent = left;
         const ms = Date.parse(node.dataset.expiry) - Date.now();
         node.classList.toggle('soon', ms > 0 && ms < 5 * 60 * 1000);
+        const row = node.closest('.row');
+        if (row) row.classList.toggle('expired', ms <= 0);
       }
     };
     tick();

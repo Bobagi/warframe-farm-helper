@@ -171,15 +171,23 @@ router.get('/fissures', asyncRoute(async (req, res) => {
 }));
 
 router.get('/farmable', asyncRoute(async (req, res) => {
+  // buildFarmable() cruza TODAS as fissuras que vieram do upstream (mesmo as
+  // já expiradas pelo relógio real, quando a fonte está 'stale') - continua
+  // dando pra montar a lista com o que o espelho tem, só que desatualizado.
+  // 'down' é o único caso sem NADA aproveitável (fetch falhou ou resposta
+  // sem fissura válida nenhuma).
   const data = await buildFarmable();
   const source = fissuresSource();
-  if (source === 'ok' && data.items.length) {
+  if (source !== 'down' && data.items.length) {
+    // foto diária mesmo com fonte 'stale' (ordem do operador, 2026-08-29):
+    // ela muda devagar e um dia de atraso do upstream não pode travar a
+    // nossa foto também - saveFarmableSnapshot já tem o throttle de 24h.
     saveFarmableSnapshot(data);
     res.json({ ...data, source });
     return;
   }
-  // fonte degradada (warframestat fora do ar/atrasado): serve a última foto
-  // saudável com aviso datado, em vez de painel vazio
+  // upstream de vez (sem fissura válida nenhuma na resposta): serve a última
+  // foto saudável com aviso datado, em vez de painel vazio
   const snap = loadFarmableSnapshot();
   if (snap) {
     res.json({ ...snap.data, source, fallback: { savedAt: snap.savedAt } });

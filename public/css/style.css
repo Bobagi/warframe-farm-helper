@@ -526,6 +526,9 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
 .row .sub { color: var(--text-faint); font-size: 13px; }
 .row .time { color: var(--text-dim); font-size: 13px; white-space: nowrap; }
 .row .time.soon { color: var(--danger); }
+/* fissura já expirada (fonte atrasada mostrando dado velho, ver ws.down) */
+.row.expired { background: rgba(227, 109, 93, 0.12); border-color: var(--danger); }
+.row.expired .time { color: var(--danger); }
 .row-link { color: inherit; }
 .row-link:hover { text-decoration: none; border-color: var(--energy-dim); }
 

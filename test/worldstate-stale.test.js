@@ -4,9 +4,11 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 // No jogo SEMPRE há fissuras ativas. Se o upstream responde mas tudo vem
-// expirado (espelho do warframestat travado, como em 2026-08-20), a fonte é
-// marcada 'stale' e a UI diz a verdade em vez de "nenhuma fissura ativa".
-test('fissuresSource(): down no erro, ok com fissura ativa, stale quando tudo expira', async () => {
+// expirado (espelho do warframestat travado, como em 2026-08-20..29), a
+// fonte é marcada 'stale' - mas as fissuras continuam vindo na resposta
+// (cada uma marcada `expired`), pro operador de 2026-08-29: a UI mostra o
+// que o espelho tem, avisando que está atrasado, em vez de esconder tudo.
+test('fissuresSource(): down no erro, ok com fissura ativa, stale (com dado) quando tudo expira', async () => {
   const realFetch = globalThis.fetch;
   // 1º: upstream 404 (cache frio, nada é gravado) → fonte 'down'
   globalThis.fetch = async () => ({ ok: false, status: 404 });
@@ -27,16 +29,21 @@ test('fissuresSource(): down no erro, ok com fissura ativa, stale quando tudo ex
       ],
     });
 
-    // 1ª leitura: uma fissura ainda válida → fonte ok
+    // 1ª leitura: uma fissura ainda válida (a outra já expirada, mas
+    // presente e marcada) → fonte ok, as 2 continuam na lista
     const ativas = await getFissures();
-    assert.equal(ativas.length, 1);
+    assert.equal(ativas.length, 2);
+    assert.equal(ativas.find((f) => f.id === 'a').expired, false);
+    assert.equal(ativas.find((f) => f.id === 'b').expired, true);
     assert.equal(fissuresSource(), 'ok');
 
-    // quando a última fissura do payload expira: MESMO cache de raw
-    // (sem novo fetch), mas o filtro agora zera → fonte vira 'stale'
+    // quando a última fissura do payload expira: MESMO cache de raw (sem
+    // novo fetch), mas nenhuma mais está no prazo → fonte vira 'stale',
+    // as 2 continuam vindo (agora ambas `expired`)
     await new Promise((r) => setTimeout(r, 1000));
     const depois = await getFissures();
-    assert.equal(depois.length, 0);
+    assert.equal(depois.length, 2);
+    assert.ok(depois.every((f) => f.expired));
     assert.equal(fissuresSource(), 'stale');
   } finally {
     globalThis.fetch = realFetch;
