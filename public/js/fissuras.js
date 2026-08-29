@@ -8,13 +8,15 @@
  */
 
 (() => {
-  const { el, api, startTimers, tierBadge, farmCard, wsMsg } = App;
+  const { el, api, startTimers, tierBadge, farmCard, wsMsg, wsDegradedMsg } = App;
   const { t, missionName, enemyName } = I18n;
   const placeName = (n) => (I18n.lang() === 'pt' || I18n.lang() === 'zh' ? Places.placeIn(n, I18n.lang()) : n);
 
   // ---- fissuras (mesma lógica da home) ----
   let fissures = [];
   let fissDegraded = false; // warframestat fora do ar/atrasado: TODA aba avisa
+  let fissSource = null;
+  let fissAsOf = null; // de quando é o dado, quando a fonte está 'stale'
   let mode = 'normal';
   const list = document.getElementById('fiss-list');
   const hint = document.getElementById('fiss-hint');
@@ -38,7 +40,7 @@
     // re-renderiza) - mas a lista continua aparecendo embaixo dele, mesmo
     // atrasada, com as que já venceram destacadas em vermelho (.expired,
     // aplicado ao vivo pelo startTimers)
-    const warn = fissDegraded ? [el('li', { class: 'error-box' }, wsMsg('ws.down'))] : [];
+    const warn = fissDegraded ? [el('li', { class: 'error-box' }, wsDegradedMsg(fissSource, fissAsOf))] : [];
     const rows = filtered.length ? filtered.map(fissRow) : [el('li', { class: 'empty', text: t('fissures.none') })];
     list.replaceChildren(...warn, ...rows);
   }
@@ -55,7 +57,9 @@
     fissures = data.fissures || [];
     // upstream respondeu (mesmo que atrasado/travado): a lista vem inteira,
     // sem filtrar as já expiradas - avisa a verdade em vez de escondê-las
-    fissDegraded = !!data.source && data.source !== 'ok';
+    fissSource = data.source || null;
+    fissAsOf = data.asOf || null;
+    fissDegraded = !!fissSource && fissSource !== 'ok';
     hint.textContent = fissDegraded ? '' : t('fissures.active', { n: fissures.length });
     renderFissures();
     startTimers(); // liga o countdown mesmo degradado, pra marcar .expired ao vivo
@@ -75,6 +79,8 @@
   let items = [];
   let fallbackAt = null; // ISO da foto usada quando o warframestat está fora de vez
   let farmDegraded = false; // upstream respondeu mas atrasado: itens são ao vivo, só o aviso muda
+  let farmSource = null;
+  let farmAsOf = null; // de quando é o dado, quando a fonte está 'stale'
   let tierFilter = 'all';
   let sortBy = 'value'; // 'value' (ordem do backend, por platina) | 'difficulty'
   const grid = document.getElementById('farm-grid');
@@ -95,12 +101,14 @@
   function renderFarm() {
     const filtered = tierFilter === 'all' ? items : items.filter((it) => it.tiers.includes(tierFilter));
     const shown = sortItems(filtered);
-    // upstream de vez (raro): itens vêm da última foto salva - alerta datado.
-    // upstream atrasado (mais comum): itens calculados na hora - alerta genérico.
+    // upstream de vez (raro): itens vêm da última foto salva - alerta datado
+    // com a data em que ELA foi salva. upstream atrasado (mais comum): itens
+    // calculados na hora - alerta datado com o "de quando" tirado das
+    // próprias fissuras (asOf).
     const alert = fallbackAt
       ? [el('p', { class: 'error-box' }, wsMsg('ws.fallback', { when: I18n.fmtWhen(fallbackAt) }))]
       : farmDegraded
-        ? [el('p', { class: 'error-box' }, wsMsg('ws.down'))]
+        ? [el('p', { class: 'error-box' }, wsDegradedMsg(farmSource, farmAsOf))]
         : [];
     grid.replaceChildren(...alert, ...(shown.length
       ? shown.map(farmCard)
@@ -134,12 +142,13 @@
   api('/api/farmable').then((data) => {
     items = data.items || [];
     fallbackAt = data.fallback ? data.fallback.savedAt : null;
-    farmDegraded = !fallbackAt && !!data.source && data.source !== 'ok';
+    farmSource = data.source || null;
+    farmAsOf = data.asOf || null;
+    farmDegraded = !fallbackAt && !!farmSource && farmSource !== 'ok';
     farmHint.textContent = t('farm.count', { n: items.length });
     if (!items.length) {
       farmHint.textContent = '';
-      const degraded = data.source && data.source !== 'ok';
-      grid.replaceChildren(el('p', { class: 'empty' }, degraded ? wsMsg('ws.down') : [t('farm.noTiers')]));
+      grid.replaceChildren(el('p', { class: 'empty' }, farmDegraded ? wsDegradedMsg(farmSource, farmAsOf) : [t('farm.noTiers')]));
       return;
     }
     buildFilter(data.tiers || []);

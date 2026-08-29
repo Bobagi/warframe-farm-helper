@@ -1,7 +1,7 @@
 'use strict';
 
 (() => {
-  const { el, api, startTimers, tierBadge, wsMsg } = App;
+  const { el, api, startTimers, tierBadge, wsMsg, wsDegradedMsg } = App;
   const { t, missionName, enemyName } = I18n;
   const placeName = (n) => (I18n.lang() === 'pt' || I18n.lang() === 'zh' ? Places.placeIn(n, I18n.lang()) : n);
 
@@ -20,6 +20,8 @@
   // ---- fissuras ----
   let fissures = [];
   let fissDegraded = false; // warframestat fora do ar/atrasado: TODA aba avisa
+  let fissSource = null;
+  let fissAsOf = null; // de quando é o dado, quando a fonte está 'stale'
   let mode = 'normal';
   const list = document.getElementById('fiss-list');
   const hint = document.getElementById('fiss-hint');
@@ -43,7 +45,7 @@
     // re-renderiza) - mas a lista continua aparecendo embaixo dele, mesmo
     // atrasada, com as que já venceram destacadas em vermelho (.expired,
     // aplicado ao vivo pelo startTimers)
-    const warn = fissDegraded ? [el('li', { class: 'error-box' }, wsMsg('ws.down'))] : [];
+    const warn = fissDegraded ? [el('li', { class: 'error-box' }, wsDegradedMsg(fissSource, fissAsOf))] : [];
     const rows = filtered.length ? filtered.map(fissRow) : [el('li', { class: 'empty', text: t('fissures.none') })];
     list.replaceChildren(...warn, ...rows);
   }
@@ -62,7 +64,9 @@
     fissures = data.fissures || [];
     // upstream respondeu (mesmo que atrasado/travado): a lista vem inteira,
     // sem filtrar as já expiradas - avisa a verdade em vez de escondê-las
-    fissDegraded = !!data.source && data.source !== 'ok';
+    fissSource = data.source || null;
+    fissAsOf = data.asOf || null;
+    fissDegraded = !!fissSource && fissSource !== 'ok';
     hint.textContent = fissDegraded ? '' : t('fissures.active', { n: fissures.length });
     renderFissures();
     startTimers(); // liga o countdown mesmo degradado, pra marcar .expired ao vivo
@@ -164,17 +168,18 @@
     const list = (data.items || []).slice(0, 9); // os 9 mais valiosos
     if (!list.length) {
       const degraded = data.source && data.source !== 'ok';
-      farmGrid.replaceChildren(el('p', { class: 'empty' }, degraded ? wsMsg('ws.down') : [t('farm.noTiers')]));
+      farmGrid.replaceChildren(el('p', { class: 'empty' }, degraded ? wsDegradedMsg(data.source, data.asOf) : [t('farm.noTiers')]));
       return;
     }
     farmHint.textContent = t('farm.count', { n: (data.items || []).length });
-    // upstream de vez (raro): itens vêm da última foto salva - alerta datado.
-    // upstream respondeu mas atrasado (mais comum): itens são calculados na
-    // hora com o dado que ele tem - alerta genérico, sem data específica.
+    // upstream de vez (raro): itens vêm da última foto salva - alerta datado
+    // com a data em que ELA foi salva. upstream atrasado (mais comum): itens
+    // calculados na hora com o dado que ele tem - alerta datado com o "de
+    // quando" que dá pra estimar a partir das próprias fissuras (asOf).
     const alert = data.fallback
       ? [el('p', { class: 'error-box' }, wsMsg('ws.fallback', { when: I18n.fmtWhen(data.fallback.savedAt) }))]
       : (data.source && data.source !== 'ok')
-        ? [el('p', { class: 'error-box' }, wsMsg('ws.down'))]
+        ? [el('p', { class: 'error-box' }, wsDegradedMsg(data.source, data.asOf))]
         : [];
     farmGrid.replaceChildren(...alert, ...list.map(App.farmCard));
   }).catch(() => { farmGrid.replaceChildren(el('p', { class: 'empty' }, wsMsg('ws.down'))); });

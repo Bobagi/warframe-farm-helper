@@ -6,7 +6,7 @@ const { listArticles, getArticle } = require('../articles');
 const { searchLocal, suggest, stats } = require('../search');
 const { webSearch } = require('../websearch');
 const { getTopOrders } = require('../market');
-const { getFissures, fissuresSource, getBaro, getCycles } = require('../worldstate');
+const { getFissures, fissuresSource, fissuresAsOf, getBaro, getCycles } = require('../worldstate');
 const { getVarzia } = require('../varzia');
 const { getActs } = require('../nightwave');
 const {
@@ -167,7 +167,10 @@ router.get('/relic', asyncRoute(async (req, res) => {
 
 router.get('/fissures', asyncRoute(async (req, res) => {
   const fissures = await getFissures();
-  res.json({ fissures, source: fissuresSource() });
+  // asOf: quando a fonte está 'stale', é a melhor pista de até onde o
+  // relógio do espelho avançou - a UI usa isso pra datar o aviso (o
+  // operador pediu de volta essa data depois que ela sumiu, 2026-08-29).
+  res.json({ fissures, source: fissuresSource(), asOf: fissuresAsOf() });
 }));
 
 router.get('/farmable', asyncRoute(async (req, res) => {
@@ -183,7 +186,7 @@ router.get('/farmable', asyncRoute(async (req, res) => {
     // ela muda devagar e um dia de atraso do upstream não pode travar a
     // nossa foto também - saveFarmableSnapshot já tem o throttle de 24h.
     saveFarmableSnapshot(data);
-    res.json({ ...data, source });
+    res.json({ ...data, source, asOf: fissuresAsOf() });
     return;
   }
   // upstream de vez (sem fissura válida nenhuma na resposta): serve a última

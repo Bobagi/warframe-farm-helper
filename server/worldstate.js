@@ -59,6 +59,14 @@ const MISSION_PT = {
 let fissuresSourceState = 'ok';
 const fissuresSource = () => fissuresSourceState;
 
+// Quando a fonte está 'stale', a UI precisa dizer DE QUANDO é o dado que
+// está mostrando (o operador pediu de volta a data depois que ela sumiu na
+// primeira versão desta resiliência, 2026-08-29). Sem outra chamada ao
+// upstream: usa a `activation` mais recente entre as fissuras que ele
+// devolveu - é a melhor pista de até onde o relógio do espelho avançou.
+let fissuresAsOfState = null;
+const fissuresAsOf = () => fissuresAsOfState;
+
 async function getFissures() {
   let arr;
   try {
@@ -78,6 +86,8 @@ async function getFissures() {
     .filter((f) => f && f.tier && f.expiry && Number.isFinite(Date.parse(f.expiry)));
   const anyActive = clean.some((f) => Date.parse(f.expiry) > now);
   fissuresSourceState = clean.length ? (anyActive ? 'ok' : 'stale') : 'down';
+  const activations = clean.map((f) => Date.parse(f.activation)).filter(Number.isFinite);
+  fissuresAsOfState = activations.length ? new Date(Math.max(...activations)).toISOString() : null;
   return clean
     .map((f) => ({
       id: f.id,
@@ -213,7 +223,7 @@ async function getBaro() {
 }
 
 module.exports = {
-  getFissures, fissuresSource, getNightwaveRaw, getVaultTraderRaw, getBaro, getCycles, MISSION_PT,
+  getFissures, fissuresSource, fissuresAsOf, getNightwaveRaw, getVaultTraderRaw, getBaro, getCycles, MISSION_PT,
   // exportados para testes
   CYCLE_DEFS, advanceCycle, normalizeCycle, normalizeBaro,
 };

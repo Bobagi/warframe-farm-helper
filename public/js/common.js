@@ -54,6 +54,18 @@ const App = (() => {
     return nodes;
   }
 
+  /**
+   * Escolhe o aviso certo pra fonte degradada: 'stale' com `asOf` conhecido
+   * (o upstream respondeu, só que atrasado - dá pra dizer de quando é o
+   * dado) vira ws.stale datado; qualquer outro caso degradado (fetch falhou,
+   * nada aproveitável) vira ws.down genérico, sem data pra mostrar.
+   */
+  function wsDegradedMsg(source, asOf) {
+    return (source === 'stale' && asOf)
+      ? wsMsg('ws.stale', { when: I18n.fmtWhen(asOf) })
+      : wsMsg('ws.down');
+  }
+
   const qs = (name) => new URLSearchParams(location.search).get(name);
 
   /** URL bonita da relíquia ("Lith K12" → "/relic/lith-k12") - espelha o server */
@@ -232,7 +244,7 @@ const App = (() => {
   return {
     el, qs, relicUrl, api, fmtInt, fmtPct, timeLeft, startTimers,
     tierBadge, rarityChip, statusBadge, resultRow, farmCard, attachSearch, debounce, navCurrent,
-    safeHref, wsMsg,
+    safeHref, wsMsg, wsDegradedMsg,
   };
 })();
 // navCurrent é chamado por layout.js, depois de o cabeçalho ser construído
