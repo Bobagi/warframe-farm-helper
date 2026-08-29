@@ -8,7 +8,7 @@
  */
 
 (() => {
-  const { el, api, startTimers, tierBadge, farmCard } = App;
+  const { el, api, startTimers, tierBadge, farmCard, wsMsg } = App;
   const { t, missionName, enemyName } = I18n;
   const placeName = (n) => (I18n.lang() === 'pt' || I18n.lang() === 'zh' ? Places.placeIn(n, I18n.lang()) : n);
 
@@ -39,7 +39,7 @@
     list.replaceChildren(...(filtered.length
       ? filtered.map(fissRow)
       : [fissDegraded
-        ? el('li', { class: 'error-box', text: t('ws.down') })
+        ? el('li', { class: 'error-box' }, wsMsg('ws.down'))
         : el('li', { class: 'empty', text: t('fissures.none') })]));
   }
 
@@ -96,7 +96,7 @@
     const shown = sortItems(filtered);
     // fonte fora do ar: os itens vêm da última foto salva - alerta datado fixo
     const alert = fallbackAt
-      ? [el('p', { class: 'error-box', text: t('ws.fallback', { when: I18n.fmtWhen(fallbackAt) }) })]
+      ? [el('p', { class: 'error-box' }, wsMsg('ws.fallback', { when: I18n.fmtWhen(fallbackAt) }))]
       : [];
     grid.replaceChildren(...alert, ...(shown.length
       ? shown.map(farmCard)
@@ -133,13 +133,13 @@
     farmHint.textContent = t('farm.count', { n: items.length });
     if (!items.length) {
       farmHint.textContent = '';
-      const msg = (data.source && data.source !== 'ok') ? t('ws.down') : t('farm.noTiers');
-      grid.replaceChildren(el('p', { class: 'empty', text: msg }));
+      const degraded = data.source && data.source !== 'ok';
+      grid.replaceChildren(el('p', { class: 'empty' }, degraded ? wsMsg('ws.down') : [t('farm.noTiers')]));
       return;
     }
     buildFilter(data.tiers || []);
     renderFarm();
   }).catch(() => {
-    grid.replaceChildren(el('p', { class: 'error-box', text: t('ws.down') }));
+    grid.replaceChildren(el('p', { class: 'error-box' }, wsMsg('ws.down')));
   });
 })();

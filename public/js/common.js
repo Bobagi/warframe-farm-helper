@@ -36,6 +36,24 @@ const App = (() => {
     return null;
   }
 
+  /**
+   * Mensagens ws.down/ws.fallback (i18n.js) citam "warframestat.us" - vira
+   * link clicável pro próprio usuário conferir se a fonte está mesmo fora
+   * do ar, em vez de só confiar na palavra do site. Retorna array de nodes
+   * (texto + <a>) pra passar como children de um el().
+   */
+  function wsMsg(key, vars) {
+    const parts = I18n.t(key, vars).split('warframestat.us');
+    const nodes = [];
+    parts.forEach((part, i) => {
+      if (part) nodes.push(part);
+      if (i < parts.length - 1) {
+        nodes.push(el('a', { href: 'https://warframestat.us', rel: 'noopener', target: '_blank', text: 'warframestat.us' }));
+      }
+    });
+    return nodes;
+  }
+
   const qs = (name) => new URLSearchParams(location.search).get(name);
 
   /** URL bonita da relíquia ("Lith K12" → "/relic/lith-k12") - espelha o server */
@@ -206,7 +224,7 @@ const App = (() => {
   return {
     el, qs, relicUrl, api, fmtInt, fmtPct, timeLeft, startTimers,
     tierBadge, rarityChip, statusBadge, resultRow, farmCard, attachSearch, debounce, navCurrent,
-    safeHref,
+    safeHref, wsMsg,
   };
 })();
 // navCurrent é chamado por layout.js, depois de o cabeçalho ser construído

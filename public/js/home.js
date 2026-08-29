@@ -1,7 +1,7 @@
 'use strict';
 
 (() => {
-  const { el, api, startTimers, tierBadge } = App;
+  const { el, api, startTimers, tierBadge, wsMsg } = App;
   const { t, missionName, enemyName } = I18n;
   const placeName = (n) => (I18n.lang() === 'pt' || I18n.lang() === 'zh' ? Places.placeIn(n, I18n.lang()) : n);
 
@@ -44,7 +44,7 @@
     list.replaceChildren(...(filtered.length
       ? filtered.map(fissRow)
       : [fissDegraded
-        ? el('li', { class: 'error-box', text: t('ws.down') })
+        ? el('li', { class: 'error-box' }, wsMsg('ws.down'))
         : el('li', { class: 'empty', text: t('fissures.none') })]));
   }
 
@@ -92,7 +92,7 @@
         : el('span', { class: 'kind-tag', text: a.isDaily ? t('nw.daily') : a.isElite ? t('nw.elite') : t('nw.weekly') }),
     ])));
   }).catch(() => {
-    nwList.replaceChildren(el('li', { class: 'empty', text: t('ws.down') }));
+    nwList.replaceChildren(el('li', { class: 'empty' }, wsMsg('ws.down')));
   });
 
   // ---- baro ----
@@ -119,7 +119,7 @@
       baroGuide()
     );
     startTimers();
-  }).catch(() => { baro.textContent = t('ws.down'); });
+  }).catch(() => { baro.replaceChildren(...wsMsg('ws.down')); });
 
   // ---- varzia (prime resurgence) ----
   // O painel nasce hidden: rotação é informação de "está rolando agora", então
@@ -163,17 +163,17 @@
   api('/api/farmable').then((data) => {
     const list = (data.items || []).slice(0, 9); // os 9 mais valiosos
     if (!list.length) {
-      const msg = (data.source && data.source !== 'ok') ? t('ws.down') : t('farm.noTiers');
-      farmGrid.replaceChildren(el('p', { class: 'empty', text: msg }));
+      const degraded = data.source && data.source !== 'ok';
+      farmGrid.replaceChildren(el('p', { class: 'empty' }, degraded ? wsMsg('ws.down') : [t('farm.noTiers')]));
       return;
     }
     farmHint.textContent = t('farm.count', { n: (data.items || []).length });
     // fonte fora do ar: itens vêm da última foto salva - alerta datado em cima
     const alert = data.fallback
-      ? [el('p', { class: 'error-box', text: t('ws.fallback', { when: I18n.fmtWhen(data.fallback.savedAt) }) })]
+      ? [el('p', { class: 'error-box' }, wsMsg('ws.fallback', { when: I18n.fmtWhen(data.fallback.savedAt) }))]
       : [];
     farmGrid.replaceChildren(...alert, ...list.map(App.farmCard));
-  }).catch(() => { farmGrid.replaceChildren(el('p', { class: 'empty', text: t('ws.down') })); });
+  }).catch(() => { farmGrid.replaceChildren(el('p', { class: 'empty' }, wsMsg('ws.down'))); });
 
   // ---- faq teaser ----
   const cards = document.getElementById('faq-cards');
