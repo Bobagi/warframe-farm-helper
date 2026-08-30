@@ -97,7 +97,10 @@
     // (item.steps) já explica isso em prosa; aqui é só um lembrete rápido.
     s.bounty ? el('span', { class: 'chip-hub', text: t('item.bountyHub', { hub: s.bounty.hub }) }) : null,
     s.rarity ? rarityChip(s.rarity) : null,
-    el('span', { class: 'num small', text: fmtPct(s.chance) }),
+    // `qty` (quantidade por drop, ex. 750x num baú) só vem de fontes de
+    // recurso resolvidas via server/drops.js - sem ela a % sozinha escondia
+    // que um baú "fraco" de 12,65% pode render muito mais por partida
+    el('span', { class: 'num small', text: s.qty > 1 ? `${fmtPct(s.chance)} · ${fmtInt(s.qty)}x` : fmtPct(s.chance) }),
   ]);
 
   // lista de "onde dropa": mostra os melhores SHOW e colapsa o resto num

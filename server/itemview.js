@@ -295,6 +295,10 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
   const L = (pt, enStr, zhStr) => (zh ? (zhStr || enStr) : (en ? enStr : pt));
   const pct = (n) => fmtPct(n, lang);
   const int = (n) => Number(n).toLocaleString(zh ? 'zh-CN' : (en ? 'en-US' : 'pt-BR'));
+  // fonte de recurso vinda de server/drops.js carrega `qty` (quantidade por
+  // drop, extraída de "750X Circuits") - sem isto a % sozinha escondia que
+  // um baú de 12,65% rendendo 750 unidades vale muito mais que parece
+  const chanceLabel = (s) => (s && s.qty > 1 ? `${pct(s.chance)}, ${int(s.qty)}x` : pct(s && s.chance));
   const steps = [];
 
   // Fonte de Contrato (Bounty) de mundo aberto NÃO é autoexplicativa - "Melhor
@@ -344,14 +348,14 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
     if (!alt) return null;
     if (alt.cache) {
       return L(
-        `Alternativa mais rápida: também dropa em ${alt.location} (${pct(alt.chance)}) - nessa missão os baús aparecem várias vezes (cada um é um sorteio independente), então numa partida curta você costuma ter mais de uma chance, o que compensa a % menor.`,
-        `Faster alternative: it also drops at ${alt.location} (${pct(alt.chance)}) - this mission scatters several caches across the map (each one an independent roll), so in one short run you usually get more than one shot, which offsets the lower %.`,
-        `更快的替代方案：也会在 ${alt.location}（${pct(alt.chance)}）掉落 - 这类任务地图上有多个密藏（每个都是独立判定），一局任务通常能开好几次，弥补了概率较低的问题。`);
+        `Também dropa em ${alt.location} (${chanceLabel(alt)}) - nessa missão os baús aparecem várias vezes (cada um é um sorteio independente), então numa partida curta você costuma ter mais de uma chance, o que compensa a % menor.`,
+        `It also drops at ${alt.location} (${chanceLabel(alt)}) - this mission scatters several caches across the map (each one an independent roll), so in one short run you usually get more than one shot, which offsets the lower %.`,
+        `也会在 ${alt.location}（${chanceLabel(alt)}）掉落 - 这类任务地图上有多个密藏（每个都是独立判定），一局任务通常能开好几次，弥补了概率较低的问题。`);
     }
     return L(
-      `Alternativa com % maior: ${alt.location} (${pct(alt.chance)})${alt.bounty ? ` - vá a ${alt.bounty.hub}${alt.bounty.npc ? ` e fale com ${alt.bounty.npc}` : ' e pegue um Contrato no quiosque (Bounty Board)'}` : ''}.`,
-      `Higher-% alternative: ${alt.location} (${pct(alt.chance)})${alt.bounty ? ` - head to ${alt.bounty.hub}${alt.bounty.npc ? ` and talk to ${alt.bounty.npc}` : ' and grab a Bounty from the board'}` : ''}.`,
-      `概率更高的替代方案：${alt.location}（${pct(alt.chance)}）${alt.bounty ? `，前往 ${alt.bounty.hub}${alt.bounty.npc ? `，找 ${alt.bounty.npc} 领取赏金任务` : '，在赏金任务公告板领取任务'}` : ''}。`);
+      `${alt.location} (${chanceLabel(alt)})${alt.bounty ? ` - vá a ${alt.bounty.hub}${alt.bounty.npc ? ` e fale com ${alt.bounty.npc}` : ' e pegue um Contrato no quiosque (Bounty Board)'}` : ''}.`,
+      `${alt.location} (${chanceLabel(alt)})${alt.bounty ? ` - head to ${alt.bounty.hub}${alt.bounty.npc ? ` and talk to ${alt.bounty.npc}` : ' and grab a Bounty from the board'}` : ''}.`,
+      `${alt.location}（${chanceLabel(alt)}）${alt.bounty ? `，前往 ${alt.bounty.hub}${alt.bounty.npc ? `，找 ${alt.bounty.npc} 领取赏金任务` : '，在赏金任务公告板领取任务'}` : ''}。`);
   };
   // empurra a fonte principal e, se houver alternativa, um SEGUNDO item -
   // usado nos 3 pontos onde o passo a passo cita "a melhor fonte" de algo
@@ -404,9 +408,9 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
   // antes da lista de componentes
   if (comps.length && itemSources.other.length) {
     const top = itemSources.other[0];
-    pushSourceStep(L(`Também dropa em ${top.location} (${pct(top.chance)}).`,
-      `It also drops at ${top.location} (${pct(top.chance)}).`,
-      `也会在 ${top.location} 掉落（${pct(top.chance)}）。`) + bountyHint(top), itemSources.other, top);
+    pushSourceStep(L(`Também dropa em ${top.location} (${chanceLabel(top)}).`,
+      `It also drops at ${top.location} (${chanceLabel(top)}).`,
+      `也会在 ${top.location} 掉落（${chanceLabel(top)}）。`) + bountyHint(top), itemSources.other, top);
   }
 
   const relicComps = comps.filter((c) => c.relics.length);
@@ -469,9 +473,9 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
     const top = srcs[0];
     const rar = top.rarity ? `, ${rarityLabel(top.rarity, lang)}` : '';
     pushSourceStep(L(
-      `${cn(c)}: dropa em ${top.location} (${pct(top.chance)}${rar}).`,
-      `${cn(c)}: drops at ${top.location} (${pct(top.chance)}${rar}).`,
-      `${cn(c)}：掉落于 ${top.location}（${pct(top.chance)}${rar}）。`) + bountyHint(top), srcs, top);
+      `${cn(c)}: dropa em ${top.location} (${chanceLabel(top)}${rar}).`,
+      `${cn(c)}: drops at ${top.location} (${chanceLabel(top)}${rar}).`,
+      `${cn(c)}：掉落于 ${top.location}（${chanceLabel(top)}${rar}）。`) + bountyHint(top), srcs, top);
   }
   for (const c of comps.filter((x) => x.acquisition && !x.isBlueprint)) {
     const a = c.acquisition;
@@ -505,8 +509,8 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
   if (!comps.length) {
     if (itemSources.relics.length || itemSources.other.length) {
       const top = itemSources.other[0] || null;
-      if (top) pushSourceStep(L(`Melhor fonte: ${top.location} (${pct(top.chance)}).`, `Best source: ${top.location} (${pct(top.chance)}).`,
-        `最佳来源：${top.location}（${pct(top.chance)}）。`) + bountyHint(top), itemSources.other, top);
+      if (top) pushSourceStep(L(`${top.location} (${chanceLabel(top)}).`, `${top.location} (${chanceLabel(top)}).`,
+        `${top.location}（${chanceLabel(top)}）。`) + bountyHint(top), itemSources.other, top);
     } else if (!acq) {
       steps.push(L(
         'Este item não tem fonte de drop listada nas tabelas oficiais - normalmente vem de quest, pesquisa de clã (Dojo), loja de sindicato ou do Mercado (créditos). Confira a página da wiki para o caminho exato.',
@@ -603,16 +607,27 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
     });
   }
 
-  // componentes-recurso sem fonte no nosso dataset (Orokin Cell, Morphics…):
-  // busca "onde dropa" na API de drops e gera o link da wiki, em vez de só
-  // dizer "sem fonte". Em paralelo (1-2 por item), com cache no módulo de drops.
-  // ★ o componente genérico "Blueprint" é o projeto DO PRÓPRIO item - a fonte
-  // dele é a pesquisa/loja/quest, nunca um drop de recurso. Buscá-lo na API de
-  // drops casava o item literal "Blueprint" de TODA missão de Resgate e enchia
-  // a página com 8 locais errados.
-  const needDrops = comps.filter((c) => !c.isBlueprint && !c.relics.length && !c.otherSources.length);
-  await Promise.all(needDrops.map(async (c) => {
-    try { c.resourceDrops = await getResourceDrops(c.name); } catch { c.resourceDrops = []; }
+  // Componente-recurso de verdade (Circuits, Plastids, Alloy Plate, Nano
+  // Spores…) tem o MESMO problema do item top-level (ver `isResourceItem`
+  // abaixo): o dataset local (WFCD) não carrega QUANTIDADE por drop, só a
+  // API de drops tem ("750X Circuits"). Por isso `isIngredient` SEMPRE tenta
+  // a API e, se ela responder, SUBSTITUI `otherSources` (não só quando o
+  // dataset está vazio) - senão a página comparava % crua de um componente
+  // contra a % completa (com quantidade) de outro, incoerente entre si.
+  // Peça de prime órfã (sem fonte nenhuma, ex. "Braton Prime Barrel" sem
+  // drop listado) continua indo pra `resourceDrops` - rota separada que o
+  // resto do código já espera vazia por padrão. O componente genérico
+  // "Blueprint" nunca entra aqui: é o projeto DO PRÓPRIO item (pesquisa/
+  // loja/quest), buscá-lo na API casava o item literal "Blueprint" de TODA
+  // missão de Resgate e enchia a página com locais errados.
+  await Promise.all(comps.filter((c) => !c.isBlueprint).map(async (c) => {
+    const ingredient = isIngredient(c.name);
+    if (!ingredient && (c.relics.length || c.otherSources.length)) return;
+    try {
+      const d = await getResourceDrops(c.name);
+      if (!d.length) return;
+      if (ingredient) c.otherSources = d; else c.resourceDrops = d;
+    } catch { /* mantém o que já tinha vindo do dataset local */ }
   }));
 
   // índice reverso: quais itens usam ESTE como componente (ex.: Furis → Afuris)
@@ -639,12 +654,23 @@ async function buildItemDetail(uniqueName, lang = 'pt') {
   // recurso seja CRAFTÁVEL (o Orokin Cell tem receita: Alloy Plate/Nano Spores/
   // Salvage), pois farmar é a forma comum de obtê-lo; por isso NÃO condiciona a
   // `!comps.length`.
+  //
+  // ★ Para recurso, a API de drops SEMPRE ganha do dataset local (mesmo quando
+  // o dataset já tem entradas), porque só ela carrega a QUANTIDADE por drop
+  // ("750X Circuits" no item cru da API - server/drops.js `summarize` extrai
+  // e ordena por valor esperado, chance × quantidade). Sem isso, "melhor
+  // fonte" comparava só a %: Vale dos Orbes 25% parecia melhor que Ishtar/
+  // Terminus/Gradivus a 12,65%, quando na verdade estes rendem 750 por baú
+  // (94,875 esperado) contra uma bounty que rende bem menos por conclusão -
+  // exatamente a conta que a wiki mostra ("Avg. per roll") e o nosso texto
+  // não fazia. Se a API falhar/vier vazia, cai pro dataset local (com chance
+  // crua, sem quantidade) em vez de mostrar nada.
   const isResourceItem = row.category === 'Resources' || raw.type === 'Resource';
-  if (isResourceItem && !itemSources.other.length && !itemSources.relics.length) {
+  if (isResourceItem) {
     try {
       const d = await getResourceDrops(raw.name);
-      if (d.length) itemSources = { relics: [], other: d };
-    } catch { /* mantém vazio */ }
+      if (d.length) itemSources = { relics: itemSources.relics, other: d };
+    } catch { /* mantém o que já tinha vindo do dataset local */ }
   } else if (!comps.length && !itemSources.other.length && !itemSources.relics.length) {
     // item comum sem componentes e sem fonte no dataset: tenta a API mesmo assim
     try {

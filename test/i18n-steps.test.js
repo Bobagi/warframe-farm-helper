@@ -87,16 +87,18 @@ function orbVallisBountySource() {
   };
 }
 
-test('buildSteps: "Melhor fonte" de Contrato explica hub e NPC (PT)', () => {
+test('buildSteps: fonte de Contrato explica hub e NPC, sem o rótulo "Melhor fonte:" (PT)', () => {
   const pt = buildSteps({}, [], orbVallisBountySource(), 'pt').join(' ');
-  assert.match(pt, /Melhor fonte: Venus\/Orb Vallis .*\(25%\)\./);
+  assert.match(pt, /^Venus\/Orb Vallis .*\(25%\)\./);
+  assert.doesNotMatch(pt, /Melhor fonte/);
   assert.match(pt, /vá a Fortuna e fale com Eudico/);
   assert.match(pt, /rotação indicada acima/);
 });
 
-test('buildSteps: "Melhor fonte" de Contrato explica hub e NPC (EN)', () => {
+test('buildSteps: fonte de Contrato explica hub e NPC, sem rótulo (EN)', () => {
   const en = buildSteps({}, [], orbVallisBountySource(), 'en').join(' ');
-  assert.match(en, /Best source: Venus\/Orb Vallis .*\(25%\)\./);
+  assert.match(en, /^Venus\/Orb Vallis .*\(25%\)\./);
+  assert.doesNotMatch(en, /Best source/);
   assert.match(en, /head to Fortuna and talk to Eudico/);
   assert.doesNotMatch(en, /vá a|fale com/);
 });
@@ -129,24 +131,25 @@ function plastidsLikeSources() {
   };
 }
 
-test('buildSteps: "Melhor fonte" Contrato cita a alternativa mais rápida de baús - como ITEM SEPARADO', () => {
+test('buildSteps: fonte de Contrato cita a alternativa mais rápida de baús - dois itens, sem rótulo', () => {
   const pt = buildSteps({}, [], plastidsLikeSources(), 'pt');
-  // pedido do usuário 2026-08-30: mission e mapa em <li> diferentes, não uma
-  // frase só grudada na "Melhor fonte" - por isso checa o array, não o join
+  // pedido do usuário 2026-08-30: mission e mapa em <li> diferentes, sem os
+  // rótulos "Melhor fonte:"/"Alternativa mais rápida:" na frente - só o texto
   assert.equal(pt.length, 2, 'a fonte principal e a alternativa são DOIS itens do passo a passo');
   // item 1 = tudo sobre a missão/Contrato (fonte + hub/NPC); item 2 = só o mapa/baús
-  assert.match(pt[0], /^Melhor fonte: Venus\/Orb Vallis .*\(25%\)\. Para conseguir: vá a Fortuna e fale com Eudico/);
-  assert.doesNotMatch(pt[0], /Alternativa/, 'item 1 não carrega a alternativa de mapa junto');
-  assert.match(pt[1], /^Alternativa mais rápida: também dropa em Eris\/Naeglar .*\(15,49%\)/, 'item 2 (mapa/baús) começa a frase própria dele');
+  assert.match(pt[0], /^Venus\/Orb Vallis .*\(25%\)\. Para conseguir: vá a Fortuna e fale com Eudico/);
+  assert.doesNotMatch(pt[0], /Melhor fonte|Alternativa/, 'item 1 não tem rótulo nem carrega a alternativa de mapa junto');
+  assert.match(pt[1], /^Também dropa em Eris\/Naeglar .*\(15,49%\)/, 'item 2 (mapa/baús) começa a frase própria dele, sem rótulo');
   assert.match(pt[1], /baús aparecem várias vezes/);
+  assert.doesNotMatch(pt[1], /Alternativa/);
 
   const en = buildSteps({}, [], plastidsLikeSources(), 'en');
   assert.equal(en.length, 2);
-  assert.match(en[1], /^Faster alternative: it also drops at Eris\/Naeglar .*\(15\.49%\)/);
-  assert.doesNotMatch(en.join(' '), /Alternativa mais rápida|baús/);
+  assert.match(en[1], /^It also drops at Eris\/Naeglar .*\(15\.49%\)/);
+  assert.doesNotMatch(en.join(' '), /Alternativa|Faster alternative|baús/);
 });
 
-test('buildSteps: "Melhor fonte" de baús cita o Contrato como alternativa de % maior - como ITEM SEPARADO', () => {
+test('buildSteps: fonte de baús cita o Contrato como alternativa de % maior - dois itens, sem rótulo', () => {
   const src = {
     relics: [],
     other: [
@@ -157,8 +160,10 @@ test('buildSteps: "Melhor fonte" de baús cita o Contrato como alternativa de % 
   };
   const pt = buildSteps({}, [], src, 'pt');
   assert.equal(pt.length, 2);
-  assert.match(pt[0], /^Melhor fonte: Eris\/Naeglar/);
-  assert.match(pt[1], /^Alternativa com % maior: Venus\/Orb Vallis .*\(25%\).*vá a Fortuna e fale com Eudico/);
+  assert.match(pt[0], /^Eris\/Naeglar/);
+  assert.doesNotMatch(pt[0], /Melhor fonte/);
+  assert.match(pt[1], /^Venus\/Orb Vallis .*\(25%\).*vá a Fortuna e fale com Eudico/);
+  assert.doesNotMatch(pt[1], /Alternativa/);
 });
 
 test('buildSteps: NÃO sugere alternativa quando ela é fraca demais (abaixo de 40% do top ou <10%)', () => {
@@ -174,11 +179,11 @@ test('buildSteps: NÃO sugere alternativa quando ela é fraca demais (abaixo de 
   assert.doesNotMatch(pt, /Alternativa/, '8% é menos que 10% E menos que 40% de 25% - não vale a sugestão');
 });
 
-test('buildSteps: fonte que NÃO é Contrato não ganha a dica de hub/NPC', () => {
+test('buildSteps: fonte que NÃO é Contrato não ganha a dica de hub/NPC, nem rótulo', () => {
   const src = { relics: [], other: [{ location: 'Corrupted Vor', chance: 5, bounty: null }] };
   const pt = buildSteps({}, [], src, 'pt').join(' ');
-  assert.match(pt, /Melhor fonte: Corrupted Vor \(5%\)\.$/);
-  assert.doesNotMatch(pt, /Para conseguir|fale com/);
+  assert.match(pt, /^Corrupted Vor \(5%\)\.$/);
+  assert.doesNotMatch(pt, /Melhor fonte|Para conseguir|fale com/);
 });
 
 test('buildSteps: componente com fonte de Contrato também ganha a dica (dropa em)', () => {
@@ -192,6 +197,25 @@ test('buildSteps: componente com fonte de Contrato também ganha a dica (dropa e
   const pt = buildSteps({}, comps, { relics: [], other: [] }, 'pt').join(' ');
   assert.match(pt, /dropa em Deimos\/Cambion Drift/);
   assert.match(pt, /vá a Necralisk e fale com Mother/);
+});
+
+// caso Circuits/Ishtar: a fonte já vem RANQUEADA por valor esperado (server/
+// drops.js) - buildSteps só precisa MOSTRAR a quantidade quando ela existe,
+// pra ficar claro por que uma % "menor" ganhou (750x por baú bate 25% de bounty).
+test('buildSteps: mostra a quantidade por drop (qty) quando a fonte vem de server/drops.js', () => {
+  const src = {
+    relics: [],
+    other: [{ location: 'Venus/Ishtar (Caches), Rotation B', chance: 12.65, qty: 750, ev: 94.875, bounty: null, cache: true }],
+  };
+  const pt = buildSteps({}, [], src, 'pt').join(' ');
+  assert.match(pt, /^Venus\/Ishtar \(Caches\), Rotation B \(12,65%, 750x\)\.$/);
+});
+
+test('buildSteps: sem qty (ou qty=1) não mostra "1x" nem vírgula extra', () => {
+  const src = { relics: [], other: [{ location: 'Corrupted Vor', chance: 5, qty: 1, bounty: null }] };
+  const pt = buildSteps({}, [], src, 'pt').join(' ');
+  assert.match(pt, /^Corrupted Vor \(5%\)\.$/);
+  assert.doesNotMatch(pt, /x\./);
 });
 
 test('buildSteps: componente com todas as relíquias vaulted orienta trade/Resurgence', () => {

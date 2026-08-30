@@ -108,7 +108,11 @@ test('componente com via de aquisição NÃO é carimbado de vaulted', async () 
 test('passo a passo não diz "sem fonte" de um componente que a página mostra com drop', async () => {
   const d = await buildItemDetail(RESOURCE_U, 'pt');
   const ms = d.components.find((c) => c.name === 'Mutagen Sample');
-  assert.ok(ms.resourceDrops.length > 0, 'pré-condição: a página mostra onde farmar');
+  // Mutagen Sample é um ingrediente de verdade (isIngredient): desde
+  // 2026-08-30 a API de drops vira `otherSources` pra esses (carrega
+  // quantidade, "otherSources" é o que o passo a passo e a página realmente
+  // olham primeiro), não mais `resourceDrops` (rota reservada a peça órfã).
+  assert.ok(ms.otherSources.length > 0, 'pré-condição: a página mostra onde farmar');
   // em PT o passo usa o nome traduzido do componente ("Amostra Mutagênica")
   const contradiz = d.steps.filter((s) => s.startsWith('Amostra Mutagênica') && /sem fonte/i.test(s));
   assert.deepEqual(contradiz, [], `a página se contradizia: ${JSON.stringify(d.steps)}`);
