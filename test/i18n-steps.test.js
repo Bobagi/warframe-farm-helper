@@ -73,6 +73,118 @@ test('es/ru caem no inglês, nunca no português (sem vazamento PT)', () => {
   assert.doesNotMatch(es, /farme a|créditos|radiante|Incomum/); // zero português
 });
 
+// caso do Plastids: item sem componentes, fonte é um Contrato de mundo aberto.
+// Antes desta mudança o passo só citava o local cru da DE ("Venus/Orb Vallis
+// (Level 20-40 Orb Vallis Bounty), Rotation B"), sem dizer que era preciso ir
+// a Fortuna e falar com Eudico - regressão coberta aqui.
+function orbVallisBountySource() {
+  return {
+    relics: [],
+    other: [{
+      location: 'Venus/Orb Vallis (Level 20 - 40 Orb Vallis Bounty), Rotation B',
+      chance: 25, rarity: 'Uncommon', bounty: { hub: 'Fortuna', npc: 'Eudico' },
+    }],
+  };
+}
+
+test('buildSteps: "Melhor fonte" de Contrato explica hub e NPC (PT)', () => {
+  const pt = buildSteps({}, [], orbVallisBountySource(), 'pt').join(' ');
+  assert.match(pt, /Melhor fonte: Venus\/Orb Vallis .*\(25%\)\./);
+  assert.match(pt, /vá a Fortuna e fale com Eudico/);
+  assert.match(pt, /rotação indicada acima/);
+});
+
+test('buildSteps: "Melhor fonte" de Contrato explica hub e NPC (EN)', () => {
+  const en = buildSteps({}, [], orbVallisBountySource(), 'en').join(' ');
+  assert.match(en, /Best source: Venus\/Orb Vallis .*\(25%\)\./);
+  assert.match(en, /head to Fortuna and talk to Eudico/);
+  assert.doesNotMatch(en, /vá a|fale com/);
+});
+
+test('buildSteps: hub sem NPC nomeado (Höllvania) orienta o quiosque, não trava em "null"', () => {
+  const src = {
+    relics: [],
+    other: [{
+      location: 'Höllvania (Level 55 - 60 WF1999 Bounty), Rotation C',
+      chance: 12, bounty: { hub: 'Höllvania Central Mall', npc: null },
+    }],
+  };
+  const pt = buildSteps({}, [], src, 'pt').join(' ');
+  assert.match(pt, /vá a Höllvania Central Mall e pegue um Contrato no quiosque/);
+  assert.doesNotMatch(pt, /fale com null|\bnull\b/);
+});
+
+// caso real que motivou isto: Plastids tem Contrato de Vênus (25%, único
+// sorteio, ~15-20 min de partida) E várias missões de baús (Eris/Naeglar
+// entre elas, ~15%, VÁRIOS baús numa partida de poucos minutos) - um jogador
+// farmou em Naeglar e reclamou que o site nem citava essa rota mais rápida.
+function plastidsLikeSources() {
+  return {
+    relics: [],
+    other: [
+      { location: 'Venus/Orb Vallis (Level 20 - 40 Orb Vallis Bounty), Rotation B',
+        chance: 25, rarity: 'Uncommon', bounty: { hub: 'Fortuna', npc: 'Eudico' }, cache: false },
+      { location: 'Eris/Naeglar (Caches), Rotation B', chance: 15.49, rarity: 'Uncommon', bounty: null, cache: true },
+    ],
+  };
+}
+
+test('buildSteps: "Melhor fonte" Contrato cita a alternativa mais rápida de baús', () => {
+  const pt = buildSteps({}, [], plastidsLikeSources(), 'pt').join(' ');
+  assert.match(pt, /Alternativa mais rápida: também dropa em Eris\/Naeglar .*\(15,49%\)/);
+  assert.match(pt, /baús aparecem várias vezes/);
+  const en = buildSteps({}, [], plastidsLikeSources(), 'en').join(' ');
+  assert.match(en, /Faster alternative: it also drops at Eris\/Naeglar .*\(15\.49%\)/);
+  assert.doesNotMatch(en, /Alternativa mais rápida|baús/);
+});
+
+test('buildSteps: "Melhor fonte" de baús cita o Contrato como alternativa de % maior', () => {
+  const src = {
+    relics: [],
+    other: [
+      { location: 'Eris/Naeglar (Caches), Rotation B', chance: 15.49, rarity: 'Uncommon', bounty: null, cache: true },
+      { location: 'Venus/Orb Vallis (Level 20 - 40 Orb Vallis Bounty), Rotation B',
+        chance: 25, rarity: 'Uncommon', bounty: { hub: 'Fortuna', npc: 'Eudico' }, cache: false },
+    ],
+  };
+  const pt = buildSteps({}, [], src, 'pt').join(' ');
+  assert.match(pt, /Melhor fonte: Eris\/Naeglar/);
+  assert.match(pt, /Alternativa com % maior: Venus\/Orb Vallis .*\(25%\).*vá a Fortuna e fale com Eudico/);
+});
+
+test('buildSteps: NÃO sugere alternativa quando ela é fraca demais (abaixo de 40% do top ou <10%)', () => {
+  const fraca = {
+    relics: [],
+    other: [
+      { location: 'Venus/Orb Vallis (Level 20 - 40 Orb Vallis Bounty), Rotation B',
+        chance: 25, rarity: 'Uncommon', bounty: { hub: 'Fortuna', npc: 'Eudico' }, cache: false },
+      { location: 'Eris/Naeglar (Caches), Rotation B', chance: 8, rarity: 'Uncommon', bounty: null, cache: true },
+    ],
+  };
+  const pt = buildSteps({}, [], fraca, 'pt').join(' ');
+  assert.doesNotMatch(pt, /Alternativa/, '8% é menos que 10% E menos que 40% de 25% - não vale a sugestão');
+});
+
+test('buildSteps: fonte que NÃO é Contrato não ganha a dica de hub/NPC', () => {
+  const src = { relics: [], other: [{ location: 'Corrupted Vor', chance: 5, bounty: null }] };
+  const pt = buildSteps({}, [], src, 'pt').join(' ');
+  assert.match(pt, /Melhor fonte: Corrupted Vor \(5%\)\.$/);
+  assert.doesNotMatch(pt, /Para conseguir|fale com/);
+});
+
+test('buildSteps: componente com fonte de Contrato também ganha a dica (dropa em)', () => {
+  const comps = [{
+    fullName: 'Foo Prime Neuroptics', relics: [],
+    otherSources: [{
+      location: 'Deimos/Cambion Drift (Level 15 - 25 Cambion Drift Bounty), Rotation A',
+      chance: 8, rarity: 'Rare', bounty: { hub: 'Necralisk', npc: 'Mother' },
+    }],
+  }];
+  const pt = buildSteps({}, comps, { relics: [], other: [] }, 'pt').join(' ');
+  assert.match(pt, /dropa em Deimos\/Cambion Drift/);
+  assert.match(pt, /vá a Necralisk e fale com Mother/);
+});
+
 test('buildSteps: componente com todas as relíquias vaulted orienta trade/Resurgence', () => {
   const comps = [{ fullName: 'Foo Prime Blade', relics: [{ vaulted: true }], otherSources: [] }];
   const pt = buildSteps({}, comps, { relics: [], other: [] }, 'pt').join(' ');

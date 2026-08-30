@@ -9,9 +9,14 @@
 
 const { fetchJson } = require('./util');
 const { enemyWikiUrl } = require('./enemywiki');
+const { bountyHubFor } = require('./bountyHubs');
+const { isCacheSource } = require('./cacheSource');
 
 const TTL_MS = 24 * 60 * 60 * 1000; // 24h
-const MAX_LOCATIONS = 8;
+// mesmo motivo/valor do slice(0, 30) de classifyDrops em itemview.js: 8 era
+// baixo demais (Orokin Cell tem 96 locais distintos na API, só 8 chegavam à
+// página) - ver o comentário lá para o caso concreto que motivou o aumento.
+const MAX_LOCATIONS = 30;
 const cache = new Map(); // nome(lower) -> { data, at }
 
 const escapeRegex = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -58,8 +63,17 @@ function summarize(arr, name) {
     const chance = Number.isFinite(d.chance) ? d.chance : 0;
     const prev = byPlace.get(location);
     if (!prev || chance > prev.chance) {
-      // wiki no nome cru EN (boss/inimigo que dropa o recurso vira link)
-      byPlace.set(location, { location, chance, rarity: d.rarity, wiki: enemyWikiUrl(location) });
+      // wiki no nome cru EN (boss/inimigo que dropa o recurso vira link);
+      // bounty = hub/NPC do Contrato quando o local é um (Fortuna/Eudico etc.);
+      // cache = missão de Extermínio/Sabotagem com vários baús independentes
+      byPlace.set(location, {
+        location,
+        chance,
+        rarity: d.rarity,
+        wiki: enemyWikiUrl(location),
+        bounty: bountyHubFor(location),
+        cache: isCacheSource(location),
+      });
     }
   }
   return [...byPlace.values()]

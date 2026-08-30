@@ -92,6 +92,10 @@
         ? el('a', { class: 'name src-wiki', href: safeHref(s.wiki), target: '_blank', rel: 'noopener', text: s.location })
         : el('span', { class: 'name', text: s.location }),
     ]),
+    // Contrato de mundo aberto (Fortuna/Eudico etc.): o local cru da DE não
+    // deixa claro que é preciso ir ao hub e falar com o NPC - o passo a passo
+    // (item.steps) já explica isso em prosa; aqui é só um lembrete rápido.
+    s.bounty ? el('span', { class: 'chip-hub', text: t('item.bountyHub', { hub: s.bounty.hub }) }) : null,
     s.rarity ? rarityChip(s.rarity) : null,
     el('span', { class: 'num small', text: fmtPct(s.chance) }),
   ]);

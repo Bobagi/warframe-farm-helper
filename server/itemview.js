@@ -17,6 +17,8 @@ const { itemUrl, safeHttpUrl } = require('./seo');
 const { getVarzia } = require('./varzia');
 const { enemyWikiUrl } = require('./enemywiki');
 const { getAcquisition } = require('./acquisition');
+const { bountyHubFor } = require('./bountyHubs');
+const { isCacheSource } = require('./cacheSource');
 
 // sufixo EN de cosmético/coisa → rótulo PT (mostrado ANTES do nome, com ":")
 const REWARD_SUFFIX = {
@@ -197,12 +199,26 @@ function classifyDrops(drops) {
   }
   return {
     relics: [...relicMap.values()],
-    // wiki entra AQUI, no nome cru em inglês - a tradução PT (placePt) roda
-    // depois e clona com spread, então o link sobrevive intacto
+    // wiki e bounty entram AQUI, no nome cru em inglês - a tradução PT
+    // (placePt) roda depois e clona com spread, então os dois sobrevivem
+    // intactos; bounty é o hub/NPC do Contrato (Fortuna/Eudico etc.), null
+    // quando o local não é um Contrato de mundo aberto
+    //
+    // ★ CAP de 30, não 10 (até 2026-08-30): um recurso comum como Plastids
+    // tem ~29 locais distintos empatados entre 12-15%, e o corte em 10
+    // descartava os outros 19 ANTES de chegarem no cliente - nem o "ver mais
+    // fontes" alcançava (ele só revela o que já veio do servidor). Um jogador
+    // farmou exatamente num nó (Eris/Naeglar) que sumiu por essa razão. 30
+    // cobre o caso comum (visto no dataset: a maioria dos recursos tem <30
+    // locais) sem inflar demais os poucos itens com centenas (Forma, por ex.
+    // - aí 30 já é "top 30", plenamente aceitável, e o resto continua atrás
+    // do "ver mais fontes" client-side).
     other: [...dedup.values()]
       .sort((a, b) => (b.chance || 0) - (a.chance || 0))
-      .slice(0, 10)
-      .map((d) => ({ ...d, wiki: enemyWikiUrl(d.location) })),
+      .slice(0, 30)
+      .map((d) => ({
+        ...d, wiki: enemyWikiUrl(d.location), bounty: bountyHubFor(d.location), cache: isCacheSource(d.location),
+      })),
   };
 }
 
@@ -281,6 +297,59 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
   const int = (n) => Number(n).toLocaleString(zh ? 'zh-CN' : (en ? 'en-US' : 'pt-BR'));
   const steps = [];
 
+  // Fonte de Contrato (Bounty) de mundo aberto NÃO é autoexplicativa - "Melhor
+  // fonte: Vale dos Orbes (Nível 20-40 Contrato), Rotação B" não diz que é
+  // preciso ir a Fortuna e falar com Eudico. `top.bounty` (anotado em
+  // classifyDrops/summarize) resolve isso: um complemento com o hub/NPC certo.
+  const bountyHint = (top) => {
+    if (!top || !top.bounty) return '';
+    const { hub, npc } = top.bounty;
+    return L(
+      ` Para conseguir: vá a ${hub}${npc ? ` e fale com ${npc}` : ' e pegue um Contrato no quiosque (Bounty Board)'} - jogue o Contrato até a rotação indicada acima para ter chance nessa recompensa.`,
+      ` To get this: head to ${hub}${npc ? ` and talk to ${npc}` : ' and grab a Bounty from the board'} - play the Bounty through to the rotation shown above for a chance at that reward.`,
+      ` 获取方法：前往 ${hub}${npc ? `，找 ${npc} 领取赏金任务` : '，在赏金任务公告板领取任务'} - 把赏金任务打到上面标注的轮换阶段，才有机会拿到该奖励。`);
+  };
+
+  // "Melhor fonte" por % isolada engana: uma missão de Extermínio/Sabotagem
+  // com "(Caches)" espalha VÁRIOS baús pelo mapa (cada um é um sorteio
+  // independente) numa partida de poucos minutos, enquanto um Contrato de
+  // mundo aberto é um único sorteio por rotação numa partida de ~15-20 min -
+  // % maior não significa farm melhor. Sem isto, um item cujo top é Contrato
+  // nunca mencionava a rota de baús mais rápida (mesmo quando ela aparecia
+  // mais abaixo na tabela "Onde dropa"), e vice-versa.
+  // `cache`/`bounty` são anotados em classifyDrops/summarize a partir do LOCAL
+  // CRU (inglês) - por isso ler os campos aqui, e não re-testar `location`:
+  // em pt/zh essa string já passou por `placeIn` e "Caches" virou "Baús"/密藏.
+  function pickAlternative(sources, top) {
+    if (!top || !Array.isArray(sources)) return null;
+    const topIsBounty = !!top.bounty;
+    const topIsCache = !!top.cache;
+    if (!topIsBounty && !topIsCache) return null; // só bounty ↔ caches tem um "porém" conhecido
+    const wantCache = topIsBounty;
+    for (const s of sources) {
+      if (s === top || s.chance == null) continue;
+      const sMatches = wantCache ? !!s.cache : !!s.bounty;
+      if (!sMatches) continue;
+      if (s.chance < 10) continue; // % baixa demais pra valer a sugestão
+      if (top.chance && s.chance < top.chance * 0.4) continue; // não sugira algo bem pior
+      return s;
+    }
+    return null;
+  }
+  const alternativeHint = (alt) => {
+    if (!alt) return '';
+    if (alt.cache) {
+      return L(
+        ` Alternativa mais rápida: também dropa em ${alt.location} (${pct(alt.chance)}) - nessa missão os baús aparecem várias vezes (cada um é um sorteio independente), então numa partida curta você costuma ter mais de uma chance, o que compensa a % menor.`,
+        ` Faster alternative: it also drops at ${alt.location} (${pct(alt.chance)}) - this mission scatters several caches across the map (each one an independent roll), so in one short run you usually get more than one shot, which offsets the lower %.`,
+        ` 更快的替代方案：也会在 ${alt.location}（${pct(alt.chance)}）掉落 - 这类任务地图上有多个密藏（每个都是独立判定），一局任务通常能开好几次，弥补了概率较低的问题。`);
+    }
+    return L(
+      ` Alternativa com % maior: ${alt.location} (${pct(alt.chance)})${alt.bounty ? ` - vá a ${alt.bounty.hub}${alt.bounty.npc ? ` e fale com ${alt.bounty.npc}` : ' e pegue um Contrato no quiosque (Bounty Board)'}` : ''}.`,
+      ` Higher-% alternative: ${alt.location} (${pct(alt.chance)})${alt.bounty ? ` - head to ${alt.bounty.hub}${alt.bounty.npc ? ` and talk to ${alt.bounty.npc}` : ' and grab a Bounty from the board'}` : ''}.`,
+      ` 概率更高的替代方案：${alt.location}（${pct(alt.chance)}）${alt.bounty ? `，前往 ${alt.bounty.hub}${alt.bounty.npc ? `，找 ${alt.bounty.npc} 领取赏金任务` : '，在赏金任务公告板领取任务'}` : ''}。`);
+  };
+
   // Pesquisa no Dojo vem PRIMEIRO: quando o item tem essa via, ela é o
   // caminho principal (o projeto nasce lá) e sem ela o passo a passo pulava
   // direto para a forja, mandando construir algo que o jogador nem tem.
@@ -326,7 +395,8 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
     const top = itemSources.other[0];
     steps.push(L(`Também dropa em ${top.location} (${pct(top.chance)}).`,
       `It also drops at ${top.location} (${pct(top.chance)}).`,
-      `也会在 ${top.location} 掉落（${pct(top.chance)}）。`));
+      `也会在 ${top.location} 掉落（${pct(top.chance)}）。`)
+      + bountyHint(top) + alternativeHint(pickAlternative(itemSources.other, top)));
   }
 
   const relicComps = comps.filter((c) => c.relics.length);
@@ -385,12 +455,14 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
       '到对应等级的虚空裂缝任务里开启遗物（本页有当前活跃的裂缝列表）。小技巧：用 100 虚空光体精炼到光辉，并且组队开启（radshare），可以提高稀有部件的出货率。'));
   }
   for (const c of farmComps) {
-    const top = compSources(c)[0];
+    const srcs = compSources(c);
+    const top = srcs[0];
     const rar = top.rarity ? `, ${rarityLabel(top.rarity, lang)}` : '';
     steps.push(L(
       `${cn(c)}: dropa em ${top.location} (${pct(top.chance)}${rar}).`,
       `${cn(c)}: drops at ${top.location} (${pct(top.chance)}${rar}).`,
-      `${cn(c)}：掉落于 ${top.location}（${pct(top.chance)}${rar}）。`));
+      `${cn(c)}：掉落于 ${top.location}（${pct(top.chance)}${rar}）。`)
+      + bountyHint(top) + alternativeHint(pickAlternative(srcs, top)));
   }
   for (const c of comps.filter((x) => x.acquisition && !x.isBlueprint)) {
     const a = c.acquisition;
@@ -425,7 +497,8 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
     if (itemSources.relics.length || itemSources.other.length) {
       const top = itemSources.other[0] || null;
       if (top) steps.push(L(`Melhor fonte: ${top.location} (${pct(top.chance)}).`, `Best source: ${top.location} (${pct(top.chance)}).`,
-        `最佳来源：${top.location}（${pct(top.chance)}）。`));
+        `最佳来源：${top.location}（${pct(top.chance)}）。`)
+        + bountyHint(top) + alternativeHint(pickAlternative(itemSources.other, top)));
     } else if (!acq) {
       steps.push(L(
         'Este item não tem fonte de drop listada nas tabelas oficiais - normalmente vem de quest, pesquisa de clã (Dojo), loja de sindicato ou do Mercado (créditos). Confira a página da wiki para o caminho exato.',

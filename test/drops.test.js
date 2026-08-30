@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 
 const { summarize } = require('../server/drops');
 const { wikiUrlFor } = require('../server/itemview');
+const { bountyHubFor } = require('../server/bountyHubs');
 
 test('summarize: casa o item exato e a variante "2X", dedup por local (maior chance)', () => {
   const arr = [
@@ -16,18 +17,21 @@ test('summarize: casa o item exato e a variante "2X", dedup por local (maior cha
   ];
   const out = summarize(arr, 'Orokin Cell');
   assert.deepEqual(out, [
-    // boss/inimigo ganha `wiki`; nó de missão (tem "/") fica sem
-    { location: 'Corrupted Vor', chance: 50, rarity: 'Common', wiki: 'https://wiki.warframe.com/index.php?search=Corrupted%20Vor' },
-    { location: 'Ceres/Gabii', chance: 22, rarity: 'Rare', wiki: null },
+    // boss/inimigo ganha `wiki`; nó de missão (tem "/") fica sem; nenhum dos
+    // dois é Bounty nem missão de baús → `bounty`/`cache` ficam null/false
+    { location: 'Corrupted Vor', chance: 50, rarity: 'Common', wiki: 'https://wiki.warframe.com/index.php?search=Corrupted%20Vor', bounty: null, cache: false },
+    { location: 'Ceres/Gabii', chance: 22, rarity: 'Rare', wiki: null, bounty: null, cache: false },
   ]);
 });
 
-test('summarize: ordena por chance desc e corta em 8 locais', () => {
-  const arr = Array.from({ length: 20 }, (_, i) => ({ place: `P${i}`, item: 'Morphics', chance: i }));
+test('summarize: ordena por chance desc e corta em 30 locais', () => {
+  // 40 locais distintos, bem acima do cap - antes disto o cap era 8 e cortava
+  // dados reais (Orokin Cell tem 96 locais na API; só 8 chegavam na página)
+  const arr = Array.from({ length: 40 }, (_, i) => ({ place: `P${i}`, item: 'Morphics', chance: i }));
   const out = summarize(arr, 'Morphics');
-  assert.equal(out.length, 8);
-  assert.equal(out[0].location, 'P19'); // maior chance primeiro
-  assert.ok(out[0].chance >= out[7].chance);
+  assert.equal(out.length, 30);
+  assert.equal(out[0].location, 'P39'); // maior chance primeiro
+  assert.ok(out[0].chance >= out[29].chance);
 });
 
 test('summarize: junta as rotações A/B/C do mesmo bounty num local só', () => {
@@ -40,6 +44,8 @@ test('summarize: junta as rotações A/B/C do mesmo bounty num local só', () =>
   assert.equal(out.length, 1, 'as 3 rotações viram 1 local');
   assert.equal(out[0].location, 'Venus/Orb Vallis (Level 40 - 60 Orb Vallis Bounty)');
   assert.equal(out[0].chance, 33.33, 'mantém a maior chance entre as rotações');
+  assert.deepEqual(out[0].bounty, { hub: 'Fortuna', npc: 'Eudico' },
+    'Orb Vallis Bounty aponta pro hub/NPC certo mesmo depois de juntar as rotações');
 });
 
 test('summarize: entrada inválida vira lista vazia (não quebra a página)', () => {
@@ -55,7 +61,7 @@ test('summarize: não casa por substring (só o item inteiro, evita falso positi
     { place: 'B', item: 'Orokin Cell', chance: 10 },
   ];
   assert.deepEqual(summarize(arr, 'Orokin Cell'),
-    [{ location: 'B', chance: 10, rarity: undefined, wiki: null }]);
+    [{ location: 'B', chance: 10, rarity: undefined, wiki: null, bounty: null, cache: false }]);
 });
 
 test('wikiUrlFor: nome → URL da wiki (espaços viram _)', () => {

@@ -413,6 +413,19 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
 .rar-Rare { color: var(--gold); border-color: var(--gold); }
 .rar-Legendary { color: var(--omnia); border-color: var(--omnia); }
 
+/* selo do hub de Contrato (Fortuna, Cetus…) na lista "Onde dropa" - mesmo
+   molde do .chip-rar, cor própria (não é raridade) pra não confundir com ela */
+.chip-hub {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 1px 8px;
+  border: 1px solid var(--energy-dim);
+  border-radius: 2px;
+  white-space: nowrap;
+  color: var(--energy-dim);
+}
+
 .kind-tag {
   font-size: 11px;
   letter-spacing: 0.08em;

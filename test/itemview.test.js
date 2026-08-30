@@ -11,6 +11,7 @@ process.env.DATA_DIR = TMP;
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { classifyDrops, marketSlugFor, fmtBuildTime } = require('../server/itemview');
+const { bountyHubFor } = require('../server/bountyHubs');
 
 test('classifyDrops agrupa refinamentos da mesma relíquia e usa a chance intact', () => {
   const { relics, other } = classifyDrops([
@@ -58,6 +59,30 @@ test('classifyDrops anota `wiki` no inimigo e deixa null no nó de missão', () 
   const node = other.find((d) => d.location.startsWith('Uranus/'));
   assert.equal(thumper.wiki, 'https://wiki.warframe.com/index.php?search=Tusk%20Thumper%20Bull');
   assert.equal(node.wiki, null, 'nó de missão não é inimigo');
+});
+
+test('classifyDrops anota `bounty` (hub/NPC) nas fontes de Contrato de mundo aberto', () => {
+  const { other } = classifyDrops([
+    { location: 'Venus/Orb Vallis (Level 20 - 40 Orb Vallis Bounty), Rotation B', chance: 25, rarity: 'Uncommon' },
+    { location: 'Uranus/Titania (Assassination)', chance: 22.56, rarity: 'Uncommon' },
+  ]);
+  const bounty = other.find((d) => d.location.includes('Orb Vallis'));
+  const node = other.find((d) => d.location.startsWith('Uranus/'));
+  assert.deepEqual(bounty.bounty, { hub: 'Fortuna', npc: 'Eudico' });
+  assert.equal(node.bounty, null, 'nó de missão comum não é Contrato');
+  // classifyDrops usa o mesmo `bountyHubFor` exportado - nada duplicado à mão
+  assert.deepEqual(bounty.bounty, bountyHubFor(bounty.location));
+});
+
+test('classifyDrops anota `cache` nas fontes de missão de baús (Extermínio/Sabotagem)', () => {
+  const { other } = classifyDrops([
+    { location: 'Eris/Naeglar (Caches), Rotation B', chance: 15.49, rarity: 'Uncommon' },
+    { location: 'Venus/Orb Vallis (Level 20 - 40 Orb Vallis Bounty), Rotation B', chance: 25, rarity: 'Uncommon' },
+  ]);
+  const cache = other.find((d) => d.location.includes('Naeglar'));
+  const bounty = other.find((d) => d.location.includes('Orb Vallis'));
+  assert.equal(cache.cache, true);
+  assert.equal(bounty.cache, false, 'Contrato não é missão de baús');
 });
 
 test('marketSlugFor gera slugs no formato do warframe.market', () => {
