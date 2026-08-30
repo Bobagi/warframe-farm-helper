@@ -336,18 +336,29 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
     }
     return null;
   }
+  // Sentença PRÓPRIA (não um complemento) - vira o SEGUNDO item do passo a
+  // passo, separado do item da fonte principal (pedido do usuário 2026-08-30:
+  // "um da missão e outro do mapa" - misturar os dois numa frase só escondia
+  // a alternativa dentro de um textão).
   const alternativeHint = (alt) => {
-    if (!alt) return '';
+    if (!alt) return null;
     if (alt.cache) {
       return L(
-        ` Alternativa mais rápida: também dropa em ${alt.location} (${pct(alt.chance)}) - nessa missão os baús aparecem várias vezes (cada um é um sorteio independente), então numa partida curta você costuma ter mais de uma chance, o que compensa a % menor.`,
-        ` Faster alternative: it also drops at ${alt.location} (${pct(alt.chance)}) - this mission scatters several caches across the map (each one an independent roll), so in one short run you usually get more than one shot, which offsets the lower %.`,
-        ` 更快的替代方案：也会在 ${alt.location}（${pct(alt.chance)}）掉落 - 这类任务地图上有多个密藏（每个都是独立判定），一局任务通常能开好几次，弥补了概率较低的问题。`);
+        `Alternativa mais rápida: também dropa em ${alt.location} (${pct(alt.chance)}) - nessa missão os baús aparecem várias vezes (cada um é um sorteio independente), então numa partida curta você costuma ter mais de uma chance, o que compensa a % menor.`,
+        `Faster alternative: it also drops at ${alt.location} (${pct(alt.chance)}) - this mission scatters several caches across the map (each one an independent roll), so in one short run you usually get more than one shot, which offsets the lower %.`,
+        `更快的替代方案：也会在 ${alt.location}（${pct(alt.chance)}）掉落 - 这类任务地图上有多个密藏（每个都是独立判定），一局任务通常能开好几次，弥补了概率较低的问题。`);
     }
     return L(
-      ` Alternativa com % maior: ${alt.location} (${pct(alt.chance)})${alt.bounty ? ` - vá a ${alt.bounty.hub}${alt.bounty.npc ? ` e fale com ${alt.bounty.npc}` : ' e pegue um Contrato no quiosque (Bounty Board)'}` : ''}.`,
-      ` Higher-% alternative: ${alt.location} (${pct(alt.chance)})${alt.bounty ? ` - head to ${alt.bounty.hub}${alt.bounty.npc ? ` and talk to ${alt.bounty.npc}` : ' and grab a Bounty from the board'}` : ''}.`,
-      ` 概率更高的替代方案：${alt.location}（${pct(alt.chance)}）${alt.bounty ? `，前往 ${alt.bounty.hub}${alt.bounty.npc ? `，找 ${alt.bounty.npc} 领取赏金任务` : '，在赏金任务公告板领取任务'}` : ''}。`);
+      `Alternativa com % maior: ${alt.location} (${pct(alt.chance)})${alt.bounty ? ` - vá a ${alt.bounty.hub}${alt.bounty.npc ? ` e fale com ${alt.bounty.npc}` : ' e pegue um Contrato no quiosque (Bounty Board)'}` : ''}.`,
+      `Higher-% alternative: ${alt.location} (${pct(alt.chance)})${alt.bounty ? ` - head to ${alt.bounty.hub}${alt.bounty.npc ? ` and talk to ${alt.bounty.npc}` : ' and grab a Bounty from the board'}` : ''}.`,
+      `概率更高的替代方案：${alt.location}（${pct(alt.chance)}）${alt.bounty ? `，前往 ${alt.bounty.hub}${alt.bounty.npc ? `，找 ${alt.bounty.npc} 领取赏金任务` : '，在赏金任务公告板领取任务'}` : ''}。`);
+  };
+  // empurra a fonte principal e, se houver alternativa, um SEGUNDO item -
+  // usado nos 3 pontos onde o passo a passo cita "a melhor fonte" de algo
+  const pushSourceStep = (primary, sources, top) => {
+    steps.push(primary);
+    const alt = alternativeHint(pickAlternative(sources, top));
+    if (alt) steps.push(alt);
   };
 
   // Pesquisa no Dojo vem PRIMEIRO: quando o item tem essa via, ela é o
@@ -393,10 +404,9 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
   // antes da lista de componentes
   if (comps.length && itemSources.other.length) {
     const top = itemSources.other[0];
-    steps.push(L(`Também dropa em ${top.location} (${pct(top.chance)}).`,
+    pushSourceStep(L(`Também dropa em ${top.location} (${pct(top.chance)}).`,
       `It also drops at ${top.location} (${pct(top.chance)}).`,
-      `也会在 ${top.location} 掉落（${pct(top.chance)}）。`)
-      + bountyHint(top) + alternativeHint(pickAlternative(itemSources.other, top)));
+      `也会在 ${top.location} 掉落（${pct(top.chance)}）。`) + bountyHint(top), itemSources.other, top);
   }
 
   const relicComps = comps.filter((c) => c.relics.length);
@@ -458,11 +468,10 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
     const srcs = compSources(c);
     const top = srcs[0];
     const rar = top.rarity ? `, ${rarityLabel(top.rarity, lang)}` : '';
-    steps.push(L(
+    pushSourceStep(L(
       `${cn(c)}: dropa em ${top.location} (${pct(top.chance)}${rar}).`,
       `${cn(c)}: drops at ${top.location} (${pct(top.chance)}${rar}).`,
-      `${cn(c)}：掉落于 ${top.location}（${pct(top.chance)}${rar}）。`)
-      + bountyHint(top) + alternativeHint(pickAlternative(srcs, top)));
+      `${cn(c)}：掉落于 ${top.location}（${pct(top.chance)}${rar}）。`) + bountyHint(top), srcs, top);
   }
   for (const c of comps.filter((x) => x.acquisition && !x.isBlueprint)) {
     const a = c.acquisition;
@@ -496,9 +505,8 @@ function buildSteps(raw, comps, itemSources, lang, acq = null) {
   if (!comps.length) {
     if (itemSources.relics.length || itemSources.other.length) {
       const top = itemSources.other[0] || null;
-      if (top) steps.push(L(`Melhor fonte: ${top.location} (${pct(top.chance)}).`, `Best source: ${top.location} (${pct(top.chance)}).`,
-        `最佳来源：${top.location}（${pct(top.chance)}）。`)
-        + bountyHint(top) + alternativeHint(pickAlternative(itemSources.other, top)));
+      if (top) pushSourceStep(L(`Melhor fonte: ${top.location} (${pct(top.chance)}).`, `Best source: ${top.location} (${pct(top.chance)}).`,
+        `最佳来源：${top.location}（${pct(top.chance)}）。`) + bountyHint(top), itemSources.other, top);
     } else if (!acq) {
       steps.push(L(
         'Este item não tem fonte de drop listada nas tabelas oficiais - normalmente vem de quest, pesquisa de clã (Dojo), loja de sindicato ou do Mercado (créditos). Confira a página da wiki para o caminho exato.',

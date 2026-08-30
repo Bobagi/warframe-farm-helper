@@ -129,16 +129,24 @@ function plastidsLikeSources() {
   };
 }
 
-test('buildSteps: "Melhor fonte" Contrato cita a alternativa mais rápida de baús', () => {
-  const pt = buildSteps({}, [], plastidsLikeSources(), 'pt').join(' ');
-  assert.match(pt, /Alternativa mais rápida: também dropa em Eris\/Naeglar .*\(15,49%\)/);
-  assert.match(pt, /baús aparecem várias vezes/);
-  const en = buildSteps({}, [], plastidsLikeSources(), 'en').join(' ');
-  assert.match(en, /Faster alternative: it also drops at Eris\/Naeglar .*\(15\.49%\)/);
-  assert.doesNotMatch(en, /Alternativa mais rápida|baús/);
+test('buildSteps: "Melhor fonte" Contrato cita a alternativa mais rápida de baús - como ITEM SEPARADO', () => {
+  const pt = buildSteps({}, [], plastidsLikeSources(), 'pt');
+  // pedido do usuário 2026-08-30: mission e mapa em <li> diferentes, não uma
+  // frase só grudada na "Melhor fonte" - por isso checa o array, não o join
+  assert.equal(pt.length, 2, 'a fonte principal e a alternativa são DOIS itens do passo a passo');
+  // item 1 = tudo sobre a missão/Contrato (fonte + hub/NPC); item 2 = só o mapa/baús
+  assert.match(pt[0], /^Melhor fonte: Venus\/Orb Vallis .*\(25%\)\. Para conseguir: vá a Fortuna e fale com Eudico/);
+  assert.doesNotMatch(pt[0], /Alternativa/, 'item 1 não carrega a alternativa de mapa junto');
+  assert.match(pt[1], /^Alternativa mais rápida: também dropa em Eris\/Naeglar .*\(15,49%\)/, 'item 2 (mapa/baús) começa a frase própria dele');
+  assert.match(pt[1], /baús aparecem várias vezes/);
+
+  const en = buildSteps({}, [], plastidsLikeSources(), 'en');
+  assert.equal(en.length, 2);
+  assert.match(en[1], /^Faster alternative: it also drops at Eris\/Naeglar .*\(15\.49%\)/);
+  assert.doesNotMatch(en.join(' '), /Alternativa mais rápida|baús/);
 });
 
-test('buildSteps: "Melhor fonte" de baús cita o Contrato como alternativa de % maior', () => {
+test('buildSteps: "Melhor fonte" de baús cita o Contrato como alternativa de % maior - como ITEM SEPARADO', () => {
   const src = {
     relics: [],
     other: [
@@ -147,9 +155,10 @@ test('buildSteps: "Melhor fonte" de baús cita o Contrato como alternativa de % 
         chance: 25, rarity: 'Uncommon', bounty: { hub: 'Fortuna', npc: 'Eudico' }, cache: false },
     ],
   };
-  const pt = buildSteps({}, [], src, 'pt').join(' ');
-  assert.match(pt, /Melhor fonte: Eris\/Naeglar/);
-  assert.match(pt, /Alternativa com % maior: Venus\/Orb Vallis .*\(25%\).*vá a Fortuna e fale com Eudico/);
+  const pt = buildSteps({}, [], src, 'pt');
+  assert.equal(pt.length, 2);
+  assert.match(pt[0], /^Melhor fonte: Eris\/Naeglar/);
+  assert.match(pt[1], /^Alternativa com % maior: Venus\/Orb Vallis .*\(25%\).*vá a Fortuna e fale com Eudico/);
 });
 
 test('buildSteps: NÃO sugere alternativa quando ela é fraca demais (abaixo de 40% do top ou <10%)', () => {
