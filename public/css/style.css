@@ -128,20 +128,21 @@ img { max-width: 100%; }
 }
 .brand span { color: var(--text); font-weight: 500; }
 .brand:hover { text-decoration: none; color: var(--orokin-bright); }
+/* Quebra de linha em vez de rolagem com scrollbar oculta: com 5 itens o
+   último ("Comunidade") ficava CORTADO sem nenhuma pista de que existia -
+   um item de menu invisível é feature perdida (frontend-review 2026-09-07). */
 .site-nav {
   display: flex;
-  gap: 4px;
-  overflow-x: auto;
-  scrollbar-width: none;
+  gap: 2px;
+  flex-wrap: wrap;
 }
-.site-nav::-webkit-scrollbar { display: none; }
 .site-nav a {
   font-family: var(--font-display);
   font-size: 13px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--text-dim);
-  padding: 8px 10px;
+  padding: 8px;
   white-space: nowrap;
 }
 .site-nav a:hover { color: var(--energy); text-decoration: none; }
@@ -220,10 +221,13 @@ main { flex: 1; padding: 24px 0 56px; }
 .head-inner .head-search { order: 3; flex-basis: 100%; }
 .head-inner .site-nav { order: 4; flex-basis: 100%; }
 
-@media (min-width: 760px) {
+/* 1120px, não 760: com 5 itens de menu a linha única só cabe de verdade
+   acima do max-width do .wrap (1060); abaixo disso o header empilhado (busca
+   e nav em linhas próprias) é o layout que não corta nada. */
+@media (min-width: 1120px) {
   .head-inner { flex-wrap: nowrap; }
   .head-inner .brand { order: 1; }
-  .head-inner .site-nav { order: 2; flex-basis: auto; }
+  .head-inner .site-nav { order: 2; flex: 0 0 auto; } /* não encolhe: quem cede é a busca */
   .head-inner .head-search { order: 3; flex-basis: 190px; }
   .head-inner .lang-toggle { order: 4; margin-left: 0; }
 }
@@ -986,3 +990,65 @@ html[lang^="zh"] h2,
 html[lang^="zh"] h3,
 html[lang^="zh"] .row .name,
 html[lang^="zh"] .comp-name { font-weight: 600; }
+
+/* ------------------------------------------------------------------ */
+/* Comunidade (mural + formulário)                                     */
+/* ------------------------------------------------------------------ */
+.fb-form { display: flex; flex-direction: column; gap: 12px; }
+.fb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.fb-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.fb-field > span {
+  font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-dim); font-family: var(--font-display);
+}
+.fb-field input,
+.fb-field select,
+.fb-field textarea {
+  background: var(--void-800); border: 1px solid var(--line); color: var(--text);
+  padding: 10px 12px; font: inherit; border-radius: 2px; min-width: 0;
+}
+.fb-field textarea { resize: vertical; min-height: 110px; }
+.fb-field input::placeholder, .fb-field textarea::placeholder { color: var(--text-faint); }
+.fb-field input:focus, .fb-field select:focus, .fb-field textarea:focus {
+  outline: none; border-color: var(--energy);
+}
+.fb-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.fb-status { font-size: 14px; color: var(--text-dim); }
+.fb-status.ok { color: var(--ok); }
+.fb-status.err { color: var(--danger); }
+.fb-form .hint { color: var(--text-faint); font-size: 13px; margin: 0; }
+
+/* honeypot: fora da tela para gente, presente no DOM para bot */
+.hp { position: absolute; left: -9999px; top: -9999px; height: 1px; width: 1px; overflow: hidden; }
+
+.fb-list { display: flex; flex-direction: column; gap: 10px; }
+.fb-post {
+  border: 1px solid var(--line-soft); border-left: 3px solid var(--line);
+  background: var(--void-800); padding: 12px 14px;
+}
+.fb-meta { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+.fb-kind {
+  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  font-family: var(--font-display); padding: 2px 8px; border: 1px solid var(--line);
+  color: var(--text-dim);
+}
+.fb-kind-sug   { color: var(--energy); border-color: var(--energy-dim); }
+.fb-kind-guide { color: var(--orokin-bright); border-color: var(--line-gold); }
+.fb-kind-bug   { color: var(--danger); border-color: var(--danger); }
+.fb-nick { font-weight: 600; }
+.fb-when { color: var(--text-faint); font-size: 13px; }
+.fb-msg { margin: 0; white-space: normal; overflow-wrap: break-word; }
+.fb-page { margin: 6px 0 0; font-size: 13px; }
+.fb-page a { color: var(--energy); word-break: break-all; }
+.fb-reply {
+  margin-top: 10px; padding: 8px 12px; border-left: 3px solid var(--orokin);
+  background: var(--void-750);
+}
+.fb-reply-tag {
+  display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--orokin-bright); font-family: var(--font-display); margin-bottom: 4px;
+}
+
+@media (max-width: 640px) {
+  .fb-grid { grid-template-columns: 1fr; }
+}

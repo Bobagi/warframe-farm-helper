@@ -117,6 +117,25 @@ CREATE TABLE IF NOT EXISTS meta (
   key   TEXT PRIMARY KEY,
   value TEXT
 );
+
+-- mural da Comunidade: mensagens deixadas pelos visitantes (sugestão, pedido
+-- de guia, falha, comentário). Público sem cadastro: o anti-abuso é teto por
+-- IP (ip_hash = sha256 com salt local, o IP cru NUNCA é gravado) + moderação
+-- via server/feedback-admin.js (hidden=1 tira do ar sem perder o registro).
+CREATE TABLE IF NOT EXISTS feedback (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  kind       TEXT NOT NULL,
+  nick       TEXT,
+  message    TEXT NOT NULL,
+  page       TEXT,
+  lang       TEXT,
+  ip_hash    TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  hidden     INTEGER NOT NULL DEFAULT 0,
+  reply      TEXT,
+  reply_at   INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_feedback_ip ON feedback(ip_hash, created_at);
 `;
 
 let db = null;

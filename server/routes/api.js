@@ -12,6 +12,7 @@ const { getActs } = require('../nightwave');
 const {
   buildItemDetail, buildRelicDetail, buildFarmable, saveFarmableSnapshot, loadFarmableSnapshot,
 } = require('../itemview');
+const feedback = require('../feedback');
 
 const router = express.Router();
 
@@ -233,6 +234,32 @@ router.get('/article/:slug', (req, res) => {
   res.json(row);
 });
 
+// ---- Comunidade (mural de sugestões/pedidos/falhas/comentários) ----
+
+router.get('/feedback', rateLimit, (req, res) => {
+  const before = parseInt(String(req.query.before || ''), 10);
+  res.setHeader('Cache-Control', 'no-store');
+  res.json(feedback.listPosts({ before: Number.isInteger(before) ? before : null }));
+});
+
+router.post('/feedback', rateLimit, express.json({ limit: '8kb' }), (req, res) => {
+  const b = req.body || {};
+  // honeypot: campo invisível que humano não preenche. Bot que preencher leva
+  // um "ok" falso e nada é gravado - sem dica de que caiu na armadilha.
+  if (typeof b.website === 'string' && b.website.trim() !== '') {
+    res.json({ ok: true });
+    return;
+  }
+  const out = feedback.createPost({
+    kind: b.kind, nick: b.nick, message: b.message, page: b.page, lang: b.lang, ip: req.ip,
+  });
+  if (!out.ok) {
+    res.status(out.status).json({ error: 'mensagem recusada', code: out.code });
+    return;
+  }
+  res.status(201).json({ ok: true, post: out.post });
+});
+
 router.get('/market/:slug', rateLimit, asyncRoute(async (req, res) => {
   const slug = String(req.params.slug || '').slice(0, 80);
   // valida antes de qualquer coisa (o slug entra numa URL externa) e responde
@@ -248,6 +275,11 @@ router.use((req, res) => res.status(404).json({ error: 'rota não encontrada' })
 
 // eslint-disable-next-line no-unused-vars
 router.use((err, req, res, next) => {
+  // corpo malformado/grande demais no POST do feedback é erro do CLIENTE
+  if (err && (err.type === 'entity.parse.failed' || err.type === 'entity.too.large')) {
+    res.status(err.type === 'entity.too.large' ? 413 : 400).json({ error: 'corpo inválido', code: 'body' });
+    return;
+  }
   console.error('[api] erro:', err);
   res.status(500).json({ error: 'erro interno' });
 });

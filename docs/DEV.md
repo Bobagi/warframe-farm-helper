@@ -161,6 +161,26 @@ docker logs -f warframe-helper          # app + ingestão + cron
 docker logs --tail 100 warframe-helper  # últimas linhas
 ```
 
+## Comunidade (mural de feedback) - moderação
+
+A página `/comunidade` recebe mensagens do público (sugestão, pedido de guia, falha,
+comentário) sem cadastro. Anti-abuso no servidor: teto de 5 posts/dia por IP + 200/dia
+global, dedupe de mensagem repetida, honeypot, caps de tamanho; o IP nunca é gravado
+(só um sha256 com salt local). A moderação é reativa, via CLI dentro do container -
+**não existe endpoint web de admin de propósito**:
+
+```bash
+docker exec warframe-helper node server/feedback-admin.js list          # visíveis
+docker exec warframe-helper node server/feedback-admin.js list --all    # inclui ocultos
+docker exec warframe-helper node server/feedback-admin.js hide 42       # tira do ar (reversível)
+docker exec warframe-helper node server/feedback-admin.js unhide 42
+docker exec warframe-helper node server/feedback-admin.js del 42        # apaga de vez
+docker exec warframe-helper node server/feedback-admin.js reply 42 "resposta que aparece no post"
+```
+
+A lista pública atualiza na hora (o GET é `no-store`). Os dados vivem na tabela
+`feedback` do SQLite (volume `./data`, sobrevive a redeploy).
+
 ## Chaves do Google (busca web - opcional)
 
 Sem chaves, a busca web **degrada graciosamente**: em vez de quebrar, mostra links prontos de busca por

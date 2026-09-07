@@ -513,6 +513,7 @@ function sitemapXml() {
     { loc: '/faq', lastmod, changefreq: 'weekly', priority: '0.8' },
     { loc: '/nightwave', lastmod, changefreq: 'daily', priority: '0.8' },
     { loc: '/buscar', lastmod, changefreq: 'weekly', priority: '0.5' },
+    { loc: '/comunidade', lastmod, changefreq: 'daily', priority: '0.5' },
   ];
   // itens: só a página CANÔNICA de cada (kind+nome) - gêmeos ficam de fora
   const rows = db.prepare(

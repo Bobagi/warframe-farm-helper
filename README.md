@@ -103,7 +103,11 @@ translated, and the typography was adjusted for CJK.
 
 ## Found something wrong?
 
-A drop that changed, an odd translation, an item missing from search:
+The easiest way: the **[Community wall](https://warframe.bobagi.space/comunidade)** right on the
+site - ask for a guide, suggest an improvement, report an issue or just leave a comment. No
+account needed; posts are public and moderated.
+
+Prefer GitHub? A drop that changed, an odd translation, an item missing from search:
 [open an issue](https://github.com/Bobagi/warframe-farm-helper/issues). Chinese support got added
 that way.
 

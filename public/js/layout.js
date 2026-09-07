@@ -16,6 +16,7 @@
     { key: 'nav.fissures', href: '/fissuras' },
     { key: 'nav.nightwave', href: '/nightwave' },
     { key: 'nav.faq', href: '/faq' },
+    { key: 'nav.community', href: '/comunidade' },
   ];
 
   function buildHeader(mount) {

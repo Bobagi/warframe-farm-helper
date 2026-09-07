@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="title.community">Community · Warframe Farm Helper</title>
+  <meta name="description" content="Ask for guides, suggest improvements, report issues or just leave a comment - the Warframe Farm Helper community wall, no sign-up needed.">
+  <meta name="theme-color" content="#0b0e17">
+  <link rel="preload" href="/fonts/exo2-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="canonical" href="https://warframe.bobagi.space/comunidade">
+  <meta property="og:url" content="https://warframe.bobagi.space/comunidade">
+  <meta property="og:title" content="Comunidade · Warframe Farm Helper">
+  <meta property="og:description" content="Peça guias, sugira melhorias, aponte falhas ou deixe um comentário - o mural da comunidade do Warframe Farm Helper.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Warframe Farm Helper">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:image" content="https://warframe.bobagi.space/og-banner.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Comunidade · Warframe Farm Helper">
+  <meta name="twitter:description" content="Peça guias, sugira melhorias, aponte falhas ou deixe um comentário - o mural da comunidade do Warframe Farm Helper.">
+  <meta name="twitter:image" content="https://warframe.bobagi.space/og-banner.png">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/style.css?v=20260907e">
+  <!-- Umami (analytics próprio, sem cookie): servido pela NOSSA origem via nginx
+       (/st.js e /st/), para a CSP seguir `script-src 'self'`. Ver README. -->
+  <script defer src="/st.js" data-website-id="1f57e35f-f56d-4d31-8e13-2fe7744a4d1f" data-host-url="https://warframe.bobagi.space/st"></script>
+</head>
+<body>
+  <header class="site-head" id="site-header"></header>
+
+  <main>
+    <div class="wrap">
+      <section class="hero" style="padding-top:14px">
+        <h1 data-i18n="comm.h1">Community</h1>
+        <p class="muted" data-i18n="comm.lead">Ask for a guide, suggest improvements, report an issue or just say hi. No sign-up needed.</p>
+      </section>
+
+      <section class="panel" id="fb-form-panel">
+        <p class="eyebrow" data-i18n="comm.formTitle">Leave a message</p>
+        <form id="fb-form" class="fb-form">
+          <div class="fb-grid">
+            <label class="fb-field">
+              <span data-i18n="comm.kindLabel">Type</span>
+              <select id="fb-kind">
+                <option value="suggestion" data-i18n="comm.kind.suggestion">Suggestion</option>
+                <option value="guide" data-i18n="comm.kind.guide">Guide request</option>
+                <option value="bug" data-i18n="comm.kind.bug">Site issue</option>
+                <option value="comment" data-i18n="comm.kind.comment">Comment</option>
+              </select>
+            </label>
+            <label class="fb-field">
+              <span data-i18n="comm.nickLabel">Nickname (optional)</span>
+              <input id="fb-nick" type="text" maxlength="40" autocomplete="nickname" data-i18n-ph="comm.nickPh">
+            </label>
+          </div>
+          <label class="fb-field">
+            <span data-i18n="comm.msgLabel">Message</span>
+            <textarea id="fb-msg" rows="5" maxlength="1000" required data-i18n-ph="comm.msgPh"></textarea>
+          </label>
+          <label class="fb-field">
+            <span data-i18n="comm.pageLabel">Related page (optional)</span>
+            <input id="fb-page" type="text" maxlength="160" autocomplete="off" data-i18n-ph="comm.pagePh">
+          </label>
+          <!-- honeypot anti-bot: invisível para gente, irresistível para bot -->
+          <div class="hp" aria-hidden="true">
+            <label>Website<input id="fb-website" type="text" name="website" tabindex="-1" autocomplete="off"></label>
+          </div>
+          <div class="fb-actions">
+            <button class="btn-line" type="submit" id="fb-send" data-i18n="comm.send">Send</button>
+            <span class="fb-status" id="fb-status" role="status" aria-live="polite"></span>
+          </div>
+          <p class="hint" data-i18n="comm.note">Messages are public and moderated - offensive content and spam get removed.</p>
+        </form>
+      </section>
+
+      <section class="panel panel-quiet" id="fb-wall">
+        <p class="eyebrow"><span data-i18n="comm.wallTitle">Wall</span> <span class="hint" id="fb-count"></span></p>
+        <p class="muted" id="fb-empty" hidden data-i18n="comm.empty">No messages yet - be the first!</p>
+        <div class="fb-list" id="fb-list"></div>
+        <p class="panel-cta" id="fb-more-wrap" hidden>
+          <button class="btn-line" id="fb-more" type="button" data-i18n="comm.more">Load older</button>
+        </p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-foot" id="site-footer"></footer>
+
+  <script src="/js/i18n.js?v=20260907b"></script>
+  <script src="/js/latest.js?v=20260822"></script>
+  <script src="/js/common.js?v=20260829c"></script>
+  <script src="/js/layout.js?v=20260907"></script>
+  <script src="/js/comunidade.js?v=20260907b"></script>
+  <script src="/js/ads.js?v=20260822"></script>
+</body>
+</html>

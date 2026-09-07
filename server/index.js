@@ -17,7 +17,15 @@ const INGEST_UTC_MINUTE = 43;
 
 const app = express();
 app.disable('x-powered-by');
-app.set('trust proxy', 'loopback'); // atrás do nginx local
+// Atrás do nginx local, mas DENTRO de container: o peer visto pela app é o
+// gateway da bridge do Docker (172.x.x.1), não 127.0.0.1. Só 'loopback' fazia
+// o Express descartar o X-Forwarded-For do nginx e TODO visitante virava o
+// mesmo req.ip - o rate limit por IP era, na prática, um balde global (e o
+// teto por IP do feedback seria um teto mundial). 'uniquelocal' cobre o
+// gateway; o rightmost do XFF (que o nginx SEMPRE appenda com $remote_addr,
+// já resolvido pelo real-ip do Cloudflare) é público → vira o req.ip, então
+// um XFF forjado pelo cliente não engana (provado no security-sweep 2026-09-07).
+app.set('trust proxy', ['loopback', 'uniquelocal']);
 
 app.use((req, res, next) => {
   res.setHeader('Content-Security-Policy', [
@@ -89,6 +97,8 @@ app.get('/faq', (req, res) => sendSsr(res, seo.renderFaqIndex()));
 app.get('/nightwave', (req, res) => sendSsr(res, seo.renderNightwaveIndex()));
 app.get('/buscar', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'buscar.html')));
 app.get('/fissuras', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'fissuras.html')));
+app.get('/comunidade', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'comunidade.html')));
+app.get('/comunidade.html', (req, res) => res.redirect(301, '/comunidade'));
 
 // redirects 301 das URLs antigas (links já indexados/salvos continuam valendo)
 app.get('/item.html', (req, res) => {
