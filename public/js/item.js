@@ -485,6 +485,7 @@
 
     const market = marketPanel(item);
     if (market) frag.push(market);
+    frag.push(App.muralCta());
 
     root.replaceChildren(...frag);
     startTimers();

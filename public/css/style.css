@@ -1052,3 +1052,14 @@ html[lang^="zh"] .comp-name { font-weight: 600; }
 @media (max-width: 640px) {
   .fb-grid { grid-template-columns: 1fr; }
 }
+
+/* convite para o mural no pé das páginas de conteúdo */
+.mural-cta {
+  margin: 18px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 14px;
+}
+.mural-cta a { color: var(--text-dim); }
+.mural-cta a::before { content: '» '; color: var(--energy); }
+.mural-cta a:hover { color: var(--energy); text-decoration: none; }

@@ -230,6 +230,20 @@ const App = (() => {
     });
   }
 
+  /**
+   * Convite discreto para o mural da Comunidade no pé das páginas de conteúdo,
+   * levando a página atual pré-preenchida (?page=) - é a ponte que transforma
+   * "senti falta de algo aqui" em post no mural.
+   */
+  function muralCta() {
+    return el('p', { class: 'mural-cta' }, [
+      el('a', {
+        href: `/comunidade?page=${encodeURIComponent(location.pathname)}`,
+        text: I18n.t('comm.cta'),
+      }),
+    ]);
+  }
+
   /** marca o link ativo no menu (casa também subcaminhos: /faq/slug → /faq) */
   function navCurrent() {
     const here = location.pathname.replace(/\/$/, '') || '/';
@@ -244,7 +258,7 @@ const App = (() => {
   return {
     el, qs, relicUrl, api, fmtInt, fmtPct, timeLeft, startTimers,
     tierBadge, rarityChip, statusBadge, resultRow, farmCard, attachSearch, debounce, navCurrent,
-    safeHref, wsMsg, wsDegradedMsg,
+    safeHref, wsMsg, wsDegradedMsg, muralCta,
   };
 })();
 // navCurrent é chamado por layout.js, depois de o cabeçalho ser construído

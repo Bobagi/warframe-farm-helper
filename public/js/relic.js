@@ -103,6 +103,7 @@
       ]));
     }
 
+    frag.push(App.muralCta());
     root.replaceChildren(...frag);
     renderRewards();
     startTimers();

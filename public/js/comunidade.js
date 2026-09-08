@@ -23,6 +23,12 @@
   let oldestId = null;
   let total = 0;
 
+  // chegou pelo convite de uma página ("algo errado aqui?"): pré-preenche a
+  // página relacionada. Vai só para o VALUE do input (nunca HTML) e o servidor
+  // revalida no POST - ?page= hostil não passa daqui.
+  const fromPage = App.qs('page');
+  if (fromPage) document.getElementById('fb-page').value = fromPage.slice(0, 160);
+
   const KIND_CLASS = { suggestion: 'sug', guide: 'guide', bug: 'bug', comment: 'chat' };
 
   function postCard(p) {

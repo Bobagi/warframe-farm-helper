@@ -18,7 +18,8 @@
       el('article', { class: 'panel article' }, [
         el('h1', { text: art.title }),
         body,
-      ])
+      ]),
+      App.muralCta()
     );
   }
 

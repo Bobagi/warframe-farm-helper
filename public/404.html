@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title data-i18n="title.e404">404 · Warframe Farm Helper</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/css/style.css?v=20260907e">
+  <link rel="stylesheet" href="/css/style.css?v=20260908">
   <!-- Umami (analytics próprio, sem cookie): servido pela NOSSA origem via nginx
        (/st.js e /st/), para a CSP seguir `script-src 'self'` e a medição não
        ser bloqueada por filtro de host de analytics. Ver README. -->
@@ -18,14 +18,17 @@
       <section class="panel" style="margin-top:24px">
         <h1 data-i18n="e404.title">404 - perdido no Void</h1>
         <p class="lead" data-i18n="e404.lead">Essa página não existe (ou foi parar num vault). Volte para a busca e tente de novo.</p>
-        <p><a class="btn-line" href="/" data-i18n="e404.home">Voltar ao início</a></p>
+        <p style="display:flex;gap:10px;flex-wrap:wrap">
+          <a class="btn-line" href="/" data-i18n="e404.home">Voltar ao início</a>
+          <a class="btn-line" href="/comunidade" data-i18n="e404.wall">Pedir ajuda no mural</a>
+        </p>
       </section>
     </div>
   </main>
   <footer class="site-foot" id="site-footer"></footer>
-  <script src="/js/i18n.js?v=20260907b"></script>
+  <script src="/js/i18n.js?v=20260908"></script>
   <script src="/js/latest.js?v=20260822"></script>
-  <script src="/js/common.js?v=20260829c"></script>
+  <script src="/js/common.js?v=20260908"></script>
   <script src="/js/layout.js?v=20260907"></script>
   <script src="/js/cycles.js?v=20260822"></script>
 </body>
