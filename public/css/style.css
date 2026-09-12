@@ -497,6 +497,7 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
   clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
   max-height: 340px;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 .suggest[hidden] { display: none; }
 .suggest .sg {
@@ -512,7 +513,24 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
 .suggest a.sg, .suggest a.sg:hover { text-decoration: none; color: var(--text); }
 .suggest .sg:hover, .suggest .sg.active { background: var(--void-700); }
 .suggest .sg img { width: 30px; height: 30px; object-fit: contain; flex: none; }
-.suggest .sg .sg-sub { color: var(--text-faint); font-size: 12px; margin-left: auto; text-align: right; }
+.suggest .sg > span:not(.sg-sub) {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.suggest .sg .sg-sub {
+  color: var(--text-faint);
+  font-size: 12px;
+  margin-left: auto;
+  text-align: right;
+  flex: none;
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .example-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 .example-chips a {
