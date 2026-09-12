@@ -148,7 +148,9 @@ img { max-width: 100%; }
 .site-nav a:hover { color: var(--energy); text-decoration: none; }
 .site-nav a[aria-current="page"] { color: var(--orokin); }
 
-/* busca fixa no cabeçalho (em todas as páginas) */
+/* busca fixa no cabeçalho (em todas as páginas) - a CAIXA de digitar fica
+   pequena de propósito (cabe ao lado do menu); só o dropdown de resultados
+   (.head-suggest, abaixo) é que cresce, ver breakpoint desktop mais abaixo. */
 .head-search { position: relative; flex: 1 1 190px; min-width: 150px; }
 .head-console {
   display: flex;
@@ -226,13 +228,19 @@ main { flex: 1; padding: 24px 0 56px; }
    e nav em linhas próprias) é o layout que não corta nada. */
 @media (min-width: 1120px) {
   .head-inner { flex-wrap: nowrap; }
-  .head-inner.wrap { max-width: min(1320px, 94vw); } /* header usa mais tela que o .wrap
-    de 1060px do conteúdo principal (pensado pra leitura) - senão a busca fica curta
-    mesmo sobrando espaço morto antes das bandeiras. Não mexe no .wrap do resto do site. */
   .head-inner .brand { order: 1; }
   .head-inner .site-nav { order: 2; flex: 0 0 auto; } /* não encolhe: quem cede é a busca */
-  .head-inner .head-search { order: 3; flex-basis: 260px; max-width: 560px; }
+  .head-inner .head-search { order: 3; flex-basis: 190px; }
   .head-inner .lang-toggle { order: 4; margin-left: 0; }
+  /* a caixa de digitar (.head-search) continua do tamanho original - só o
+     PAINEL de resultados cresce, ancorado pela direita (mesma borda direita
+     do input) e se estendendo pra esquerda, onde sobra tela. */
+  .head-suggest {
+    left: auto;
+    right: 0;
+    width: max(320px, 100%);
+    max-width: min(440px, 92vw);
+  }
 }
 
 /* ---------- relógios dos ciclos dos mundos (abaixo do header) ---------- */
