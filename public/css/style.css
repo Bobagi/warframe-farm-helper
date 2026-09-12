@@ -226,9 +226,12 @@ main { flex: 1; padding: 24px 0 56px; }
    e nav em linhas próprias) é o layout que não corta nada. */
 @media (min-width: 1120px) {
   .head-inner { flex-wrap: nowrap; }
+  .head-inner.wrap { max-width: min(1320px, 94vw); } /* header usa mais tela que o .wrap
+    de 1060px do conteúdo principal (pensado pra leitura) - senão a busca fica curta
+    mesmo sobrando espaço morto antes das bandeiras. Não mexe no .wrap do resto do site. */
   .head-inner .brand { order: 1; }
   .head-inner .site-nav { order: 2; flex: 0 0 auto; } /* não encolhe: quem cede é a busca */
-  .head-inner .head-search { order: 3; flex-basis: 190px; }
+  .head-inner .head-search { order: 3; flex-basis: 260px; max-width: 560px; }
   .head-inner .lang-toggle { order: 4; margin-left: 0; }
 }
 
