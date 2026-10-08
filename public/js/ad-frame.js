@@ -1,13 +1,13 @@
 'use strict';
 
 /**
- * Roda DENTRO do iframe sandbox de anúncio (/ad-frame.html?u=<unit>).
+ * Roda DENTRO do iframe de anúncio (https://wfads.bobagi.space/ad-frame.html?u=<unit>).
  *
  * Os códigos da Adsterra (painel > Websites > GET CODE) usam uma variável
  * global `atOptions` + script inline, o que a CSP estrita da página principal
  * não permite e que colidiria com dois banners na mesma página. Aqui cada
- * unit tem o próprio documento, então o global é seguro, e o sandbox (sem
- * allow-same-origin) impede o script da rede de mexer no site.
+ * unit tem o próprio documento, então o global é seguro, e a origem separada
+ * (wfads) impede o script da rede de mexer no site.
  */
 
 (() => {
@@ -15,6 +15,7 @@
   const UNITS = {
     b728: { key: 'db90d3c6eae577f180e6562fb899d0f5', width: 728, height: 90 },
     b320: { key: '9b22d427361c3dfef59d32f7ada2dff6', width: 320, height: 50 },
+    b160: { key: '8d5b370e605b30c663c2b02406b7ab23', width: 160, height: 600 },
     native: { key: '0ed4caf171112899bc8b81886043c660', native: true },
   };
 

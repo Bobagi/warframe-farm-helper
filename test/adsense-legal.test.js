@@ -139,3 +139,12 @@ test('política de privacidade cita a Adsterra nos 5 idiomas', () => {
   assert.equal(arts.length, 5);
   for (const a of arts) assert.match(a.html, /Adsterra/, a.lang);
 });
+
+test('calhas laterais 160x600 só em tela larga (JS e CSS com a mesma regra)', () => {
+  const js = read('public/js/ads.js');
+  const css = read('public/css/style.css');
+  assert.match(js, /RAIL_MEDIA = '\(min-width: 1420px\) and \(min-height: 760px\)'/);
+  assert.match(js, /adFrame\('b160', 160, 600\)/);
+  assert.match(css, /@media \(min-width: 1420px\) and \(min-height: 760px\) \{\s*\.ad-rail \{/);
+  assert.match(read('public/js/ad-frame.js'), /b160: \{ key: '[0-9a-f]{32}', width: 160, height: 600 \}/);
+});

@@ -848,10 +848,10 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
 }
 
 /* ============================================================
-   Publicidade (Adsterra em iframe sandbox; AdSense desligado),
-   só após consentimento no banner de cookies - ver
-   public/js/ads.js. Rails/bloco mobile são do AdSense e só
-   renderizam com unit manual configurada. + Banner de
+   Publicidade (Adsterra em iframe de outra origem; AdSense
+   desligado), só após consentimento no banner de cookies - ver
+   public/js/ads.js. Calhas laterais (.ad-rail) com 160x600 em
+   tela larga; .ad-mobile é do AdSense. + Banner de
    consentimento (LGPD).
    ============================================================ */
 .cookie-banner {
@@ -891,14 +891,14 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
 .cookie-btn:hover { background: rgba(207, 174, 102, 0.15); }
 .ad-rail { display: none; }
 
-@media (min-width: 1420px) {
+@media (min-width: 1420px) and (min-height: 760px) {
   .ad-rail {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 6px;
     position: fixed;
-    top: 50%;
+    top: calc(50% + 28px); /* centro abaixo do cabeçalho fixo (57px) */
     transform: translateY(-50%);
     z-index: 40;
     width: 160px;

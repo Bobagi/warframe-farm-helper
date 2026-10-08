@@ -9,7 +9,7 @@ Detalhe técnico completo em [`docs/DEV.md`](docs/DEV.md); fontes de dados no `R
   (127.0.0.1:3064, nginx + Cloudflare na frente). Volume `./data` guarda o SQLite.
 - Deploy (na VPS): `cd /opt/warframe-farm-helper && git pull && docker compose up -d --build`.
   De outra máquina: commit + push aqui e rodar o deploy via skill `vps` (SSH).
-- Testes: `docker compose run --rm --no-deps web npm test` (275, todos devem passar).
+- Testes: `docker compose run --rm --no-deps web npm test` (276, todos devem passar).
 - Mudou CSS ou JS de `public/`: trocar o `?v=` nos HTML (o Cloudflare segura o arquivo velho por horas).
 - Validar mudança sempre pela URL pública, não só pelo localhost.
 
@@ -37,7 +37,7 @@ Detalhe técnico completo em [`docs/DEV.md`](docs/DEV.md); fontes de dados no `R
   não mexer no portfólio e trocar de rede. O código do AdSense continua no `ads.js` atrás de
   `ADSENSE_ENABLED = false` (e a meta + `ads.txt` seguem no ar, são inofensivos).
 - **Adsterra** (painel `beta.publishers.adsterra.com`, login do dono; site id 6108271,
-  aprovado na hora). Units ativas: Native Banner, Banner 728x90 e Banner 320x50, SEM
+  aprovado na hora). Units ativas: Native Banner, Banner 728x90, 320x50 e 160x600 (calhas laterais), SEM
   popunder, social bar, interstitial ou anúncio adulto (não ligar: estragam o site e o SEO).
   Chaves das units em `public/js/ad-frame.js`.
 - **Como roda:** depois do "Aceitar" (chave `cookieConsent.v2`), o `ads.js` cria iframes
@@ -49,5 +49,5 @@ Detalhe técnico completo em [`docs/DEV.md`](docs/DEV.md); fontes de dados no `R
   certbot). Nunca servir a moldura pelo próprio warframe.bobagi.space com same-origin.
   A moldura tem CSP própria e solta (rota em `server/index.js`); a página principal continua
   com `script-src` estrito, sem host da Adsterra. Banner no topo (728x90 se a janela tem
-  760px ou mais, senão 320x50), nativo antes do rodapé (altura via postMessage, limitada).
+  760px ou mais, senão 320x50), 160x600 nas duas calhas laterais quando a janela tem 1420x760 ou mais, nativo antes do rodapé (altura via postMessage, limitada).
 - Rede nova de anúncio = bumpar `CONSENT_KEY` e citar na política de privacidade (5 idiomas).

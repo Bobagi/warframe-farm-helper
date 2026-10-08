@@ -37,6 +37,9 @@
   const CONSENT_KEY = 'cookieConsent.v2';
   const NATIVE_MAX_HEIGHT = 800;
   const AD_FRAME_ORIGIN = 'https://wfads.bobagi.space';
+  // calhas laterais: precisa sobrar 160px de cada lado do .wrap (1060px) e
+  // altura para os 600px do banner abaixo do cabeçalho fixo
+  const RAIL_MEDIA = '(min-width: 1420px) and (min-height: 760px)';
   const PRIVACY_URL = '/legal/politica-de-privacidade';
 
   // IDs de unit manuais do AdSense (data-ad-slot). Vazio = nenhum bloco fixo;
@@ -65,8 +68,8 @@
     class: 'ad-frame',
   });
 
-  // Banner no topo (728x90 no desktop, 320x50 no celular) e Native Banner
-  // antes do rodapé. A altura do banner é reservada para não empurrar o
+  // Banner no topo (728x90 no desktop, 320x50 no celular), 160x600 nas duas
+  // calhas laterais em tela larga e Native Banner antes do rodapé. A altura do banner é reservada para não empurrar o
   // conteúdo quando o anúncio chega (CLS).
   function renderAdsterra() {
     const label = () => el('span', { class: 'ad-label', text: t('ads.label') });
@@ -76,6 +79,14 @@
       header.after(el('aside', { class: 'ad-slot ad-top', 'aria-label': t('ads.label') }, [
         label(), wide ? adFrame('b728', 728, 90) : adFrame('b320', 320, 50),
       ]));
+    }
+    // mesma regra do CSS de .ad-rail: só cria o iframe se a calha aparece
+    if (window.matchMedia(RAIL_MEDIA).matches) {
+      for (const side of ['left', 'right']) {
+        document.body.append(el('aside', { class: `ad-rail ${side}`, 'aria-label': t('ads.label') }, [
+          label(), adFrame('b160', 160, 600),
+        ]));
+      }
     }
     const footer = document.getElementById('site-footer');
     if (footer) {
