@@ -1,7 +1,8 @@
 'use strict';
 
 /**
- * Worldstate ao vivo (api.warframestat.us) com cache em memória:
+ * Worldstate ao vivo com cache em memória (fissuras: DE oficial, resto e
+ * reserva: api.warframestat.us):
  * TTL 90s + serve versão velha (até 15 min) se a API estiver fora.
  */
 
@@ -67,10 +68,104 @@ const fissuresSource = () => fissuresSourceState;
 let fissuresAsOfState = null;
 const fissuresAsOf = () => fissuresAsOfState;
 
+// ★ Fonte primária das fissuras = worldstate OFICIAL da DE (2026-10-08). O
+// espelho do warframestat seguia ~1h atrasado (issue WFCD/warframe-status#2202
+// aberta desde junho) e, no dia da troca, 23 das 31 fissuras do site já
+// tinham vencido. O JSON da DE só traz ids crus (SolNode17, MT_DEFENSE,
+// VoidT3); os nomes vêm das tabelas do próprio WFCD (warframe-worldstate-data,
+// as mesmas que o warframestat usa), então o vocabulário que chega ao front
+// é idêntico. Se a DE ou as tabelas falharem, cai no warframestat.
+const DE_WORLDSTATE = process.env.WF_DE_WORLDSTATE || 'https://api.warframe.com/cdn/worldState.php';
+const WS_DATA = 'https://raw.githubusercontent.com/WFCD/warframe-worldstate-data/master/data';
+const NODE_MAPS_TTL_MS = 24 * 3600 * 1000;
+const MAX_DE_FISSURES = 200; // dado de terceiro: teto de quantidade
+const VOID_TIERS = {
+  VoidT1: ['Lith', 1], VoidT2: ['Meso', 2], VoidT3: ['Neo', 3],
+  VoidT4: ['Axi', 4], VoidT5: ['Requiem', 5], VoidT6: ['Omnia', 6],
+};
+
+let nodeMaps = null; // { nodes, missionTypes, at }
+let nodeMapsInflight = null;
+
+async function getNodeMaps() {
+  if (nodeMaps && Date.now() - nodeMaps.at < NODE_MAPS_TTL_MS) return nodeMaps;
+  if (!nodeMapsInflight) {
+    nodeMapsInflight = Promise.all([
+      fetchJson(`${WS_DATA}/solNodes.json`, { timeoutMs: 15000, retries: 1 }),
+      fetchJson(`${WS_DATA}/missionTypes.json`, { timeoutMs: 15000, retries: 1 }),
+    ]).then(([nodes, missionTypes]) => {
+      const isMap = (o) => o && typeof o === 'object' && !Array.isArray(o);
+      if (!isMap(nodes) || !isMap(missionTypes)) throw new Error('tabelas de nós em formato inesperado');
+      nodeMaps = { nodes, missionTypes, at: Date.now() };
+      return nodeMaps;
+    }).finally(() => { nodeMapsInflight = null; });
+  }
+  try {
+    return await nodeMapsInflight;
+  } catch (err) {
+    if (nodeMaps) return nodeMaps; // tabela velha serve: nó novo é raro
+    throw err;
+  }
+}
+
+// data no formato Mongo da DE: { $date: { $numberLong: "1791477892387" } }
+function deDate(d) {
+  const v = d && d.$date !== undefined ? (d.$date.$numberLong ?? d.$date) : d;
+  const ms = Number(v);
+  return Number.isFinite(ms) && ms > 0 ? new Date(ms).toISOString() : null;
+}
+
+const str = (v, max = 80) => (typeof v === 'string' ? v.slice(0, max) : null);
+
+/**
+ * Worldstate cru da DE -> lista no MESMO formato do /fissures do warframestat
+ * (o resto do getFissures não sabe de onde veio). Fissuras normais + Steel
+ * Path (`Hard`) em ActiveMissions; tempestades do Void (Railjack) em
+ * VoidStorms. Nó sem nome na tabela fica fora (não mostra "SolNode999").
+ */
+function parseDeFissures(ws, { nodes, missionTypes }) {
+  if (!ws || typeof ws !== 'object') return [];
+  const out = [];
+  const add = (m, tierKey, isStorm) => {
+    const tier = VOID_TIERS[tierKey];
+    const node = nodes[m && m.Node];
+    if (!tier || !node || typeof node.value !== 'string') return;
+    const mt = !isStorm && missionTypes[m.MissionType];
+    out.push({
+      id: str(m._id && (m._id.$oid || m._id.$id), 40),
+      node: str(node.value),
+      missionType: str((mt && mt.value) || node.type),
+      tier: tier[0],
+      tierNum: tier[1],
+      enemy: str(node.enemy),
+      activation: deDate(m.Activation),
+      expiry: deDate(m.Expiry),
+      isStorm,
+      isHard: !isStorm && m.Hard === true,
+    });
+  };
+  for (const m of (Array.isArray(ws.ActiveMissions) ? ws.ActiveMissions : []).slice(0, MAX_DE_FISSURES)) {
+    add(m, m && m.Modifier, false);
+  }
+  for (const m of (Array.isArray(ws.VoidStorms) ? ws.VoidStorms : []).slice(0, MAX_DE_FISSURES)) {
+    add(m, m && m.ActiveMissionTier, true);
+  }
+  return out;
+}
+
+async function fetchFissuresRaw() {
+  try {
+    const [ws, maps] = await Promise.all([cached('de-worldstate', DE_WORLDSTATE), getNodeMaps()]);
+    const arr = parseDeFissures(ws, maps);
+    if (arr.some((f) => f.expiry && Date.parse(f.expiry) > Date.now())) return arr;
+  } catch { /* cai no espelho */ }
+  return cached('fissures', `${BASE}/fissures`);
+}
+
 async function getFissures() {
   let arr;
   try {
-    arr = await cached('fissures', `${BASE}/fissures`);
+    arr = await fetchFissuresRaw();
   } catch (err) {
     fissuresSourceState = 'down';
     throw err;
@@ -225,5 +320,5 @@ async function getBaro() {
 module.exports = {
   getFissures, fissuresSource, fissuresAsOf, getNightwaveRaw, getVaultTraderRaw, getBaro, getCycles, MISSION_PT,
   // exportados para testes
-  CYCLE_DEFS, advanceCycle, normalizeCycle, normalizeBaro,
+  CYCLE_DEFS, advanceCycle, normalizeCycle, normalizeBaro, parseDeFissures,
 };
