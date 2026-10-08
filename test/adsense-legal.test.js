@@ -70,6 +70,15 @@ test('nenhum HTML carrega o adsbygoogle estaticamente (gate de consentimento)', 
   }
 });
 
+// O robô de revisão do AdSense não clica em "Aceitar", então nunca vê o script
+// (que fica atrás do consentimento). A meta de verificação não carrega nada de
+// terceiro nem grava cookie, então pode ficar em todas as páginas.
+test('toda página tem a meta de verificação do AdSense', () => {
+  for (const f of fs.readdirSync(path.join(ROOT, 'public')).filter((f) => f.endsWith('.html'))) {
+    assert.match(read(`public/${f}`), /<meta name="google-adsense-account" content="ca-pub-5349785075769585">/, f);
+  }
+});
+
 test('A-ads foi removida de todo o código', () => {
   for (const dir of ['public/js', 'server']) {
     for (const f of fs.readdirSync(path.join(ROOT, dir)).filter((f) => f.endsWith('.js'))) {
