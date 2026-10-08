@@ -184,6 +184,101 @@ function slimComponent(c) {
   };
 }
 
+/**
+ * ★ Catálogo de peças separado (WFCD #992, 2026-09-24). Antes cada item trazia
+ * os `components` EMBUTIDOS (nome, imagem, ducats, drops); desde então vem só
+ * `{ uniqueName, itemCount }` e a definição mora em `Components.json` (peças
+ * de receita) ou no próprio catálogo de itens (recursos como Orokin Cell, que
+ * ficam em Resources.json). Passaram 2 semanas sem ninguém notar: o ingest
+ * gravou toda página de item sem nome de peça e sem local de drop.
+ *
+ * `sources` = arrays de entradas; a 1ª definição de um uniqueName vence, então
+ * passe `Components.json` primeiro.
+ */
+function buildComponentCatalog(sources) {
+  const byUnique = new Map();
+  for (const arr of sources) {
+    for (const e of arr || []) {
+      if (e && typeof e.uniqueName === 'string' && typeof e.name === 'string' && !byUnique.has(e.uniqueName)) {
+        byUnique.set(e.uniqueName, e);
+      }
+    }
+  }
+  return byUnique;
+}
+
+/**
+ * Troca as referências `{ uniqueName, itemCount }` de `it.components` pela
+ * definição do catálogo (in place), mantendo o `itemCount` da receita.
+ * Componente que já veio com nome (formato antigo) fica como está.
+ * Devolve quantas referências havia e quantas ficaram sem resolver.
+ */
+function resolveComponents(it, catalog) {
+  const stats = { refs: 0, missing: 0 };
+  if (!it || !Array.isArray(it.components)) return stats;
+  it.components = it.components.map((c) => {
+    if (!c || typeof c.name === 'string') return c;
+    stats.refs++;
+    const def = catalog.get(c.uniqueName);
+    if (!def) { stats.missing++; return c; }
+    const { parentUniqueNames, category, ...rest } = def;
+    return { ...rest, ...c, itemCount: c.itemCount || 1 };
+  });
+  return stats;
+}
+
+// Teto de referências sem definição. Acima disso o formato do WFCD mudou de
+// novo e gravar seria trocar o banco bom por páginas sem peça (o que aconteceu
+// de 24/09 a 08/10/2026): melhor abortar e manter o que já está no ar.
+const MAX_MISSING_COMPONENTS = 0.05;
+
+// Idiomas baixados de `i18n/<lang>.json` (um arquivo por idioma desde o #992;
+// antes era um `i18n.json` único de ~50MB). pt/zh traduzem nome e descrição de
+// item; es/ru só entram nos desafios do Nightwave. Inglês é o próprio dataset.
+const I18N_LANGS = ['pt', 'zh', 'es', 'ru'];
+
+/**
+ * Aplica as traduções (`i18n` = { pt: {uniqueName: {name, description}}, zh: … })
+ * nas linhas de item e nos desafios do Nightwave. Puro (sem rede) para teste.
+ */
+function applyTranslations(itemRows, challengeRows, i18n) {
+  let hits = 0;
+  let zhHits = 0;
+  for (const row of itemRows) {
+    const pt = i18n.pt && i18n.pt[row.unique_name];
+    if (pt) {
+      const name = cleanName(pt.name);
+      if (name && name !== row.name) { row.name_pt = name; hits++; }
+      if (pt.description) row.slim.descriptionPt = stripIconTags(pt.description);
+    }
+    // chinês simplificado: nome E descrição. Diferente de es/ru (onde o nome
+    // fica em inglês de propósito, porque market/wiki/trade usam inglês), o
+    // servidor chinês do jogo tem nomenclatura PRÓPRIA e o jogador procura
+    // por ela - sem isso a busca em chinês não acha nada.
+    const zh = i18n.zh && i18n.zh[row.unique_name];
+    if (zh) {
+      const name = cleanName(zh.name);
+      if (name && name !== row.name) { row.name_zh = name; zhHits++; }
+      if (zh.description) row.slim.descriptionZh = stripIconTags(zh.description);
+    }
+  }
+  // mesma passada do i18n: traduz os desafios do Nightwave. O dataset deixa
+  // tokens de cor tipo `<DT_EXPLOSION>` colados ANTES da palavra traduzida
+  // ("Dano <DT_EXPLOSION>Explosivo") - no jogo isso pinta o texto, aqui vazava
+  // cru pro jogador (issue: "Detonador" mostrando a tag literal).
+  for (const c of challengeRows) {
+    c.langs = {};
+    for (const l of ['pt', 'en', 'es', 'ru', 'zh']) {
+      const v = l === 'en' ? { name: c.en, description: c.enDescr } : (i18n[l] && i18n[l][c.u]);
+      if (v && (v.name || v.description)) {
+        c.langs[l] = { title: stripIconTags(v.name) || null, descr: stripIconTags(v.description) || null };
+      }
+    }
+  }
+  const translated = challengeRows.filter((c) => Object.keys(c.langs).some((l) => l !== 'en')).length;
+  return { hits, zhHits, translated };
+}
+
 /** Guarda só o que o site renderiza - mantém o banco pequeno. */
 function slimItem(it) {
   const s = {
@@ -359,10 +454,45 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
   const db = getDb();
 
   log('[ingest] baixando categorias do WFCD/warframe-items...');
-  const itemRows = [];
+  // Baixa TUDO antes de processar: as peças de um item podem estar definidas em
+  // Components.json ou em qualquer outro arquivo (Orokin Cell mora em
+  // Resources.json), e a classificação do Misc já olha os drops das peças.
+  // Sem Components.json o fetch lança e o ingest aborta mantendo o banco atual.
+  const componentDefs = await fetchJson(`${RAW_BASE}/Components.json`, { timeoutMs: 120000 });
+  if (!Array.isArray(componentDefs)) throw new Error('payload inesperado em Components.json');
+  log(`[ingest] Components: ${componentDefs.length} peças`);
+  const catArrays = [];
   for (const cat of CATEGORIES) {
     const arr = await fetchJson(`${RAW_BASE}/${encodeURIComponent(cat)}.json`, { timeoutMs: 120000 });
     if (!Array.isArray(arr)) throw new Error(`payload inesperado em ${cat}.json`);
+    catArrays.push([cat, arr]);
+  }
+  const miscArrays = [];
+  for (const file of ['Misc.json', 'Skins.json', 'Glyphs.json', 'Sigils.json']) {
+    let arr;
+    try { arr = await fetchJson(`${RAW_BASE}/${file}`, { timeoutMs: 120000 }); }
+    catch (err) { log(`[ingest] ${file} falhou (seguindo): ${err.message}`); continue; }
+    if (Array.isArray(arr)) miscArrays.push([file, arr]);
+  }
+  {
+    const catalog = buildComponentCatalog([componentDefs, ...catArrays.map((a) => a[1]), ...miscArrays.map((a) => a[1])]);
+    let refs = 0;
+    let missing = 0;
+    for (const [, arr] of [...catArrays, ...miscArrays]) {
+      for (const it of arr) {
+        const st = resolveComponents(it, catalog);
+        refs += st.refs;
+        missing += st.missing;
+      }
+    }
+    log(`[ingest] peças resolvidas: ${refs - missing}/${refs}`);
+    if (refs && missing / refs > MAX_MISSING_COMPONENTS) {
+      throw new Error(`${missing} de ${refs} peças sem definição no catálogo; formato do WFCD mudou? Banco mantido.`);
+    }
+  }
+
+  const itemRows = [];
+  for (const [cat, arr] of catArrays) {
     log(`[ingest] ${cat}: ${arr.length} itens`);
     for (const it of arr) {
       if (!it || typeof it.uniqueName !== 'string' || typeof it.name !== 'string') continue;
@@ -399,18 +529,16 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
   // `/Lotus/StoreItems/...` só com drops) e, se a de loja vier primeiro, um guard
   // feito em uma passada só deixa AS DUAS entrarem.
   const dropOnly = [];
-  for (const file of ['Misc.json', 'Skins.json', 'Glyphs.json', 'Sigils.json']) {
-    let arr;
-    try { arr = await fetchJson(`${RAW_BASE}/${file}`, { timeoutMs: 120000 }); }
-    catch (err) { log(`[ingest] ${file} falhou (seguindo): ${err.message}`); continue; }
-    if (!Array.isArray(arr)) continue;
+  for (const [file, arr] of miscArrays) {
     let res = 0;
     for (const it of arr) {
       if (!it || typeof it.name !== 'string') continue;
       addAsset(it.name, it.imageName);
       if (file !== 'Misc.json') continue;
       if (it.type === 'Nightwave Challenge' && typeof it.uniqueName === 'string') {
-        challengeRows.push({ key: it.uniqueName.split('/').pop().toLowerCase(), en: it.name, u: it.uniqueName });
+        challengeRows.push({
+          key: it.uniqueName.split('/').pop().toLowerCase(), en: it.name, enDescr: it.description, u: it.uniqueName,
+        });
       }
       const cls = classifyMisc(it);
       if (!cls.take) continue;
@@ -433,49 +561,40 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
   const relics = groupRelics(relicEntries);
   log(`[ingest] Relics: ${relics.length} relíquias (${relicEntries.length} entradas)`);
 
+  let i18nOk = false;
   if (includeI18n) {
     try {
-      log('[ingest] baixando i18n (~50MB) para nomes PT-BR...');
-      const i18n = await fetchJson(`${RAW_BASE}/i18n.json`, { timeoutMs: 300000, retries: 1 });
-      let hits = 0;
-      let zhHits = 0;
-      for (const row of itemRows) {
-        const tr = i18n[row.unique_name];
-        if (tr && tr.pt) {
-          const pt = cleanName(tr.pt.name);
-          if (pt && pt !== row.name) { row.name_pt = pt; hits++; }
-          if (tr.pt.description) row.slim.descriptionPt = stripIconTags(tr.pt.description);
-        }
-        // chinês simplificado: nome E descrição. Diferente de es/ru (onde o nome
-        // fica em inglês de propósito, porque market/wiki/trade usam inglês), o
-        // servidor chinês do jogo tem nomenclatura PRÓPRIA e o jogador procura
-        // por ela - sem isso a busca em chinês não acha nada.
-        if (tr && tr.zh) {
-          const zh = cleanName(tr.zh.name);
-          if (zh && zh !== row.name) { row.name_zh = zh; zhHits++; }
-          if (tr.zh.description) row.slim.descriptionZh = stripIconTags(tr.zh.description);
-        }
+      log(`[ingest] baixando i18n (${I18N_LANGS.join('/')}) para nomes traduzidos...`);
+      const i18n = {};
+      for (const lang of I18N_LANGS) {
+        i18n[lang] = await fetchJson(`${RAW_BASE}/i18n/${lang}.json`, { timeoutMs: 180000, retries: 1 });
       }
-      // mesma passada do i18n: traduz os desafios do Nightwave. O dataset deixa
-      // tokens de cor tipo `<DT_EXPLOSION>` colados ANTES da palavra traduzida
-      // ("Dano <DT_EXPLOSION>Explosivo") - no jogo isso pinta o texto, aqui vazava
-      // cru pro jogador (issue: "Detonador" mostrando a tag literal).
-      for (const c of challengeRows) {
-        const tr = i18n[c.u];
-        if (!tr) continue;
-        c.langs = {};
-        for (const l of ['pt', 'en', 'es', 'ru', 'zh']) {
-          const v = tr[l];
-          if (v && (v.name || v.description)) {
-            c.langs[l] = { title: stripIconTags(v.name) || null, descr: stripIconTags(v.description) || null };
-          }
-        }
-      }
-      const cTraduzidos = challengeRows.filter((c) => c.langs && Object.keys(c.langs).length).length;
-      log(`[ingest] i18n aplicado: ${hits} nomes pt, ${zhHits} nomes zh, ${cTraduzidos} desafios do Nightwave`);
+      const { hits, zhHits, translated } = applyTranslations(itemRows, challengeRows, i18n);
+      log(`[ingest] i18n aplicado: ${hits} nomes pt, ${zhHits} nomes zh, ${translated} desafios do Nightwave`);
+      i18nOk = true;
     } catch (err) {
-      log(`[ingest] i18n falhou (seguindo só com EN): ${err.message}`);
+      log(`[ingest] i18n falhou: ${err.message}`);
     }
+  }
+  if (!i18nOk) {
+    // Sem tradução nova, herda a do banco: um dia sem i18n não pode apagar os
+    // nomes PT/ZH que já estão no ar (de 24/09 a 08/10/2026 apagou).
+    const prev = new Map(db.prepare('SELECT unique_name, name_pt, name_zh, raw FROM items').all()
+      .map((r) => [r.unique_name, r]));
+    let kept = 0;
+    for (const row of itemRows) {
+      const p = prev.get(row.unique_name);
+      if (!p) continue;
+      row.name_pt = p.name_pt;
+      row.name_zh = p.name_zh;
+      try {
+        const old = JSON.parse(p.raw);
+        if (old.descriptionPt) row.slim.descriptionPt = old.descriptionPt;
+        if (old.descriptionZh) row.slim.descriptionZh = old.descriptionZh;
+      } catch { /* raw velho ilegível: segue sem */ }
+      if (p.name_pt || p.name_zh) kept++;
+    }
+    log(`[ingest] i18n: mantidos os nomes traduzidos anteriores (${kept} itens)`);
   }
 
   const articles = loadArticles();
@@ -526,7 +645,8 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
       insRelic.run(r.name, r.tier, r.code, r.vaulted ? 1 : 0, JSON.stringify(r.drops), JSON.stringify(r.rewards));
     }
 
-    db.prepare('DELETE FROM challenges').run();
+    // sem i18n novo os desafios só teriam inglês: mantém a tabela anterior
+    if (i18nOk) db.prepare('DELETE FROM challenges').run();
     const insCh = db.prepare('INSERT OR REPLACE INTO challenges(key, lang, title, descr) VALUES (?, ?, ?, ?)');
     for (const c of challengeRows) {
       for (const [l, v] of Object.entries(c.langs || {})) insCh.run(c.key, l, v.title, v.descr);
@@ -567,7 +687,7 @@ async function runIngest({ log = console.log, includeI18n = true } = {}) {
 
 module.exports = {
   runIngest, groupRelics, parseFrontmatter, slimItem, loadArticles, buildCraftingUses, CATEGORIES,
-  classifyMisc, miscRow, pickDropOnlyRows,
+  classifyMisc, miscRow, pickDropOnlyRows, buildComponentCatalog, resolveComponents, applyTranslations,
 };
 
 if (require.main === module) {

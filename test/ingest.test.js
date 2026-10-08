@@ -259,3 +259,59 @@ test('classifyMisc: peça de arma é reconhecida pelo CAMINHO, não pela etiquet
   };
   assert.equal(classifyMisc(desafio).take, false);
 });
+
+// ★ WFCD #992 (2026-09-24): os components dos itens viraram referência
+// { uniqueName, itemCount } e a definição foi para Components.json. Duas
+// semanas de páginas sem peça e sem drop até alguém olhar.
+const { buildComponentCatalog, resolveComponents, applyTranslations } = require('../server/ingest');
+
+test('resolveComponents: referência vira a peça do catálogo, com itemCount da receita', () => {
+  const comps = [
+    { uniqueName: '/Recipes/SarynPrimeChassis', name: 'Chassis', ducats: 100, imageName: 'c.png',
+      tradable: true, category: 'Components', parentUniqueNames: ['/Saryn'], drops: [{ location: 'Lith S17 Relic', chance: 2 }] },
+  ];
+  const resources = [{ uniqueName: '/Misc/OrokinCell', name: 'Orokin Cell', category: 'Misc', drops: [] }];
+  const catalog = buildComponentCatalog([comps, resources]);
+  const it = { name: 'Saryn Prime', components: [
+    { uniqueName: '/Recipes/SarynPrimeChassis', itemCount: 1 },
+    { uniqueName: '/Misc/OrokinCell', itemCount: 2 },
+  ] };
+  const st = resolveComponents(it, catalog);
+  assert.deepEqual(st, { refs: 2, missing: 0 });
+  assert.equal(it.components[0].name, 'Chassis');
+  assert.equal(it.components[0].ducats, 100);
+  assert.equal(it.components[0].drops[0].location, 'Lith S17 Relic');
+  assert.equal(it.components[0].parentUniqueNames, undefined, 'não carrega a lista de pais pro banco');
+  assert.equal(it.components[0].category, undefined, 'categoria da peça não pode sobrescrever a do item');
+  assert.equal(it.components[1].name, 'Orokin Cell', 'recurso resolve pelo catálogo de itens');
+  assert.equal(it.components[1].itemCount, 2);
+});
+
+test('resolveComponents: conta referência órfã e não mexe em peça já embutida (formato antigo)', () => {
+  const catalog = buildComponentCatalog([[]]);
+  const it = { components: [{ uniqueName: '/x', itemCount: 1 }, { uniqueName: '/y', name: 'Barrel', drops: [] }] };
+  assert.deepEqual(resolveComponents(it, catalog), { refs: 1, missing: 1 });
+  assert.equal(it.components[1].name, 'Barrel');
+});
+
+test('buildComponentCatalog: a 1ª fonte vence (Components.json antes do resto)', () => {
+  const cat = buildComponentCatalog([[{ uniqueName: '/a', name: 'Peça' }], [{ uniqueName: '/a', name: 'Item' }]]);
+  assert.equal(cat.get('/a').name, 'Peça');
+});
+
+test('applyTranslations: i18n por idioma (i18n/<lang>.json) dá nome pt/zh e traduz desafio', () => {
+  const rows = [{ unique_name: '/Saryn', name: 'Saryn', name_pt: null, name_zh: null, slim: {} },
+    { unique_name: '/Cat', name: 'Orokin Catalyst', name_pt: null, name_zh: null, slim: {} }];
+  const ch = [{ key: 'x', u: '/Ch/X', en: 'Detonator', enDescr: 'Kill 10' }];
+  const out = applyTranslations(rows, ch, {
+    pt: { '/Saryn': { name: 'Saryn' }, '/Cat': { name: 'Catalisador Orokin', description: 'Dobra' }, '/Ch/X': { name: 'Dano <DT_EXPLOSION>Explosivo' } },
+    zh: { '/Cat': { name: '奥罗金催化剂' } },
+  });
+  assert.equal(rows[0].name_pt, null, 'nome igual ao inglês não vira tradução');
+  assert.equal(rows[1].name_pt, 'Catalisador Orokin');
+  assert.equal(rows[1].slim.descriptionPt, 'Dobra');
+  assert.equal(rows[1].name_zh, '奥罗金催化剂');
+  assert.equal(ch[0].langs.pt.title, 'Dano Explosivo', 'tag de cor não vaza');
+  assert.equal(ch[0].langs.en.title, 'Detonator', 'inglês vem do próprio dataset');
+  assert.deepEqual(out, { hits: 1, zhHits: 1, translated: 1 });
+});
