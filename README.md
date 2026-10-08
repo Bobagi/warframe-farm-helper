@@ -97,7 +97,9 @@ translated, and the typography was adjusted for CJK.
 - **Items and drops**: [WFCD/warframe-items](https://github.com/WFCD/warframe-items), which packages
   Digital Extremes' official drop tables. Re-ingested daily.
 - **Clan research, vendors and Market prices**: the official wiki data modules.
-- **Live game state** (fissures, Nightwave, Baro, cycles, Varzia):
+- **Void fissures**: Digital Extremes' official worldstate, with node names from
+  [WFCD/warframe-worldstate-data](https://github.com/WFCD/warframe-worldstate-data); warframestat.us as fallback.
+- **Other live game state** (Nightwave, Baro, cycles, Varzia):
   [warframestat.us](https://api.warframestat.us), queried on every request.
 - **Trading prices**: [warframe.market](https://warframe.market).
 

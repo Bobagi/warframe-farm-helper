@@ -47,15 +47,23 @@ const asyncRoute = (fn) => (req, res, next) => fn(req, res, next).catch(next);
 
 // ---- rotas ----
 
+// Ingest diário: passou de 48h sem um bem-sucedido, o catálogo está parado (o
+// ingest aborta mantendo o banco quando o formato do WFCD muda). O
+// healthcheck do box procura `"catalogFresh":true` - em 24/09/2026 o catálogo
+// quebrou e o /health seguiu "ok" por duas semanas sem ninguém saber.
+const CATALOG_STALE_MS = 48 * 3600 * 1000;
+
 router.get('/health', (req, res) => {
   const db = getDb();
   let counts = {};
   try { counts = JSON.parse(getMeta(db, 'counts') || '{}'); } catch { counts = {}; }
+  const lastIngest = getMeta(db, 'last_ingest');
   res.json({
     ok: true,
     ready: (counts.items || 0) > 0,
     counts,
-    lastIngest: getMeta(db, 'last_ingest'),
+    lastIngest,
+    catalogFresh: Date.now() - Date.parse(lastIngest) < CATALOG_STALE_MS,
     searchDocs: stats().docs,
   });
 });

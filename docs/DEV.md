@@ -62,7 +62,13 @@ viraria uma linha de megabytes no banco. Ver `server/wikiacq.js`.
 | Camada | Fonte | Frequência | O que cobre |
 |---|---|---|---|
 | **Catálogo** (SQLite) | JSONs do WFCD/warframe-items + módulos de dados da wiki | **1×/dia**, ~07:43 UTC | itens, relíquias, flag vaulted, drop tables, nomes PT, artigos do FAQ, **pesquisa no Dojo / vendedores / preço no Mercado** |
-| **Estado do jogo** (memória) | api.warframestat.us | **a cada request**, cache de 90s | fissuras, Nightwave, Baro, ciclos dos mundos, rotação da Varzia (cache 6h) |
+| **Estado do jogo** (memória) | fissuras: worldstate oficial da DE (`api.warframe.com/cdn/worldState.php`) + tabelas de nós do `warframe-worldstate-data`, com api.warframestat.us de reserva; o resto: api.warframestat.us | **a cada request**, cache de 90s | fissuras, Nightwave, Baro, ciclos dos mundos, rotação da Varzia (cache 6h) |
+
+**Formato do WFCD muda sem aviso.** Em 24/09/2026 (WFCD #992) os `components` viraram referência
+`{uniqueName, itemCount}` resolvida por `Components.json` e o `i18n.json` virou `i18n/<lang>.json`; o
+ingest seguiu gravando páginas sem peça e sem nome PT/ZH por duas semanas. Hoje o ingest **aborta mantendo
+o banco** se mais de 5% das peças ficarem sem definição, e herda as traduções do banco se o i18n falhar.
+Ao investigar dado estranho, olhe primeiro o log do ingest (`docker logs warframe-helper | grep ingest`).
 
 Consequência prática: **conteúdo derivado do markdown vive no banco**. Editar `content/**/*.md` só aparece
 no site depois de rodar a ingestão - o mesmo vale para qualquer varredura de texto.
