@@ -848,10 +848,11 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
 }
 
 /* ============================================================
-   Publicidade (Google AdSense, só após consentimento no banner
-   de cookies - ver public/js/ads.js). Rails/bloco mobile só
-   renderizam com unit manual configurada; Auto ads posiciona
-   sozinho. + Banner de consentimento (LGPD).
+   Publicidade (Adsterra em iframe sandbox; AdSense desligado),
+   só após consentimento no banner de cookies - ver
+   public/js/ads.js. Rails/bloco mobile são do AdSense e só
+   renderizam com unit manual configurada. + Banner de
+   consentimento (LGPD).
    ============================================================ */
 .cookie-banner {
   position: fixed;
@@ -930,6 +931,22 @@ h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; }
 
 ins.adsbygoogle {
   max-width: 100%;
+}
+
+/* Adsterra: banner no topo e Native Banner antes do rodapé */
+.ad-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.ad-top { padding: 10px 16px 0; }
+.ad-native { padding-top: 24px; padding-bottom: 8px; }
+.ad-frame {
+  display: block;
+  max-width: 100%;
+  border: 0;
+  overflow: hidden;
 }
 
 /* ---------- "como conseguir" (pesquisa no Dojo / vendedores / Mercado) ----------

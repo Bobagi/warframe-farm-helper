@@ -4,7 +4,7 @@ keywords: privacidad, cookies, lgpd, datos, anuncios
 order: 1
 ---
 
-Última actualización: 15 de agosto de 2026.
+Última actualización: 8 de octubre de 2026.
 
 **Warframe Farm Helper** (`warframe.bobagi.space`) es un sitio de fans, gratuito
 y de código abierto, mantenido por **Gustavo Perin** ("nosotros"). Esta página
@@ -30,32 +30,33 @@ analítica auto-alojada en nuestro propio servidor, que **no usa cookies** y no
 crea perfiles individuales: los datos quedan agregados (páginas más vistas, país
 de origen, tipo de navegador) y no se comparten con terceros.
 
-**3. Publicidad (Google AdSense), solo con tu consentimiento.** El sitio
-muestra anuncios de Google AdSense **solo si aceptas** en el banner de cookies.
-Al aceptar, se carga el script de Google y Google puede usar cookies e
-identificadores para medir y, según la configuración de tu cuenta de Google,
-personalizar anuncios; Google trata esos datos bajo sus propias políticas,
-descritas en
-[policies.google.com/technologies/partner-sites](https://policies.google.com/technologies/partner-sites).
-Puedes gestionar la personalización en
-[adssettings.google.com](https://adssettings.google.com). Si **rechazas**, no se
-carga ningún script de publicidad. Base legal: consentimiento (art. 7, I de la
-LGPD), revocable en cualquier momento con el enlace **"Gestionar cookies"** en
-el pie de cualquier página.
+**3. Publicidad (Adsterra), solo con tu consentimiento.** El sitio muestra
+anuncios de la red **Adsterra** **solo si aceptas** en el banner de cookies. Al
+aceptar, los anuncios se cargan dentro de marcos aislados (iframes sin acceso al
+resto del sitio) y Adsterra y sus anunciantes pueden usar cookies e
+identificadores para mostrar, medir y limitar la repetición de los anuncios;
+Adsterra trata esos datos bajo su propia política, descrita en
+[adsterra.com/privacy-policy](https://adsterra.com/privacy-policy/). Google
+AdSense también está integrado en el sitio, pero hoy está desactivado; si se
+vuelve a usar, sigue la misma regla de consentimiento y las políticas de Google
+([policies.google.com/technologies/partner-sites](https://policies.google.com/technologies/partner-sites)).
+Si **rechazas**, no se carga ningún script de publicidad. Base legal:
+consentimiento (art. 7, I de la LGPD), revocable en cualquier momento con el
+enlace **"Gestionar cookies"** en el pie de cualquier página.
 
 ## Transferencia internacional
 
 Si consientes los anuncios, los datos de navegación pueden ser tratados por
-Google en servidores fuera de Brasil, bajo las salvaguardas de las políticas de
-Google.
+la red de anuncios en servidores fuera de Brasil, bajo las salvaguardas de sus
+políticas.
 
 ## Tus derechos (LGPD)
 
 La LGPD te garantiza confirmación del tratamiento, acceso, corrección,
 anonimización, eliminación e información sobre el intercambio de tus datos
 (art. 18). Como el sitio no mantiene cuentas, en la práctica los únicos datos
-vinculables a ti son los logs de corta duración y las cookies de Google (que
-controlas con el banner y la configuración de tu cuenta de Google). Para ejercer
+vinculables a ti son los logs de corta duración y las cookies de la red de
+anuncios (que controlas con el banner). Para ejercer
 cualquier derecho, escribe a **gustavoperin067@gmail.com**.
 
 ## Menores

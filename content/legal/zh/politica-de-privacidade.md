@@ -4,7 +4,7 @@ keywords: 隐私, cookies, lgpd, 数据, 广告
 order: 1
 ---
 
-最后更新：2026年8月15日。
+最后更新：2026年10月8日。
 
 **Warframe Farm Helper**（`warframe.bobagi.space`）是一个免费、开源的粉丝网站，由
 **Gustavo Perin**（"我们"）维护。本页面用直白的语言说明本站处理哪些数据以及原因。
@@ -25,25 +25,26 @@ order: 1
 工具，它**不使用 cookies**，也不建立个人画像：数据仅以汇总形式存在（最受欢迎的页面、
 来源国家、浏览器类型），不与第三方共享。
 
-**3. 广告（Google AdSense），仅在您同意后加载。** 只有当您在 cookie 横幅中点击
-**"接受"**，本站才会展示 Google AdSense 广告。接受后会加载 Google 的脚本，Google
-可能使用 cookies 和标识符进行统计，并根据您 Google 账号的设置进行广告个性化；
-Google 依照其自身政策处理这些数据，详见
-[policies.google.com/technologies/partner-sites](https://policies.google.com/technologies/partner-sites)。
-您可以在 [adssettings.google.com](https://adssettings.google.com) 管理广告个性化。
+**3. 广告（Adsterra），仅在您同意后加载。** 只有当您在 cookie 横幅中点击
+**"接受"**，本站才会展示 **Adsterra** 广告网络的广告。接受后，广告会在隔离的框架
+（无法访问本站其他部分的 iframe）中加载，Adsterra 及其广告主可能使用 cookies 和
+标识符来展示、统计广告并限制重复次数；Adsterra 依照其自身政策处理这些数据，详见
+[adsterra.com/privacy-policy](https://adsterra.com/privacy-policy/)。本站也集成了
+Google AdSense，但目前处于关闭状态；如果重新启用，同样遵循此同意规则及 Google 的政策
+（[policies.google.com/technologies/partner-sites](https://policies.google.com/technologies/partner-sites)）。
 如果您**拒绝**，任何广告脚本都不会加载。法律依据：同意（LGPD 第7条第I款），您可随时
 通过任意页面页脚的**"管理 cookies"**链接撤回。
 
 ## 数据跨境传输
 
-若您同意广告，浏览数据可能由 Google 在巴西境外的服务器上处理，并受 Google 政策的
+若您同意广告，浏览数据可能由广告网络在巴西境外的服务器上处理，并受其政策的
 保障约束。
 
 ## 您的权利（LGPD）
 
 LGPD 保障您对数据处理的确认、访问、更正、匿名化、删除以及共享情况知情等权利
-（第18条）。由于本站不设账号，实际上唯一可能与您关联的数据是短期日志和 Google 的
-cookies（您可通过横幅和 Google 账号设置控制）。行使任何权利，请写信至
+（第18条）。由于本站不设账号，实际上唯一可能与您关联的数据是短期日志和广告网络的
+cookies（您可通过横幅控制）。行使任何权利，请写信至
 **gustavoperin067@gmail.com**。
 
 ## 儿童

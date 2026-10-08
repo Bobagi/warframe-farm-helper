@@ -4,7 +4,7 @@ keywords: privacy, cookies, lgpd, data, ads
 order: 1
 ---
 
-Last updated: August 15, 2026.
+Last updated: October 8, 2026.
 
 **Warframe Farm Helper** (`warframe.bobagi.space`) is a free, open-source fan
 site maintained by **Gustavo Perin** ("we"). This page explains, in plain
@@ -30,30 +30,32 @@ running on our own server, which **uses no cookies** and builds no individual
 profile: data stays aggregated (most viewed pages, country of origin, browser
 type) and is not shared with third parties.
 
-**3. Advertising (Google AdSense), only with your consent.** The site shows
-Google AdSense ads **only if you accept** in the cookie banner. If you accept,
-Google's script is loaded and Google may use cookies and identifiers to measure
-and, depending on your Google account settings, personalize ads; Google
-processes this data under its own policies, described at
-[policies.google.com/technologies/partner-sites](https://policies.google.com/technologies/partner-sites).
-You can manage ad personalization at
-[adssettings.google.com](https://adssettings.google.com). If you **reject**, no
-advertising script is loaded at all. Legal basis: consent (art. 7, I of the
-LGPD), revocable at any time through the **"Manage cookies"** link in the footer
-of every page.
+**3. Advertising (Adsterra), only with your consent.** The site shows ads from
+the **Adsterra** network **only if you accept** in the cookie banner. If you
+accept, the ads are loaded inside isolated frames (iframes with no access to the
+rest of the site), and Adsterra and its advertisers may use cookies and
+identifiers to serve, measure and cap the frequency of ads; Adsterra processes
+this data under its own policy, described at
+[adsterra.com/privacy-policy](https://adsterra.com/privacy-policy/). Google
+AdSense is also integrated into the site but is currently switched off; if it is
+used again, it follows the same consent rule and Google's policies
+([policies.google.com/technologies/partner-sites](https://policies.google.com/technologies/partner-sites)).
+If you **reject**, no advertising script is loaded at all. Legal basis: consent
+(art. 7, I of the LGPD), revocable at any time through the **"Manage cookies"**
+link in the footer of every page.
 
 ## International data transfer
 
-If you consent to ads, browsing data may be processed by Google on servers
-outside Brazil, under the safeguards of Google's policies.
+If you consent to ads, browsing data may be processed by the ad network on
+servers outside Brazil, under the safeguards of its policies.
 
 ## Your rights (LGPD)
 
 The LGPD grants you confirmation of processing, access, correction,
 anonymization, deletion and information about sharing of your data (art. 18).
 Since the site keeps no user accounts, in practice the only data linkable to you
-are the short-lived logs and Google's cookies (which you control through the
-banner and your Google account settings). To exercise any right, write to
+are the short-lived logs and the ad network's cookies (which you control through
+the banner). To exercise any right, write to
 **gustavoperin067@gmail.com**.
 
 ## Children

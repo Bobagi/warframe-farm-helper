@@ -74,7 +74,8 @@ test('nenhum HTML carrega o adsbygoogle estaticamente (gate de consentimento)', 
 // (que fica atrás do consentimento). A meta de verificação não carrega nada de
 // terceiro nem grava cookie, então pode ficar em todas as páginas.
 test('toda página tem a meta de verificação do AdSense', () => {
-  for (const f of fs.readdirSync(path.join(ROOT, 'public')).filter((f) => f.endsWith('.html'))) {
+  // ad-frame.html não é página: é a moldura noindex dos anúncios da Adsterra
+  for (const f of fs.readdirSync(path.join(ROOT, 'public')).filter((f) => f.endsWith('.html') && f !== 'ad-frame.html')) {
     assert.match(read(`public/${f}`), /<meta name="google-adsense-account" content="ca-pub-5349785075769585">/, f);
   }
 });
@@ -90,5 +91,46 @@ test('A-ads foi removida de todo o código', () => {
 test('CSP libera os hosts do AdSense', () => {
   const src = read('server/index.js');
   assert.match(src, /script-src 'self' https:\/\/pagead2\.googlesyndication\.com/);
-  assert.match(src, /frame-src https:\/\/googleads\.g\.doubleclick\.net/);
+  assert.match(src, /frame-src 'self' https:\/\/googleads\.g\.doubleclick\.net/);
+});
+
+// ---- Adsterra: só sob consentimento e isolada em iframe sandbox ----
+
+test('nenhum HTML carrega a Adsterra estaticamente (gate de consentimento)', () => {
+  for (const f of fs.readdirSync(path.join(ROOT, 'public')).filter((f) => f.endsWith('.html') && f !== 'ad-frame.html')) {
+    assert.doesNotMatch(read(`public/${f}`), /bauval\.org|ad-frame|atOptions/, f);
+  }
+});
+
+test('moldura da Adsterra roda em sandbox SEM allow-same-origin nem top-navigation', () => {
+  const src = read('public/js/ads.js');
+  const m = src.match(/sandbox: '([^']+)'/);
+  assert.ok(m, 'iframe sem atributo sandbox');
+  assert.doesNotMatch(m[1], /allow-same-origin|allow-top-navigation|allow-forms/);
+  assert.match(m[1], /allow-scripts/);
+});
+
+test('ads.js só cria os anúncios depois do Aceitar', () => {
+  const src = read('public/js/ads.js');
+  assert.match(src, /CONSENT_KEY = 'cookieConsent\.v2'/);
+  assert.match(src, /if \(consent === 'accepted'\) loadAds\(\);/);
+  assert.match(src, /if \(v === 'accepted'\) loadAds\(\);/);
+  // a altura vinda do iframe é conferida pela origem da mensagem e limitada
+  assert.match(src, /ev\.source !== native\.contentWindow/);
+  assert.match(src, /Math\.min\(NATIVE_MAX_HEIGHT/);
+});
+
+test('CSP: página principal só emoldura a si mesma; a moldura não aceita ser emoldurada por terceiros', () => {
+  const src = read('server/index.js');
+  assert.match(src, /"frame-src 'self' https:\/\/googleads/);
+  assert.match(src, /script-src 'self' https:\/\/pagead2/); // nada de host da Adsterra na página principal
+  assert.doesNotMatch(src.split('AD_FRAME_CSP')[0], /bauval|unsafe-eval/);
+  assert.match(src, /"frame-ancestors 'self'"/);
+  assert.match(src, /app\.get\('\/ad-frame\.html'/);
+});
+
+test('política de privacidade cita a Adsterra nos 5 idiomas', () => {
+  const arts = loadArticles().filter((a) => a.kind === 'legal' && a.slug === 'politica-de-privacidade');
+  assert.equal(arts.length, 5);
+  for (const a of arts) assert.match(a.html, /Adsterra/, a.lang);
 });

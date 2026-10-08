@@ -1,10 +1,11 @@
 'use strict';
 
 /**
- * Publicidade - Google AdSense, carregado SÓ após consentimento (LGPD/GDPR).
+ * Publicidade - Adsterra (e AdSense, desligado), carregada SÓ após
+ * consentimento (LGPD/GDPR).
  *
- * Padrão (app-essentials §9): nenhum tag estático de ads no HTML - o script
- * do AdSense é injetado em runtime apenas quando o visitante ACEITA cookies
+ * Padrão (app-essentials §9): nenhum tag estático de ads no HTML - os anúncios
+ * são injetados em runtime apenas quando o visitante ACEITA cookies
  * no banner. "Rejeitar" tem a mesma proeminência e nada de terceiro carrega.
  * O Umami (analytics) é cookieless e self-hosted, então fica fora do gate.
  *
@@ -13,14 +14,25 @@
  * carregado. A CHAVE do consentimento é versionada - mudar as categorias de
  * cookies (ex.: nova rede de ads) = bumpar CONSENT_KEY para todos re-decidirem.
  *
- * AdSense: com o site aprovado e Auto ads LIGADO no painel, o script sozinho
+ * Adsterra: cada unit roda num iframe sandbox de /ad-frame.html (sem
+ * allow-same-origin nem allow-top-navigation): o script da rede não alcança o
+ * DOM, o localStorage nem a navegação do site, e a CSP estrita daqui continua
+ * valendo. Os códigos das units ficam em public/js/ad-frame.js.
+ *
+ * AdSense: DESLIGADO (ADSENSE_ENABLED). O AdSense avalia o domínio RAIZ
+ * (bobagi.space, o portfólio) e o reprovou em 2026-08-30 por "conteúdo de
+ * baixo valor". Se um dia for aprovado, é só religar a flag.
+ * Com o site aprovado e Auto ads LIGADO no painel, o script sozinho
  * já posiciona os anúncios. Units manuais (criadas na UI do AdSense, não há
  * API) entram em SLOTS abaixo - vazio = só Auto ads.
  */
 
 (() => {
+  const ADSENSE_ENABLED = false;
   const ADSENSE_CLIENT = 'ca-pub-5349785075769585';
-  const CONSENT_KEY = 'cookieConsent.v1'; // v1 = categoria "publicidade" (AdSense)
+  // v1 = AdSense; v2 = entrou a Adsterra (rede nova: todos decidem de novo)
+  const CONSENT_KEY = 'cookieConsent.v2';
+  const NATIVE_MAX_HEIGHT = 800;
   const PRIVACY_URL = '/legal/politica-de-privacidade';
 
   // IDs de unit manuais do AdSense (data-ad-slot). Vazio = nenhum bloco fixo;
@@ -37,10 +49,54 @@
     try { localStorage.setItem(CONSENT_KEY, v); } catch { /* modo privado */ }
   };
 
-  let adsenseLoaded = false;
+  const adFrame = (unit, width, height) => el('iframe', {
+    src: `/ad-frame.html?u=${unit}`,
+    title: t('ads.label'),
+    width: String(width),
+    height: String(height),
+    loading: 'lazy',
+    scrolling: 'no',
+    referrerpolicy: 'strict-origin-when-cross-origin',
+    sandbox: 'allow-scripts allow-popups allow-popups-to-escape-sandbox',
+    class: 'ad-frame',
+  });
+
+  // Banner no topo (728x90 no desktop, 320x50 no celular) e Native Banner
+  // antes do rodapé. A altura do banner é reservada para não empurrar o
+  // conteúdo quando o anúncio chega (CLS).
+  function renderAdsterra() {
+    const label = () => el('span', { class: 'ad-label', text: t('ads.label') });
+    const header = document.getElementById('site-header');
+    if (header) {
+      const wide = window.matchMedia('(min-width: 760px)').matches;
+      header.after(el('aside', { class: 'ad-slot ad-top', 'aria-label': t('ads.label') }, [
+        label(), wide ? adFrame('b728', 728, 90) : adFrame('b320', 320, 50),
+      ]));
+    }
+    const footer = document.getElementById('site-footer');
+    if (footer) {
+      const native = adFrame('native', '100%', 0);
+      window.addEventListener('message', (ev) => {
+        if (ev.source !== native.contentWindow) return;
+        const h = Number(ev.data && ev.data.adFrameHeight);
+        if (!Number.isFinite(h)) return;
+        native.height = String(Math.max(0, Math.min(NATIVE_MAX_HEIGHT, Math.round(h))));
+      });
+      footer.before(el('aside', { class: 'ad-slot ad-native wrap', 'aria-label': t('ads.label') }, [
+        label(), native,
+      ]));
+    }
+  }
+
+  let adsLoaded = false;
+  function loadAds() {
+    if (adsLoaded) return;
+    adsLoaded = true;
+    renderAdsterra();
+    if (ADSENSE_ENABLED) loadAdsense();
+  }
+
   function loadAdsense() {
-    if (adsenseLoaded) return;
-    adsenseLoaded = true;
     const s = document.createElement('script');
     s.async = true;
     s.crossOrigin = 'anonymous';
@@ -89,9 +145,9 @@
       const had = getConsent();
       setConsent(v);
       document.getElementById('cookie-banner')?.remove();
-      if (v === 'accepted') loadAdsense();
+      if (v === 'accepted') loadAds();
       // já tinha aceitado e agora recusou: recarrega p/ derrubar o script
-      else if (had === 'accepted' || adsenseLoaded) location.reload();
+      else if (had === 'accepted' || adsLoaded) location.reload();
     };
     document.body.append(el('div', {
       id: 'cookie-banner', class: 'cookie-banner', role: 'dialog',
@@ -121,6 +177,6 @@
   }
 
   const consent = getConsent();
-  if (consent === 'accepted') loadAdsense();
+  if (consent === 'accepted') loadAds();
   else if (consent !== 'rejected') showBanner();
 })();
