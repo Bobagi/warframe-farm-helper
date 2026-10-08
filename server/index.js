@@ -44,9 +44,9 @@ app.use((req, res, next) => {
     "script-src 'self' https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://googleads.g.doubleclick.net https://www.googletagservices.com https://adservice.google.com https://ep2.adtrafficquality.google",
     "connect-src 'self' https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google https://csi.gstatic.com",
     "font-src 'self'",
-    // os criativos do AdSense rodam em iframes destas origens; 'self' é a
-    // moldura sandbox da Adsterra (/ad-frame.html)
-    "frame-src 'self' https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://pagead2.googlesyndication.com https://www.google.com https://ep2.adtrafficquality.google",
+    // os criativos do AdSense rodam em iframes destas origens; wfads é a
+    // moldura da Adsterra (/ad-frame.html, origem separada de propósito)
+    "frame-src https://wfads.bobagi.space https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://pagead2.googlesyndication.com https://www.google.com https://ep2.adtrafficquality.google",
     "base-uri 'none'",
     "frame-ancestors 'none'",
     "form-action 'self'",
@@ -59,16 +59,17 @@ app.use((req, res, next) => {
 
 app.use('/api', api);
 
-// Moldura dos anúncios da Adsterra. O ads.js a abre num iframe sandbox SEM
-// allow-same-origin: o script da rede roda numa origem opaca, sem acesso ao
-// site. Por isso a CSP aqui pode ser solta (a Adsterra roda scripts e frames
-// de domínios que trocam sem aviso); o que não abre: ser emoldurada por
-// terceiros, <base> e envio de formulário.
+// Moldura dos anúncios da Adsterra, servida pelo host wfads.bobagi.space (o
+// nginx desse vhost só repassa /ad-frame.html e /js/ad-frame.js). Origem
+// separada = o script da rede não tem acesso ao site principal, então a CSP
+// aqui pode ser solta (a Adsterra roda scripts e frames de domínios que trocam
+// sem aviso); o que não abre: ser emoldurada por outro site, <base> e envio de
+// formulário.
 const AD_FRAME_CSP = [
   "default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'",
   "base-uri 'none'",
   "form-action 'none'",
-  "frame-ancestors 'self'",
+  'frame-ancestors https://warframe.bobagi.space',
 ].join('; ');
 app.get('/ad-frame.html', (req, res) => {
   res.setHeader('Content-Security-Policy', AD_FRAME_CSP);

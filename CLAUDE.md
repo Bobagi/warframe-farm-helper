@@ -41,8 +41,12 @@ Detalhe técnico completo em [`docs/DEV.md`](docs/DEV.md); fontes de dados no `R
   popunder, social bar, interstitial ou anúncio adulto (não ligar: estragam o site e o SEO).
   Chaves das units em `public/js/ad-frame.js`.
 - **Como roda:** depois do "Aceitar" (chave `cookieConsent.v2`), o `ads.js` cria iframes
-  `/ad-frame.html?u=b728|b320|native` com `sandbox="allow-scripts allow-popups
-  allow-popups-to-escape-sandbox"` (NUNCA `allow-same-origin` nem `allow-top-navigation`).
+  `https://wfads.bobagi.space/ad-frame.html?u=b728|b320|native` com `sandbox="allow-scripts
+  allow-same-origin allow-popups allow-popups-to-escape-sandbox"` (nunca `allow-top-navigation`).
+  O script da Adsterra lê `document.cookie`, então precisa de `allow-same-origin`; por isso a
+  moldura vem de OUTRA origem (vhost nginx `wfads.bobagi.space` na VPS, que só repassa
+  `/ad-frame.html` e `/js/ad-frame.js` para o container; DNS proxied no Cloudflare, cert
+  certbot). Nunca servir a moldura pelo próprio warframe.bobagi.space com same-origin.
   A moldura tem CSP própria e solta (rota em `server/index.js`); a página principal continua
   com `script-src` estrito, sem host da Adsterra. Banner no topo (728x90 se a janela tem
   760px ou mais, senão 320x50), nativo antes do rodapé (altura via postMessage, limitada).

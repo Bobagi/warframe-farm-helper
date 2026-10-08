@@ -14,10 +14,13 @@
  * carregado. A CHAVE do consentimento é versionada - mudar as categorias de
  * cookies (ex.: nova rede de ads) = bumpar CONSENT_KEY para todos re-decidirem.
  *
- * Adsterra: cada unit roda num iframe sandbox de /ad-frame.html (sem
- * allow-same-origin nem allow-top-navigation): o script da rede não alcança o
- * DOM, o localStorage nem a navegação do site, e a CSP estrita daqui continua
- * valendo. Os códigos das units ficam em public/js/ad-frame.js.
+ * Adsterra: cada unit roda num iframe de /ad-frame.html servido por OUTRA
+ * origem (AD_FRAME_ORIGIN, vhost próprio no nginx). O script da rede precisa
+ * de allow-same-origin (lê document.cookie; sem isso quebra com SecurityError
+ * e o anúncio vem vazio), e sendo outro host isso dá a ele cookies próprios,
+ * mas nenhum acesso ao DOM, ao localStorage ou à navegação deste site (sem
+ * allow-top-navigation). A CSP estrita daqui continua valendo. Os códigos das
+ * units ficam em public/js/ad-frame.js.
  *
  * AdSense: DESLIGADO (ADSENSE_ENABLED). O AdSense avalia o domínio RAIZ
  * (bobagi.space, o portfólio) e o reprovou em 2026-08-30 por "conteúdo de
@@ -33,6 +36,7 @@
   // v1 = AdSense; v2 = entrou a Adsterra (rede nova: todos decidem de novo)
   const CONSENT_KEY = 'cookieConsent.v2';
   const NATIVE_MAX_HEIGHT = 800;
+  const AD_FRAME_ORIGIN = 'https://wfads.bobagi.space';
   const PRIVACY_URL = '/legal/politica-de-privacidade';
 
   // IDs de unit manuais do AdSense (data-ad-slot). Vazio = nenhum bloco fixo;
@@ -50,14 +54,14 @@
   };
 
   const adFrame = (unit, width, height) => el('iframe', {
-    src: `/ad-frame.html?u=${unit}`,
+    src: `${AD_FRAME_ORIGIN}/ad-frame.html?u=${unit}`,
     title: t('ads.label'),
     width: String(width),
     height: String(height),
     loading: 'lazy',
     scrolling: 'no',
     referrerpolicy: 'strict-origin-when-cross-origin',
-    sandbox: 'allow-scripts allow-popups allow-popups-to-escape-sandbox',
+    sandbox: 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox',
     class: 'ad-frame',
   });
 
@@ -77,7 +81,7 @@
     if (footer) {
       const native = adFrame('native', '100%', 0);
       window.addEventListener('message', (ev) => {
-        if (ev.source !== native.contentWindow) return;
+        if (ev.source !== native.contentWindow || ev.origin !== AD_FRAME_ORIGIN) return;
         const h = Number(ev.data && ev.data.adFrameHeight);
         if (!Number.isFinite(h)) return;
         native.height = String(Math.max(0, Math.min(NATIVE_MAX_HEIGHT, Math.round(h))));

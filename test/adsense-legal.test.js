@@ -91,7 +91,7 @@ test('A-ads foi removida de todo o código', () => {
 test('CSP libera os hosts do AdSense', () => {
   const src = read('server/index.js');
   assert.match(src, /script-src 'self' https:\/\/pagead2\.googlesyndication\.com/);
-  assert.match(src, /frame-src 'self' https:\/\/googleads\.g\.doubleclick\.net/);
+  assert.match(src, /frame-src https:\/\/wfads\.bobagi\.space https:\/\/googleads\.g\.doubleclick\.net/);
 });
 
 // ---- Adsterra: só sob consentimento e isolada em iframe sandbox ----
@@ -102,12 +102,17 @@ test('nenhum HTML carrega a Adsterra estaticamente (gate de consentimento)', () 
   }
 });
 
-test('moldura da Adsterra roda em sandbox SEM allow-same-origin nem top-navigation', () => {
+// allow-same-origin só é seguro porque a moldura vem de OUTRA origem; se um
+// dia ela voltar para o próprio site, este teste precisa quebrar.
+test('moldura da Adsterra vem de outra origem, em sandbox sem top-navigation', () => {
   const src = read('public/js/ads.js');
   const m = src.match(/sandbox: '([^']+)'/);
   assert.ok(m, 'iframe sem atributo sandbox');
-  assert.doesNotMatch(m[1], /allow-same-origin|allow-top-navigation|allow-forms/);
+  assert.doesNotMatch(m[1], /allow-top-navigation|allow-forms|allow-modals/);
   assert.match(m[1], /allow-scripts/);
+  assert.match(src, /AD_FRAME_ORIGIN = 'https:\/\/wfads\.bobagi\.space'/);
+  assert.match(src, /src: `\$\{AD_FRAME_ORIGIN\}\/ad-frame\.html/);
+  assert.doesNotMatch(src, /src: `\/ad-frame/);
 });
 
 test('ads.js só cria os anúncios depois do Aceitar', () => {
@@ -116,16 +121,16 @@ test('ads.js só cria os anúncios depois do Aceitar', () => {
   assert.match(src, /if \(consent === 'accepted'\) loadAds\(\);/);
   assert.match(src, /if \(v === 'accepted'\) loadAds\(\);/);
   // a altura vinda do iframe é conferida pela origem da mensagem e limitada
-  assert.match(src, /ev\.source !== native\.contentWindow/);
+  assert.match(src, /ev\.source !== native\.contentWindow \|\| ev\.origin !== AD_FRAME_ORIGIN/);
   assert.match(src, /Math\.min\(NATIVE_MAX_HEIGHT/);
 });
 
 test('CSP: página principal só emoldura a si mesma; a moldura não aceita ser emoldurada por terceiros', () => {
   const src = read('server/index.js');
-  assert.match(src, /"frame-src 'self' https:\/\/googleads/);
+  assert.match(src, /"frame-src https:\/\/wfads\.bobagi\.space https:\/\/googleads/);
   assert.match(src, /script-src 'self' https:\/\/pagead2/); // nada de host da Adsterra na página principal
   assert.doesNotMatch(src.split('AD_FRAME_CSP')[0], /bauval|unsafe-eval/);
-  assert.match(src, /"frame-ancestors 'self'"/);
+  assert.match(src, /'frame-ancestors https:\/\/warframe\.bobagi\.space'/);
   assert.match(src, /app\.get\('\/ad-frame\.html'/);
 });
 
