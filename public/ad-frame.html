@@ -8,7 +8,9 @@
        sandbox SEM allow-same-origin: o script da rede roda numa origem opaca,
        sem acesso ao DOM, ao localStorage ou à navegação da página principal.
        CSP própria (mais solta) definida em server/index.js. -->
-  <style>html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; }</style>
+  <!-- o Native Banner herda cor e fonte daqui (painel: Font color "Inherit"):
+       texto claro do tema escuro do site -->
+  <style>html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; color: #e9ecf5; font: 14px/1.35 system-ui, sans-serif; }</style>
 </head>
 <body>
   <script src="/js/ad-frame.js?v=20261008"></script>
